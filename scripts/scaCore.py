@@ -39,16 +39,16 @@ from __future__ import division
 import sys
 import time
 import os
-import numpy as np
-import copy
-import scipy.cluster.hierarchy as sch
-import matplotlib.pyplot as plt
+#  import numpy as np
+#  import copy
+#  import scipy.cluster.hierarchy as sch
+#  import matplotlib.pyplot as plt
 import scaTools as sca
 import pickle
 import argparse
-from Bio import SeqIO
-from scipy.stats import t
-from scipy.stats import scoreatpercentile
+#  from Bio import SeqIO
+#  from scipy.stats import t
+#  from scipy.stats import scoreatpercentile
 from scipy.io import savemat
 
 if __name__ == '__main__':

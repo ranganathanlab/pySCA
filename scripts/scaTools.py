@@ -27,7 +27,7 @@ from scipy.sparse import csr_matrix as sparsify
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import matplotlib.cm as cm
-from mpl_toolkits.mplot3d import Axes3D
+#  from mpl_toolkits.mplot3d import Axes3D
 import colorsys
 import shutil
 from Bio.PDB.PDBParser import PDBParser
@@ -37,7 +37,7 @@ from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from scipy.stats import t
 from scipy.stats import scoreatpercentile
-from optparse import OptionParser
+#  from optparse import OptionParser
 
 ##########################################################################
 # PATHS
@@ -99,10 +99,12 @@ class Annot:
 
 
 def readAlg(filename):
-    ''' Read in a multiple sequence alignment in fasta format, and return the
+    '''
+    Read in a multiple sequence alignment in fasta format, and return the
     headers and sequences.
 
-    >>> headers, sequences = readAlg(filename) '''
+    >>> headers, sequences = readAlg(filename)
+    '''
     filelines = open(filename, 'r').readlines()
     headers = list()
     sequences = list()
@@ -110,7 +112,8 @@ def readAlg(filename):
     for line in filelines:
         if line[0] == '>':
             if notfirst > 0:
-                sequences.append(seq.replace('\n', '').upper())
+                #  sequences.append(seq.replace('\n', '').upper())
+                sequences.append(string.replace('\n', '').upper())
             headers.append(line[1:].replace('\n', ''))
             seq = ''
             notfirst = 1
@@ -121,9 +124,16 @@ def readAlg(filename):
 
 
 def AnnotPfam(pfam_in, pfam_out, pfam_seq=path2pfamseq):
-    ''' Phylogenetic annotation of a Pfam alignment (in fasta format) using information from pfamseq.txt. The output is a fasta file containing phylogenetic annotations in the header (to be parsed with '|' as a delimiter).
+    '''
+    Phylogenetic annotation of a Pfam alignment (in fasta format) using
+    information from pfamseq.txt. The output is a fasta file containing
+    phylogenetic annotations in the header (to be parsed with '|' as a
+    delimiter).
 
-    Note: the headers for the original alignment take the form >AAA/x-y.  If two entries have same AAA but correspond to different sequences only one of the two sequences will be represented (twice) in the output - this should however not practically be an issue.
+    Note: the headers for the original alignment take the form >AAA/x-y.  If
+    two entries have same AAA but correspond to different sequences only one of
+    the two sequences will be represented (twice) in the output - this should
+    however not practically be an issue.
 
     :Arguments:
         -  input PFAM sequence alignment
@@ -156,8 +166,8 @@ def AnnotPfam(pfam_in, pfam_out, pfam_seq=path2pfamseq):
             info = seq_info[key]
         except BaseException:
             info = '\t'.join(['unknown'] * 10 + ['unknown;unknown'])
-        # this f.write line works with older pfamseq.txt files (release 4 and before, was
-        # used to annotate the tutorial alignments
+        # this f.write line works with older pfamseq.txt files (release 4 and
+        # before, was used to annotate the tutorial alignments
         # f.write('>%s|%s|%s|%s\n' % (key, info.split('\t')[6], info.split('\t')[9],\
         #        ','.join([name.strip() for name in info.split('\t')[10].split(';')])))
         # this f.write line works with the new version of pfamseq.txt
@@ -191,7 +201,8 @@ def clean_al(alg, code='ACDEFGHIKLMNPQRSTVWY', gap='-'):
 
 def MSAsearch(hd, algn, seq, species=None, path2_algprog=path2needle):
     '''
-    Identify the sequence in the alignment that most closely corresponds to the species of the reference sequence, and return its index.
+    Identify the sequence in the alignment that most closely corresponds to the
+    species of the reference sequence, and return its index.
 
          **Arguments:**
            -  sequence alignment headers
@@ -306,11 +317,14 @@ def MSAsearch(hd, algn, seq, species=None, path2_algprog=path2needle):
 
 
 def chooseRefSeq(alg):
-    ''' This function chooses a default reference sequence if none is given by taking the
-    sequence which has the mean pairwise sequence identity closest to that of the entire alignment.
+    '''
+    This function chooses a default reference sequence if none is given by
+    taking the sequence which has the mean pairwise sequence identity closest
+    to that of the entire alignment.
 
     :Example:
-       >>> i_ref = chooseRefSeq(msa_num)'''
+       >>> i_ref = chooseRefSeq(msa_num)
+    '''
 
     if (len(alg) > 1000):
         seqw = seqWeights(alg)
@@ -414,10 +428,11 @@ def makeATS(sequences, refpos, refseq, iref=0, truncate=False):
 
 
 def lett2num(msa_lett, code='ACDEFGHIKLMNPQRSTVWY'):
-    ''' Translate an alignment from a representation where the 20 natural amino
+    '''
+    Translate an alignment from a representation where the 20 natural amino
     acids are represented by letters to a representation where they are
-    represented by the numbers 1,...,20, with any symbol not corresponding to an
-    amino acid represented by 0.
+    represented by the numbers 1,...,20, with any symbol not corresponding to
+    an amino acid represented by 0.
 
     :Example:
        >>> msa_num = lett2num(msa_lett, code='ACDEFGHIKLMNPQRSTVWY')
@@ -490,8 +505,8 @@ def filterSeq(alg0, sref=0.5, max_fracgaps=.2, min_seqid=.2, max_seqid=.8):
     partial seqs), (2) seqw, a vector of weights for each sequence, (3)
     seqkeep, the indices of the original alignment (alg0) retained in alg:
 
-    **Note:** if sref is set to 0.5, filterSeq calls chooseRefSeq_ to automatically select a
-              reference sequence.
+    **Note:** if sref is set to 0.5, filterSeq calls chooseRefSeq_ to
+    automatically select a reference sequence.
 
     .. _chooseRefSeq: scaTools.html#scaTools.chooseRefSeq
 
@@ -525,7 +540,8 @@ def filterSeq(alg0, sref=0.5, max_fracgaps=.2, min_seqid=.2, max_seqid=.8):
 
 def filterPos(alg, seqw=[1], max_fracgaps=.2):
     '''
-    Truncate the positions of an input alignment to reduce gaps, taking into account sequence weights.
+    Truncate the positions of an input alignment to reduce gaps, taking into
+    account sequence weights.
 
     **Arguments:**
         -  `alg` = An MxL list of sequences
@@ -714,7 +730,9 @@ def svdss(X, k=6):
 
 
 def basicICA(x, r, Niter):
-    ''' Basic ICA algorithm, based on work by Bell & Sejnowski (infomax). The input data should preferentially be sphered, i.e., x.T.dot(x) = 1
+    '''
+    Basic ICA algorithm, based on work by Bell & Sejnowski (infomax). The input
+    data should preferentially be sphered, i.e., x.T.dot(x) = 1
 
     **Arguments:**
       -  `x` = LxM input matrix where L = # features and M = # samples
@@ -725,7 +743,8 @@ def basicICA(x, r, Niter):
       -  `w` = unmixing matrix
       -  `change` = record of incremental changes during the iterations.
 
-    **Note:** r and Niter should be adjusted to achieve convergence, which should be assessed by visualizing 'change' with plot(range(iter) ,change)
+    **Note:** r and Niter should be adjusted to achieve convergence, which
+    should be assessed by visualizing 'change' with plot(range(iter) ,change)
 
     **Example:**
       >>> [w, change] = basicICA(x, r, Niter)
@@ -745,7 +764,8 @@ def basicICA(x, r, Niter):
 
 
 def rotICA(V, kmax=6, learnrate=.0001, iterations=10000):
-    ''' ICA rotation (using basicICA) with default parameters and normalization of
+    '''
+    ICA rotation (using basicICA) with default parameters and normalization of
     outputs.
 
     :Example:
@@ -835,7 +855,9 @@ def posWeights(alg, seqw=1, lbda=0, N_aa=20, freq0=np.array(
 
 
 def seqProj(msa_num, seqw, kseq=15, kica=6):
-    ''' Compute three different projections of the sequences based on eigenvectors of the sequence similarity matrix.
+    '''
+    Compute three different projections of the sequences based on eigenvectors
+    of the sequence similarity matrix.
 
     **Arguments:**
        -  `msa_num` = sequence alignment (previously converted to numerical representation using lett2num_)
@@ -880,18 +902,21 @@ def seqProj(msa_num, seqw, kseq=15, kica=6):
 
 
 def scaMat(alg, seqw=1, norm='frob', lbda=0, freq0=np.ones(20) / 21,):
-    ''' Computes the SCA matrix.
+    '''
+    Computes the SCA matrix.
 
      **Arguments:**
-        - `alg` =  A MxL multiple sequence alignment, converted to numeric representation with lett2num_
+        - `alg` =  A MxL multiple sequence alignment, converted to numeric
+                   representation with lett2num_
 
      **Keyword Arguments:**
         -  `seqw` =  A vector of sequence weights (default: uniform weights)
-        -  `norm` =   The type of matrix norm used for dimension reduction of the
-                      SCA correlation tensor to a positional correlation matrix.
-                      Use 'spec' for spectral norm and 'frob' for Frobenius
-                      norm.  The frobenius norm is the default.
-        -  `lbda` =  lambda parameter for setting the frequency of pseudo-counts (0 for no pseudo counts)
+        -  `norm` =  The type of matrix norm used for dimension reduction of
+                     the SCA correlation tensor to a positional correlation
+                     matrix. Use 'spec' for spectral norm and 'frob' for
+                     Frobenius norm. The frobenius norm is the default.
+        -  `lbda` =  lambda parameter for setting the frequency of
+                     pseudo-counts (0 for no pseudo counts)
         -  `freq0` = background expectation for amino acid frequencies
 
      **Returns:**
@@ -945,8 +970,10 @@ def scaMat(alg, seqw=1, norm='frob', lbda=0, freq0=np.ones(20) / 21,):
 
 
 def projUica(msa_ann, msa_num, seqw, kica=6):
-    ''' Compute the projection of an alignment (msa_ann) on the kpos ICA components
-    of the sequence space of another (msa_num, seqw).This is useful to compare the sequence space of one alignment to another.
+    '''
+    Compute the projection of an alignment (msa_ann) on the kpos ICA components
+    of the sequence space of another (msa_num, seqw).This is useful to compare
+    the sequence space of one alignment to another.
 
     :Example:
       >>> Uica_ann, Uica = projUpica(msa_ann, msa_num_ seqw, kica=6)
@@ -977,7 +1004,10 @@ def projUica(msa_ann, msa_num, seqw, kica=6):
 
 
 def projAlg(alg, Proj):
-    ''' Projection of an alignment (alg) based on a projector (Proj). The input alignment should already be converted to numeric representation using lett2num_.
+    '''
+    Projection of an alignment (alg) based on a projector (Proj). The input
+    alignment should already be converted to numeric representation using
+    lett2num_.
 
     :Example:
       >>> tX = projAlg(msa_num, Proj)
@@ -998,8 +1028,11 @@ def projAlg(alg, Proj):
 
 
 def projUpica(msa_ann, msa_num, seqw, kpos):
-    ''' Compute the projection of an alignment (msa_ann) on the kpos ICA components
-    of the SCA matrix of another (msa_num, seqw). This is useful to compare the sequence space (as projected by the positional correlations) of one alignment to another.
+    '''
+    Compute the projection of an alignment (msa_ann) on the kpos ICA components
+    of the SCA matrix of another (msa_num, seqw). This is useful to compare the
+    sequence space (as projected by the positional correlations) of one
+    alignment to another.
 
     :Example:
       >>> Upica_ann, Upica = projUpica(msa_ann, msa_num_ seqw, kpos)
@@ -1024,8 +1057,10 @@ def projUpica(msa_ann, msa_num, seqw, kpos):
 # SECTOR ANALYSIS
 
 def sizeLargestCompo(adjMat):
-    ''' Compute the size of the largest component of a graph given its adjacency matrix.
-    Called by numConnected_ (Done by actually listing all the components)
+    '''
+    Compute the size of the largest component of a graph given its adjacency
+    matrix. Called by numConnected_ (Done by actually listing all the
+    components)
 
     .. _numConnected: scaTools.html#scaTools.sizeLargestCompo
 
@@ -1057,8 +1092,11 @@ def sizeLargestCompo(adjMat):
 
 
 def numConnected(Vp, k, distmat, eps_list=np.arange(.5, 0, -.01), dcontact=5):
-    ''' Calculates the number of positions in the largest connected component for groups of positions i
-     with :math:`V_p[i,k] > eps` and :math:`V_p[i,k] > V_p[i,kk]`, for :math:`kk != k` and eps in eps_list. Useful for looking evaluating the physical connectivity of different sectors or sub-sectors.
+    '''
+    Calculates the number of positions in the largest connected component for
+    groups of positions i with :math:`V_p[i,k] > eps` and :math:`V_p[i,k] >
+    V_p[i,kk]`, for :math:`kk != k` and eps in eps_list. Useful for looking
+    evaluating the physical connectivity of different sectors or sub-sectors.
 
     **Arguments**:
        -  `Vp` = A set of eigenvectors or independent components
@@ -1098,18 +1136,25 @@ def numConnected(Vp, k, distmat, eps_list=np.arange(.5, 0, -.01), dcontact=5):
 
 
 def chooseKpos(Lsca, Lrand):
-    ''' Given the eigenvalues of the sca matrix (Lsca), and the eigenvalues for the set of randomized matrices (Lrand), return the number of significant eigenmodes.'''
+    '''
+    Given the eigenvalues of the sca matrix (Lsca), and the eigenvalues for the
+    set of randomized matrices (Lrand), return the number of significant
+    eigenmodes.
+    '''
     return Lsca[Lsca > (Lrand[:, 1].mean() + (3 * Lrand[:, 1].std()))].shape[0]
 
 
 def icList(Vpica, kpos, Csca, p_cut=0.95):
-    ''' Produces a list of positions contributing to each independent component (IC) above
-    a defined statistical cutoff (p_cut, the cutoff on the CDF of the t-distribution
-    fit to the histogram of each IC).  Any position above the cutoff on more than one IC
-    are assigned to one IC based on which group of positions to which it shows a higher
-    degree of coevolution. Additionally returns the numeric value of the cutoff for each IC, and the
-    pdf fit, which can be used for plotting/evaluation.
-    icList, icsize, sortedpos, cutoff, pd  = icList(Vsca,Lsca,Lrand) '''
+    '''
+    Produces a list of positions contributing to each independent component
+    (IC) above a defined statistical cutoff (p_cut, the cutoff on the CDF of
+    the t-distribution fit to the histogram of each IC). Any position above the
+    cutoff on more than one IC are assigned to one IC based on which group of
+    positions to which it shows a higher degree of coevolution. Additionally
+    returns the numeric value of the cutoff for each IC, and the pdf fit, which
+    can be used for plotting/evaluation. icList, icsize, sortedpos, cutoff, pd
+    = icList(Vsca,Lsca,Lrand)
+    '''
     # do the PDF/CDF fit, and assign cutoffs
     Npos = len(Vpica)
     cutoff = list()
@@ -1168,7 +1213,8 @@ def icList(Vpica, kpos, Csca, p_cut=0.95):
 
 
 def singleBar(x, loc, cols, width=.5):
-    ''' Single bar diagram, called by MultiBar_.
+    '''
+    Single bar diagram, called by MultiBar_.
 
     .. _MultiBar: scaTools.html#scaTools.MultiBar
 
@@ -1186,7 +1232,14 @@ def singleBar(x, loc, cols, width=.5):
 
 
 def MultiBar(x, colors='wbrgymc', width=.5):
-    ''' Multiple bar diagram (plots contributions to each bar from different elements in x as different colors). This can be useful if you'd like to inspect how sector positions are distributed among independent components/eigenmodes. The argument x is a tuple, specifying the number of elements in each bar to be each color. The example below makes a graph with four bars, where the first bar has 99 white elements, 1 blue element and 1 red element.
+    '''
+    Multiple bar diagram (plots contributions to each bar from different
+    elements in x as different colors). This can be useful if you'd like to
+    inspect how sector positions are distributed among independent
+    components/eigenmodes. The argument x is a tuple, specifying the number of
+    elements in each bar to be each color. The example below makes a graph with
+    four bars, where the first bar has 99 white elements, 1 blue element and 1
+    red element.
 
     :Example:
      >>> x = [[99, 1, 1], [6, 13, 2], [0, 0, 13], [1, 7, 5]]
@@ -1203,12 +1256,14 @@ def MultiBar(x, colors='wbrgymc', width=.5):
 
 
 class Pair:
-    ''' A class for a pair of positions.
-        :Attributes:
+    '''
+    A class for a pair of positions.
 
-           -  `pos` = a pair of amino acid positions (ex: [1,3], supplied as argument p)
-           -  `DI`  = the direct information between the two positions (argument x)
-           -  `dist` = the physical distance between the positions (argument d)
+    :Attributes:
+
+       -  `pos` = a pair of amino acid positions (ex: [1,3], supplied as argument p)
+       -  `DI`  = the direct information between the two positions (argument x)
+       -  `dist` = the physical distance between the positions (argument d)
     '''
 
     def __init__(self, p, x, d):
@@ -1218,8 +1273,10 @@ class Pair:
 
 
 def directInfo(freq1, freq2, lbda=.5, freq0=np.ones(20) / 21, Naa=20):
-    ''' Calculate direct information as in the Direct Coupling Analysis (DCA) method proposed by
-    M. Weigt et collaborators (Ref: Marcos et al, PNAS 2011, 108: E1293-E1301).
+    '''
+    Calculate direct information as in the Direct Coupling Analysis (DCA)
+    method proposed by M. Weigt et collaborators (Ref: Marcos et al, PNAS 2011,
+    108: E1293-E1301).
 
     :Example:
       >>> DI = directInfo(freq1, freq2, lbda=.5, freq0=np.ones(20)/21, Naa=20)
@@ -1245,7 +1302,9 @@ def directInfo(freq1, freq2, lbda=.5, freq0=np.ones(20) / 21, Naa=20):
 
 
 def dirInfoFromJ(i, j, Jmat, frq, Naa=20, epsilon=1e-4):
-    ''' Direct information from the matrix of couplings :math:`J_{ij}` (called by directInfo_). Ref: Marcos et al, PNAS 2011, 108: E1293-E1301
+    '''
+    Direct information from the matrix of couplings :math:`J_{ij}` (called by
+    directInfo_). Ref: Marcos et al, PNAS 2011, 108: E1293-E1301
 
     .. _directInfo: scaTools.html#scaTools.directInfo
 
@@ -1289,7 +1348,9 @@ def dirInfoFromJ(i, j, Jmat, frq, Naa=20, epsilon=1e-4):
 
 
 def truncDiag(M, dmax):
-    ''' Set to 0 the elements of a matrix M up to a distance dmax from the diagonal.
+    '''
+    Set to 0 the elements of a matrix M up to a distance dmax from the
+    diagonal.
 
     :Example:
        >>> Mtr = truncDiag(M, dmax)
@@ -1320,7 +1381,11 @@ class Secton:
         return distmat[np.ix_(self.pos, self.pos)]
 
     def connected(self, distmat, threshold):
-        ''' Check the structural connectivity based on the principle that if :math:`M_{ij}` is the adjacency matrix of a graph, :math:`M^n_{ij}` is the number of paths of length :math:`n` between i and j, which must be > 0 for :math:`n` = number of nodes when i and j are in the same connected component. '''
+        ''' Check the structural connectivity based on the principle that if
+        :math:`M_{ij}` is the adjacency matrix of a graph, :math:`M^n_{ij}` is
+        the number of paths of length :math:`n` between i and j, which must be
+        > 0 for :math:`n` = number of nodes when i and j are in the same
+        connected component. '''
         return (
             np.linalg.matrix_power(
                 self.dist(distmat) < threshold,
@@ -1351,8 +1416,9 @@ def randAlg(frq, Mseq):
 
 
 def randomize(msa_num, Ntrials, seqw=1, norm='frob', lbda=0, Naa=20, kmax=6):
-    ''' Randomize the alignment while preserving the frequencies of amino acids at each
-    position and compute the resulting spectrum of the SCA matrix.
+    '''
+    Randomize the alignment while preserving the frequencies of amino acids at
+    each position and compute the resulting spectrum of the SCA matrix.
 
     **Arguments:**
         -  `msa_num` = a MxL sequence alignment (converted to numerical representation using lett2num_)
@@ -1447,10 +1513,11 @@ def figColors():
 
 
 def figUnits(v1, v2, units, marker='o', dotsize=9, notinunits=1):
-    ''' 2d scatter plot specified by 'units', which must be a list of elements
-    in the class Unit_. See figColors_ for the color code. Admissible color codes are in [0 1]
-    (light/dark gray can also be obtained by using -1/+1).
-    For instance: 0->red, 1/3->green, 2/3-> blue.
+    '''
+    2d scatter plot specified by 'units', which must be a list of elements in
+    the class Unit_. See figColors_ for the color code. Admissible color codes
+    are in [0 1] (light/dark gray can also be obtained by using -1/+1).  For
+    instance: 0->red, 1/3->green, 2/3-> blue.
 
     .. _Unit: scaTools.html#scaTools.Unit
     .. _figColors: scaTools.html#scaTools.figColors
@@ -1493,22 +1560,27 @@ def figUnits(v1, v2, units, marker='o', dotsize=9, notinunits=1):
 
 
 def figMapping(Csca, tX, kpos, sectors, subfam):
-    ''' Function that automates finding the top :math:`k_{pos}` independent components, projection, and plotting.
-        Useful to get a representation of the sectors/subfamilies mapping for a given kpos.
-        **Arguments:**
-            -  `Csca` = the sca matrix
-            -  `tX` = the projected alignment
-            -  `kpos` = the number of independent components to consider
-            -  `sectors` = list of Unit_ elements for each sector
-            -  `subfam` = list of Unit_ elements for each sequence family
+    '''
+    Function that automates finding the top :math:`k_{pos}` independent
+    components, projection, and plotting.
 
-        **Returns:**
-            -  `Vpica` = the independent components of Csca
+    Useful to get a representation of the sectors/subfamilies mapping for a
+    given kpos.
 
-        :Example:
-        >>> Vpica = figMapping(Csca, tX, kpos, sectors, subfam)
+    **Arguments:**
+        -  `Csca` = the sca matrix
+        -  `tX` = the projected alignment
+        -  `kpos` = the number of independent components to consider
+        -  `sectors` = list of Unit_ elements for each sector
+        -  `subfam` = list of Unit_ elements for each sequence family
 
-        '''
+    **Returns:**
+        -  `Vpica` = the independent components of Csca
+
+    :Example:
+    >>> Vpica = figMapping(Csca, tX, kpos, sectors, subfam)
+
+    '''
     Vsca, Lsca = eigenVect(Csca)
     Vpica, Wpica = rotICA(Vsca, kmax=kpos)
     Usca = tX.dot(Vsca[:, :kpos]).dot(np.diag(1 / np.sqrt(Lsca[:kpos])))
@@ -1644,9 +1716,10 @@ def writePymol(
 
 def figStruct(pdbid, sectors, ats, chainid='A', outfile='Outputs/sectors.pml',
               quit=1, pymol=path2pymol):
-    ''' Make and display an image of the sectors (within a python notebook). By default quit PyMol after running it,
-    unless the option 'quit=0' is given. The default name and location of the output can
-    also be changed.
+    '''
+    Make and display an image of the sectors (within a python notebook). By
+    default quit PyMol after running it, unless the option 'quit=0' is given.
+    The default name and location of the output can also be changed.
 
     :Example:
      >>> figStruct(pdbid, sectors, ats, chainid='A', outfile = 'Outputs/sectors.pml',\
@@ -1664,9 +1737,11 @@ def figStruct(pdbid, sectors, ats, chainid='A', outfile='Outputs/sectors.pml',
 
 
 def cytoscapeOut(ats, cutoff, Csca, Di, sectors, Vp, outfilename):
-    ''' Output tab-delimited text that can be read in by cytoscape. The goal is to enable
-    graph representations of the SCA couplings, where residues are nodes, and couplings are edges.
-    Within cytoscape, the graph can be color-coded or weighted by Csca, Di, sector definition or Vp.
+    '''
+    Output tab-delimited text that can be read in by cytoscape. The goal is to
+    enable graph representations of the SCA couplings, where residues are
+    nodes, and couplings are edges. Within cytoscape, the graph can be
+    color-coded or weighted by Csca, Di, sector definition or Vp.
 
     :Example:
       >>> cytoscapeOut(ats, cutoff, Csca, Di, sectors, Vp, outfilename)'''

@@ -51,15 +51,15 @@ license, please see the file LICENSE for details.
 """
 from __future__ import division
 import sys
-import time
+#  import time
 import os
 import numpy as np
-import copy
-import scipy.cluster.hierarchy as sch
+#  import copy
+#  import scipy.cluster.hierarchy as sch
 import scaTools as sca
 import pickle
 import argparse
-from Bio import SeqIO
+#  from Bio import SeqIO
 from scipy.io import savemat
 
 if __name__ == '__main__':

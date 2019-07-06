@@ -29,13 +29,13 @@ This program is free software distributed under the BSD 3-clause
 license, please see the file LICENSE for details.
 """
 from __future__ import division
-import sys
+#  import sys
 import time
 import os
 import numpy as np
 import scaTools as sca
 import pickle
-import timeit
+#  import timeit
 import argparse
 from scipy.io import savemat
 
