@@ -30,7 +30,7 @@ import matplotlib.cm as cm
 #  from mpl_toolkits.mplot3d import Axes3D
 import colorsys
 import shutil
-from Bio.PDB.PDBParser import PDBParser
+from Bio.PDB import PDBParser
 from Bio import pairwise2
 from Bio import SeqIO
 from Bio.Seq import Seq
@@ -112,8 +112,7 @@ def readAlg(filename):
     for line in filelines:
         if line[0] == '>':
             if notfirst > 0:
-                #  sequences.append(seq.replace('\n', '').upper())
-                sequences.append(string.replace('\n', '').upper())
+                sequences.append(seq.replace('\n', '').upper())
             headers.append(line[1:].replace('\n', ''))
             seq = ''
             notfirst = 1
@@ -1644,8 +1643,11 @@ def pdbSeq(pdbid, chain='A', path2pdb=path2structures, calcDist=1):
         'TRP': 'W',
         'TYR': 'Y',
         'VAL': 'V'}
+
     # Read PDB structure:
-    structure = PDBParser().get_structure(pdbid, path2pdb + pdbid + '.pdb')
+    P = PDBParser(PERMISSIVE=1)
+    structure = P.get_structure(pdbid, path2pdb + pdbid + '.pdb')
+
     # Fill up sequence and label information
     sequence = ''
     labels = list()
