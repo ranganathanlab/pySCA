@@ -250,7 +250,7 @@ def MSAsearch(hd, algn, seq, species=None, path2_algprog=path2needle):
                 'tmp/PDB_seq.fasta',
                 'tmp/algn_seq.fasta']
         output = subprocess.check_output(args)
-        i_0 = [i for i in range(len(hd)) if output.split('\t')[1] in hd[i]]
+        i_0 = [i for i in range(len(hd)) if output.decode('ASCII').split('\t')[1] in hd[i]]
         if species is not None:
             strseqnum = key_list[i_0[0]]
         else:
