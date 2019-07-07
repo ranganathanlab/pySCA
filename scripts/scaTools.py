@@ -29,7 +29,7 @@ import matplotlib.image as mpimg
 import matplotlib.cm as cm
 #  from mpl_toolkits.mplot3d import Axes3D
 import colorsys
-import shutil
+import tempfile
 from Bio.PDB import PDBParser
 from Bio import pairwise2
 from Bio import SeqIO
@@ -228,9 +228,8 @@ def MSAsearch(hd, algn, seq, species=None, path2_algprog=path2needle):
 
     try:
         print("Trying MSASearch with ggsearch")
-        if not os.path.exists('tmp/'):
-            os.makedirs('tmp/')
-        output_handle = open('tmp/PDB_seq.fasta', 'w')
+        pdb_tmp, pdb_tmpname = tempfile.mkstemp()
+        output_handle = open(pdb_tmp, 'w')
         SeqIO.write(
             SeqRecord(
                 Seq(seq),
@@ -238,7 +237,8 @@ def MSAsearch(hd, algn, seq, species=None, path2_algprog=path2needle):
             output_handle,
             "fasta")
         output_handle.close()
-        f = open("tmp/algn_seq.fasta", "w")
+        algn_tmp, algn_tmpname = tempfile.mkstemp()
+        f = open(algn_tmp, "w")
         for i in range(len(algn)):
             f.write(">" + hd[i] + "\n")
             f.write(algn[i] + "\n")
@@ -248,22 +248,25 @@ def MSAsearch(hd, algn, seq, species=None, path2_algprog=path2needle):
                 '-b',
                 '1',
                 '-m 8',
-                'tmp/PDB_seq.fasta',
-                'tmp/algn_seq.fasta']
+                pdb_tmpname,
+                algn_tmpname]
         output = subprocess.check_output(args)
-        i_0 = [i for i in range(len(hd)) if output.decode('ASCII').split('\t')[1] in hd[i]]
+        i_0 = [i for i in range(len(hd)) if
+               output.decode('ASCII').split('\t')[1] in hd[i]]
         if species is not None:
             strseqnum = key_list[i_0[0]]
         else:
             strseqnum = i_0[0]
-        shutil.rmtree('tmp')
+        os.remove(pdb_tmpname)
+        os.remove(algn_tmpname)
         return strseqnum
     except BaseException as e:
         print('Error: ' + str(e))
         try:
             from Bio.Emboss.Applications import NeedleCommandline
             print("Trying MSASearch with EMBOSS")
-            output_handle = open('tmp/PDB_seq.fasta', 'w')
+            pdb_tmp, pdb_tmpname = tempfile.mkstemp()
+            output_handle = open(pdb_tmp, 'w')
             SeqIO.write(
                 SeqRecord(
                     Seq(seq),
@@ -271,23 +274,25 @@ def MSAsearch(hd, algn, seq, species=None, path2_algprog=path2needle):
                 output_handle,
                 "fasta")
             output_handle.close()
-            output_handle = open("tmp/algn_seq.fasta", "w")
+            algn_tmp, algn_tmpname = tempfile.mkstemp()
+            output_handle = open(algn_tmp, "w")
             s_records = list()
             for k in range(len(algn)):
                 s_records.append(
                     SeqRecord(Seq(algn[k]), id=str(k), description=hd[k]))
             SeqIO.write(s_records, output_handle, "fasta")
             output_handle.close()
+            needle_tmp, needle_tmpname = tempfile.mkstemp()
             needle_cline = NeedleCommandline(
                 path2_algprog + "needle",
-                asequence="tmp/PDB_seq.fasta",
-                bsequence="tmp/algn_seq.fasta",
+                asequence=pdb_tmpname,
+                bsequence=algn_tmpname,
                 gapopen=10,
                 gapextend=0.5,
-                outfile="tmp/needle.txt")
+                outfile=needle_tmpname)
             stdout, stderr = needle_cline()
             print(stdout + stderr)
-            algres = open('tmp/needle.txt', 'r').readlines()
+            algres = open(needle_tmpname, 'r').readlines()
             score = list()
             for k in algres:
                 if (k.find('Identity: ') > 0):
@@ -297,7 +302,9 @@ def MSAsearch(hd, algn, seq, species=None, path2_algprog=path2needle):
                 strseqnum = key_list[i_0]
             else:
                 strseqnum = i_0
-            shutil.rmtree('tmp')
+            os.remove(pdb_tmpname)
+            os.remove(algn_tmpname)
+            os.remove(needle_tmpname)
             return strseqnum
         except BaseException as e:
             print('Error: ' + str(e))
