@@ -216,6 +216,7 @@ def MSAsearch(hd, algn, seq, species=None, path2_algprog=path2needle):
          **Example:**
            >>> strseqnum = MSASearch(hd, alg0, pdbseq, 'Homo sapiens')
     '''
+
     if species is not None:
         species = species.lower()
         key_list = list()
@@ -1611,7 +1612,8 @@ def figMapping(Csca, tX, kpos, sectors, subfam):
 
 
 def pdbSeq(pdbid, chain='A', path2pdb=path2structures, calcDist=1):
-    ''' Extract sequence, position labels and matrix of distances from a PDB file.
+    '''
+    Extract sequence, position labels and matrix of distances from a PDB file.
 
     **Arguments:**
        -  `pdbid` = PDB identifier (four letters/numbers)
@@ -1620,7 +1622,10 @@ def pdbSeq(pdbid, chain='A', path2pdb=path2structures, calcDist=1):
        -  `calcDist` = calculate a distance matrix between all pairs of positions, default is 1
 
     :Example:
-       >>> sequence, labels, dist = pdbSeq(pdbid, chain='A', path2pdb=path2structures) '''
+       >>> sequence, labels, dist = pdbSeq(pdbid, chain='A', path2pdb=path2structures)
+
+    '''
+
     # Table of 3-letter to 1-letter code for amino acids
     aatable = {
         'ALA': 'A',
@@ -1751,7 +1756,8 @@ def cytoscapeOut(ats, cutoff, Csca, Di, sectors, Vp, outfilename):
     color-coded or weighted by Csca, Di, sector definition or Vp.
 
     :Example:
-      >>> cytoscapeOut(ats, cutoff, Csca, Di, sectors, Vp, outfilename)'''
+      >>> cytoscapeOut(ats, cutoff, Csca, Di, sectors, Vp, outfilename)
+    '''
     f = open(outfilename + '.sif', 'w')
     for k in range(len(ats)):
         flag = 0
