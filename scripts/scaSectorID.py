@@ -115,9 +115,9 @@ if __name__ == '__main__':
     db['sca'] = D_sca
     db['sector'] = D
 
-    print("Calculations complete. Writing to database file " + "Outputs/" +
+    print("Calculations complete. Writing to database file " + "output/" +
           fn_noext)
     if options.matfile:
-        savemat("Outputs/" + fn_noext, db, appendmat=True, oned_as='column')
+        savemat("output/" + fn_noext, db, appendmat=True, oned_as='column')
     time.sleep(1)
-    pickle.dump(db, open("Outputs/" + fn_noext + ".db", "wb"))
+    pickle.dump(db, open("output/" + fn_noext + ".db", "wb"))

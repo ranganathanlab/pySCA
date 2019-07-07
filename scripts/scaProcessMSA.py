@@ -41,7 +41,7 @@ tool pickle:
      --output          specify a name for the outputfile
 
 :Example:
->>> ./scaProcessMSA.py Inputs/PF00071_full.an -s 5P21 -c A -f 'Homo sapiens'
+>>> ./scaProcessMSA.py data/PF00071_full.an -s 5P21 -c A -f 'Homo sapiens'
 
 :By: Rama Ranganathan
 :On: 8.5.2014
@@ -340,7 +340,7 @@ if __name__ == '__main__':
     path_list = options.alignment.split(os.sep)
     fn = path_list[-1]
     fn_noext = fn.split(".")[0]
-    f = open("Outputs/" + fn_noext + "processed" + ".fasta", "w")
+    f = open("output/" + fn_noext + "processed" + ".fasta", "w")
     for i in range(len(alg)):
         #  f.write(">" + hd[i] + "\n")
         f.write(">%s\n" % (hd[i]))
@@ -373,11 +373,11 @@ if __name__ == '__main__':
 
     if (options.outputfile is not None):
         fn_noext = options.outputfile
-    print("Opening database file " + "Outputs/" + fn_noext)
+    print("Opening database file " + "output/" + fn_noext)
     db = {}
     db['sequence'] = D
 
     if options.matfile:
-        savemat("Outputs/" + fn_noext, db, appendmat=True, oned_as='column')
+        savemat("output/" + fn_noext, db, appendmat=True, oned_as='column')
 
-    pickle.dump(db, open("Outputs/" + fn_noext + ".db", "wb"))
+    pickle.dump(db, open("output/" + fn_noext + ".db", "wb"))

@@ -45,16 +45,16 @@ from scipy.stats import scoreatpercentile
 
 # (this directory should contain the file 'pfamseq.txt' from
 # ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/database_files/
-path2pfamseq = '~/Documents/Packages/pfamseq.txt'
+path2pfamseq = '../pfamseq.txt'
 
 # the location of your PDB structures
-path2structures = 'Inputs/'
+path2structures = 'data/'
 
 # paths to pymol and needle (EMBOSS) applictaions
-path2pymol = '/Applications/MacPyMOL.app/Contents/MacOS/MacPyMOL'
-path2needle = '/usr/local/bin/'
+path2pymol = '/usr/bin/pymol'
+path2needle = '/usr/bin/'
 
-# Also assumes that a folder named 'Outputs' is in the path
+# Also assumes that a folder named 'output/' is in the path
 
 ##########################################################################
 # CLASSES
@@ -1714,7 +1714,7 @@ def writePymol(
     f.close()
 
 
-def figStruct(pdbid, sectors, ats, chainid='A', outfile='Outputs/sectors.pml',
+def figStruct(pdbid, sectors, ats, chainid='A', outfile='output/sectors.pml',
               quit=1, pymol=path2pymol):
     '''
     Make and display an image of the sectors (within a python notebook). By
@@ -1722,7 +1722,7 @@ def figStruct(pdbid, sectors, ats, chainid='A', outfile='Outputs/sectors.pml',
     The default name and location of the output can also be changed.
 
     :Example:
-     >>> figStruct(pdbid, sectors, ats, chainid='A', outfile = 'Outputs/sectors.pml',\
+     >>> figStruct(pdbid, sectors, ats, chainid='A', outfile = 'output/sectors.pml',\
               quit=1, pymol = path2pymol)
 
     '''

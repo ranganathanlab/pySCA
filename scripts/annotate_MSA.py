@@ -36,8 +36,8 @@ the annotation process only needs to be run once per alignment.
     -p, --pfam_seq      Location of the pfamseq.txt file. Defaults to path2pfamseq (specified at the top of scaTools.py)
 
 :Examples:
->>> ./annotate_MSA.py Inputs/PF00186_full.txt -o Outputs/PF00186_full.an -a 'pfam'
->>> ./annotate_MSA.py Inputs/DHFR_PEPM3.fasta -o Outputs/DHFR_PEPM3.an -a 'ncbi' -g Inputs/DHFR_PEPM3.gis
+>>> ./annotate_MSA.py data/PF00186_full.txt -o output/PF00186_full.an -a 'pfam'
+>>> ./annotate_MSA.py data/DHFR_PEPM3.fasta -o output/DHFR_PEPM3.an -a 'ncbi' -g data/DHFR_PEPM3.gis
 
 :By: Rama Ranganathan, Kim Reynolds
 :On: 9.22.2014

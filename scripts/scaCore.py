@@ -129,10 +129,10 @@ if __name__ == '__main__':
     db['sequence'] = D_in
     db['sca'] = D
 
-    print("Calculations complete, writing to database file " + "Outputs/" +
+    print("Calculations complete, writing to database file " + "output/" +
           fn_noext)
     if options.matfile:
-        savemat("Outputs/" + fn_noext, db, appendmat=True, oned_as='column')
+        savemat("output/" + fn_noext, db, appendmat=True, oned_as='column')
     time.sleep(10)
 
-    pickle.dump(db, open("Outputs/" + fn_noext + ".db", "wb"))
+    pickle.dump(db, open("output/" + fn_noext + ".db", "wb"))
