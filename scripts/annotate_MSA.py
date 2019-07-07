@@ -108,7 +108,8 @@ if __name__ == '__main__':
             for x in range(len(taxonList)):
                 try:
                     taxID.append(taxonList[x]["LinkSetDb"][0]["Link"][0]["Id"])
-                except BaseException:
+                except BaseException as e:
+                    print('Error: ' + str(e))
                     taxID.append('')
         end = time.clock()
         print("Look up for Tax IDs complete. Time: %f" % (end - start))
@@ -125,7 +126,8 @@ if __name__ == '__main__':
                 records.append(temp_rec[0])
                 print("%s" % (temp_rec[0]['Lineage']))
                 print("%s" % (temp_rec[0]['ScientificName']))
-            except BaseException:
+            except BaseException as e:
+                print('Error: ' + str(e))
                 records.append('')
         end = time.clock()
         print("Look up for taxonomy information complete. Time: %f"
@@ -139,7 +141,8 @@ if __name__ == '__main__':
             try:
                 hdnew = hd[i] + '|' + records[i]['ScientificName'] + '|' + \
                     ','.join(records[i]['Lineage'].split(';'))
-            except BaseException:
+            except BaseException as e:
+                print('Error: ' + str(e))
                 hdnew = hd[i] + '| unknown '
                 print("Unable to add taxonomy information for seq: %s" % hd[i])
             f.write('>%s\n' % hdnew)

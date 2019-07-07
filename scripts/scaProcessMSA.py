@@ -182,7 +182,8 @@ if __name__ == '__main__':
                         print("reference sequence index is: %i" % (i_ref))
                         print(headers_full[i_ref])
                         print(sequences_full[i_ref])
-                    except BaseException:
+                    except BaseException as e:
+                        print('Error: ' + str(e))
                         print("Cant find the reference sequence using"
                               " species-based best_match! Using global"
                               " MSAsearch...")
@@ -193,7 +194,8 @@ if __name__ == '__main__':
                             print("reference sequence index is: %i" % (i_ref))
                             print(headers_full[i_ref])
                             print(sequences_full[i_ref])
-                        except BaseException:
+                        except BaseException as e:
+                            print('Error: ' + str(e))
                             sys.exit("Error! Can't find reference sequence...")
                 else:
                     try:
@@ -205,7 +207,8 @@ if __name__ == '__main__':
                         print("reference sequence index is: %i" % (i_ref))
                         print(headers_full[i_ref])
                         print(sequences_full[i_ref])
-                    except BaseException:
+                    except BaseException as e:
+                        print('Error: ' + str(e))
                         sys.exit("Error!!  Can't find reference sequence...")
                 sequences, ats = sca.makeATS(sequences_full, ats_pdb, seq_pdb,
                                              i_ref, options.truncate)
@@ -220,7 +223,8 @@ if __name__ == '__main__':
                                 ix_k = ats_pdb.index(pos2)
                                 dist_new[j, k] = dist_pdb[ix_j, ix_k]
                 dist_pdb = dist_new
-            except BaseException:
+            except BaseException as e:
+                print('Error: ' + str(e))
                 sys.exit("Error!!! Something wrong with PDBid or path...")
         elif options.refseq is not None:
             print("Finding reference sequence using provided sequence"
@@ -236,7 +240,8 @@ if __name__ == '__main__':
                         f = open(options.refpos, 'r')
                         ats_tmp = [line.rstrip('\n') for line in f]
                         f.close()
-                    except BaseException:
+                    except BaseException as e:
+                        print('Error: ' + str(e))
                         print("Error reading reference position file! Using"
                               " default numbering 1 to number of positions")
                         ats_tmp = range(len(sequences[0]))
@@ -246,7 +251,8 @@ if __name__ == '__main__':
                     ats_tmp = range(len(sequences_full[0]))
                 sequences, ats = sca.makeATS(sequences_full, ats_tmp, s_tmp[0],
                                              i_ref, options.truncate)
-            except BaseException:
+            except BaseException as e:
+                print('Error: ' + str(e))
                 sys.exit("Error!! Can't find reference sequence...")
         else:
             msa_num = sca.lett2num(sequences_full)
@@ -269,7 +275,8 @@ if __name__ == '__main__':
                 ats_tmp = range(len(sequences_ori[0]))
             sequences, ats = sca.makeATS(sequences_full, ats_tmp, s_tmp, i_ref,
                                          options.truncate)
-        except BaseException:
+        except BaseException as e:
+            print('Error: ' + str(e))
             sys.exit("Error!! Can't find reference sequence...")
 
     # filtering sequences and positions, calculations of effective number of
