@@ -62,6 +62,8 @@ import argparse
 #  from Bio import SeqIO
 from scipy.io import savemat
 
+import settings
+
 if __name__ == '__main__':
     # Parse inputs
     parser = argparse.ArgumentParser()
@@ -166,6 +168,8 @@ if __name__ == '__main__':
     # is an option to also provide species information to permit
     # identifying the reference sequence in the MSA without use of external
     # packages for fast pairwise alignments.
+
+    print(settings.path2structures)
 
     if options.i_ref is None:
         if options.pdbid is not None:
@@ -347,7 +351,7 @@ if __name__ == '__main__':
     path_list = options.alignment.split(os.sep)
     fn = path_list[-1]
     fn_noext = fn.split(".")[0]
-    f = open("output/" + fn_noext + "processed" + ".fasta", "w")
+    f = open(settings.path2output + fn_noext + "processed" + ".fasta", "w")
     for i in range(len(alg)):
         #  f.write(">" + hd[i] + "\n")
         f.write(">%s\n" % (hd[i]))
@@ -380,11 +384,11 @@ if __name__ == '__main__':
 
     if (options.outputfile is not None):
         fn_noext = options.outputfile
-    print("Opening database file " + "output/" + fn_noext)
+    print("Opening database file " + settings.path2output + fn_noext)
     db = {}
     db['sequence'] = D
 
     if options.matfile:
-        savemat("output/" + fn_noext, db, appendmat=True, oned_as='column')
+        savemat(settings.path2output + fn_noext, db, appendmat=True, oned_as='column')
 
-    pickle.dump(db, open("output/" + fn_noext + ".db", "wb"))
+    pickle.dump(db, open(settings.path2output + fn_noext + ".db", "wb"))

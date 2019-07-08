@@ -39,6 +39,8 @@ import pickle
 import argparse
 from scipy.io import savemat
 
+import settings
+
 if __name__ == '__main__':
     # parse inputs
     parser = argparse.ArgumentParser()
@@ -115,9 +117,10 @@ if __name__ == '__main__':
     db['sca'] = D_sca
     db['sector'] = D
 
-    print("Calculations complete. Writing to database file " + "output/" +
-          fn_noext)
+    print("Calculations complete. Writing to database file " +
+          settings.path2output + fn_noext)
     if options.matfile:
-        savemat("output/" + fn_noext, db, appendmat=True, oned_as='column')
+        savemat(settings.path2output + fn_noext, db, appendmat=True,
+                oned_as='column')
     time.sleep(1)
-    pickle.dump(db, open("output/" + fn_noext + ".db", "wb"))
+    pickle.dump(db, open(settings.path2output + fn_noext + ".db", "wb"))

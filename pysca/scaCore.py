@@ -51,6 +51,9 @@ import argparse
 #  from scipy.stats import scoreatpercentile
 from scipy.io import savemat
 
+import settings
+
+
 if __name__ == '__main__':
 
     # Parse inputs
@@ -129,10 +132,11 @@ if __name__ == '__main__':
     db['sequence'] = D_in
     db['sca'] = D
 
-    print("Calculations complete, writing to database file " + "output/" +
-          fn_noext)
+    print("Calculations complete, writing to database file " +
+          settings.path2output + fn_noext)
     if options.matfile:
-        savemat("output/" + fn_noext, db, appendmat=True, oned_as='column')
+        savemat(settings.path2output + fn_noext, db, appendmat=True,
+                oned_as='column')
     time.sleep(10)
 
-    pickle.dump(db, open("output/" + fn_noext + ".db", "wb"))
+    pickle.dump(db, open(settings.path2output + fn_noext + ".db", "wb"))

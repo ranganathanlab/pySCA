@@ -39,22 +39,8 @@ from scipy.stats import t
 from scipy.stats import scoreatpercentile
 #  from optparse import OptionParser
 
-##########################################################################
-# PATHS
-# These have to be changed to be consistent with user-defined paths.
+import settings
 
-# (this directory should contain the file 'pfamseq.txt' from
-# ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/database_files/
-path2pfamseq = '../pfamseq.txt'
-
-# the location of your PDB structures
-path2structures = 'data/'
-
-# paths to pymol and needle (EMBOSS) applictaions
-path2pymol = '/usr/bin/pymol'
-path2needle = '/usr/bin/'
-
-# Also assumes that a folder named 'output/' is in the path
 
 ##########################################################################
 # CLASSES
@@ -122,7 +108,7 @@ def readAlg(filename):
     return headers, sequences
 
 
-def AnnotPfam(pfam_in, pfam_out, pfam_seq=path2pfamseq):
+def AnnotPfam(pfam_in, pfam_out, pfam_seq=settings.path2pfamseq):
     '''
     Phylogenetic annotation of a Pfam alignment (in fasta format) using
     information from pfamseq.txt. The output is a fasta file containing
@@ -199,7 +185,7 @@ def clean_al(alg, code='ACDEFGHIKLMNPQRSTVWY', gap='-'):
     return alg_clean
 
 
-def MSAsearch(hd, algn, seq, species=None, path2_algprog=path2needle):
+def MSAsearch(hd, algn, seq, species=None, path2_algprog=settings.path2needle):
     '''
     Identify the sequence in the alignment that most closely corresponds to the
     species of the reference sequence, and return its index.
@@ -1618,7 +1604,7 @@ def figMapping(Csca, tX, kpos, sectors, subfam):
 # PDB PROCESSING
 
 
-def pdbSeq(pdbid, chain='A', path2pdb=path2structures, calcDist=1):
+def pdbSeq(pdbid, chain='A', path2pdb=settings.path2structures, calcDist=1):
     '''
     Extract sequence, position labels and matrix of distances from a PDB file.
 
@@ -1629,7 +1615,7 @@ def pdbSeq(pdbid, chain='A', path2pdb=path2structures, calcDist=1):
        -  `calcDist` = calculate a distance matrix between all pairs of positions, default is 1
 
     :Example:
-       >>> sequence, labels, dist = pdbSeq(pdbid, chain='A', path2pdb=path2structures)
+       >>> sequence, labels, dist = pdbSeq(pdbid, chain='A', path2pdb=settings.path2structures)
 
     '''
 
@@ -1691,12 +1677,12 @@ def writePymol(
         ats,
         outfilename,
         chain='A',
-        inpath=path2structures,
+        inpath=settings.path2structures,
         quit=1):
     ''' Write basic a pymol script for displaying sectors and exporting an image.
 
     :Example:
-      >>> writePymol(pdb, sectors, ics, ats, outfilename, chain='A',inpath=path2structures, quit=1)
+      >>> writePymol(pdb, sectors, ics, ats, outfilename, chain='A',inpath=settings.path2structures, quit=1)
 
     '''
     f = open(outfilename, 'w')
@@ -1733,16 +1719,16 @@ def writePymol(
     f.close()
 
 
-def figStruct(pdbid, sectors, ats, chainid='A', outfile='output/sectors.pml',
-              quit=1, pymol=path2pymol):
+def figStruct(pdbid, sectors, ats, chainid='A', outfile=settings.path2output+'sectors.pml',
+              quit=1, pymol=settings.path2pymol):
     '''
     Make and display an image of the sectors (within a python notebook). By
     default quit PyMol after running it, unless the option 'quit=0' is given.
     The default name and location of the output can also be changed.
 
     :Example:
-     >>> figStruct(pdbid, sectors, ats, chainid='A', outfile = 'output/sectors.pml',\
-              quit=1, pymol = path2pymol)
+     >>> figStruct(pdbid, sectors, ats, chainid='A', outfile = settings.path2output+'sectors.pml',\
+              quit=1, pymol = settings.path2pymol)
 
     '''
     writePymol(pdbid, sectors, ats, outfile, chain=chainid, quit=1)
