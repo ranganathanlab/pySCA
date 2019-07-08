@@ -3,6 +3,9 @@ set -eu
 
 cd ../
 
+git submodule init
+git submodule update --force
+
 mkdir -vp output
 
 # The S1A serine proteases
