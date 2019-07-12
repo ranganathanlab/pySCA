@@ -1,12 +1,12 @@
-#!/usr/bin/env python
+#! /usr/bin/env python
 """
 A script to parse GI numbers from the headers of an alignment with typical
 Blast formatting.
 
-:Arguments:
+**Arguments**
     Input_MSA.fasta (the alignment to be processed)
 
-:Keyword Arguments:
+**Keyword Arguments**
     --output             output file name, default: FilteredAln.fa
 
 :By: Kim Reynolds
@@ -18,8 +18,8 @@ This program is free software distributed under the BSD 3-clause
 license, please see the file LICENSE for details.
 """
 
-import scaTools as sca
 import argparse
+import scaTools as sca
 
 if __name__ == '__main__':
     # Parse inputs

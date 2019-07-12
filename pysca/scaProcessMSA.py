@@ -1,66 +1,103 @@
-#!/usr/bin/env python
+#! /usr/bin/env python
 """
 The scaProcessMSA script conducts the basic steps in multiple sequence
 alignment (MSA) pre-processing for SCA, and stores the results using the python
 tool pickle:
 
-     1)  Trim the alignment, either by truncating to a reference sequence (specified with the -t flag) or by removing
-         excessively gapped positions (set to positions with more than 40% gaps)
-     2)  Identify/designate a reference sequence in the alignment, and create a mapping of the alignment numberings to position numberings
-         for the reference sequence. The reference sequence can be specified in one of four ways:
-              a)  By supplying a PDB file - in this case, the reference sequence is taken from the PDB (see the pdb kwarg)
-              b)  By supplying a reference sequence directly (as a fasta file - see the refseq kwarg)
-              c)  By supplying the index of the reference sequence in the alignment (see the refseq kwarg)
-              d)  If no reference sequence is supplied by the user, one is automatically selected using the scaTools function chooseRef.
-         The position numbers (for mapping the alignment) can be specified in one of three ways:
-              a) By supplying a PDB file - in this case the alignment positions are mapped to structure positions
-              b) By supplying a list of reference positions (see the refpos kwarg)
-              c) If no reference positions are supplied by the user, sequential numbering (starting at 1) is assumed.
-     3)  Filter sequences to remove highly gapped sequences, and sequences with an identity below or above some minimum
-         or maximum value to the reference sequence (see the parameters kwarg)
-     4)  Filter positions to remove highly gapped positions (default 20% gaps, can also be set using --parameters)
-     5)  Calculate sequence weights and write out the final alignment and other variables
+    1)  Trim the alignment, either by truncating to a reference sequence
+        (specified with the -t flag) or by removing excessively gapped
+        positions (set to positions with more than 40% gaps)
 
+    2)  Identify/designate a reference sequence in the alignment, and create a
+        mapping of the alignment numberings to position numberings for the
+        reference sequence. The reference sequence can be specified in one of
+        four ways:
 
-:Arguments:
-     Input_MSA.fasta (the alignment to be processed, typically the headers contain taxonomic information for the sequences).
+            a) By supplying a PDB file - in this case, the reference sequence
+               is taken from the PDB (see the pdb kwarg)
 
-:Keyword Arguments:
+            b) By supplying a reference sequence directly (as a fasta file -
+               see the refseq kwarg)
+
+            c) By supplying the index of the reference sequence in the
+               alignment (see the refseq kwarg)
+
+            d) If no reference sequence is supplied by the user, one is
+               automatically selected using the scaTools function chooseRef.
+
+        The position numbers (for mapping the alignment) can be specified in
+        one of three ways:
+
+            a) By supplying a PDB file - in this case the alignment positions
+               are mapped to structure positions
+
+            b) By supplying a list of reference positions (see the refpos
+               kwarg)
+
+            c) If no reference positions are supplied by the user, sequential
+               numbering (starting at 1) is assumed.
+
+    3)  Filter sequences to remove highly gapped sequences, and sequences with
+        an identity below or above some minimum or maximum value to the
+        reference sequence (see the parameters kwarg)
+    4)  Filter positions to remove highly gapped positions (default 20% gaps,
+        can also be set using --parameters)
+    5)  Calculate sequence weights and write out the final alignment and other
+        variables
+
+**Arguments**
+     Input_MSA.fasta (the alignment to be processed, typically the headers
+     contain taxonomic information for the sequences).
+
+**Key Arguments**
      --pdb, -s         PDB identifier (ex: 1RX2)
      --chainID, -c     chain ID in the PDB for the reference sequence
      --species, -f     species of the reference sequence
      --refseq, -r      reference sequence, supplied as a fasta file
-     --refpos, -o      reference positions, supplied as a text file with one position specified per line
-     --refindex, -i    reference sequence number in the alignment, COUNTING FROM 0
+     --refpos, -o      reference positions, supplied as a text file with one
+                       position specified per line
+     --refindex, -i    reference sequence number in the alignment, COUNTING
+                       FROM 0
      --parameters, -p  list of parameters for filtering the alignment:
-                       [max_frac_gaps for positions, max_frac_gaps for sequences, min SID to reference seq, max SID to reference seq]
-                       default values: [0.2, 0.2, 0.2, 0.8] (see filterPos and filterSeq functions for details)
-     --selectSeqs, -n  subsample the alignment to (1.5 * the number of effective sequences) to reduce computational time, default: False
-     --truncate, -t    truncate the alignment to the positions in the reference PDB, default: False
-     --matlab, -m      write out the results of this script to a matlab workspace for further analysis
+                       [max_frac_gaps for positions, max_frac_gaps for
+                       sequences, min SID to reference seq, max SID to
+                       reference seq]
+                       default values: [0.2, 0.2, 0.2, 0.8] (see filterPos and
+                       filterSeq functions for details)
+     --selectSeqs, -n  subsample the alignment to (1.5 * the number of
+                       effective sequences) to reduce computational time,
+                       default: False
+     --truncate, -t    truncate the alignment to the positions in the reference
+                       PDB, default: False
+     --matlab, -m      write out the results of this script to a matlab
+                       workspace for further analysis
      --output          specify a name for the outputfile
 
-:Example:
->>> ./scaProcessMSA.py data/PF00071_full.an -s 5P21 -c A -f 'Homo sapiens'
+**Example**::
+
+./scaProcessMSA.py ../data/PF00071_full.an -s 5P21 -c A -f 'Homo sapiens'
 
 :By: Rama Ranganathan
 :On: 8.5.2014
+
 Copyright (C) 2015 Olivier Rivoire, Rama Ranganathan, Kimberly Reynolds
-This program is free software distributed under the BSD 3-clause
-license, please see the file LICENSE for details.
+
+This program is free software distributed under the BSD 3-clause license,
+please see the file LICENSE for details.
 """
+
 from __future__ import division
 import sys
 #  import time
 import os
+import pickle
+import argparse
 import numpy as np
 #  import copy
 #  import scipy.cluster.hierarchy as sch
-import scaTools as sca
-import pickle
-import argparse
 #  from Bio import SeqIO
 from scipy.io import savemat
+import scaTools as sca
 
 import settings
 
@@ -382,13 +419,14 @@ if __name__ == '__main__':
     D['trim_parameters'] = options.parameters
     D['truncate_flag'] = options.truncate
 
-    if (options.outputfile is not None):
+    if options.outputfile is not None:
         fn_noext = options.outputfile
     print("Opening database file " + settings.path2output + fn_noext)
     db = {}
     db['sequence'] = D
 
     if options.matfile:
-        savemat(settings.path2output + fn_noext, db, appendmat=True, oned_as='column')
+        savemat(settings.path2output + fn_noext, db, appendmat=True,
+                oned_as='column')
 
     pickle.dump(db, open(settings.path2output + fn_noext + ".db", "wb"))

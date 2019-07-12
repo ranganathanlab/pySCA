@@ -1,40 +1,55 @@
-#!/usr/bin/env python
+#! /usr/bin/env python
 """
 The scaCore script runs the core calculations for SCA, and stores the output
 using the python tool pickle. These calculations can be divided into two parts:
 
-     1)  Sequence correlations:
-              a) Compute simMat = the global sequence similarity matrix for the alignment
-              b) Compute Useq and Uica = the eigenvectors (and independent components) for the following sequence correlation matrices:
+    1) Sequence correlations:
 
-                 * unweighted (:math:`U^0`)
-                 * sequence weights applied (:math:`U^1`)
-                 * both sequence and position weights applied (:math:`U^2`)
+        a) Compute simMat = the global sequence similarity matrix for the
+           alignment
+        b) Compute Useq and Uica = the eigenvectors (and independent
+           components) for the following sequence correlation matrices:
 
-     2)  Positional correlations:
-              a) Compute the single-site position weights and positional conservation values (:math:`D_i` and :math:`D_i^a`)
-              b) Compute the dimension-reduced SCA correlation matrix :math:`\\tilde{C_{ij}}`, the projected alignment :math:`tX`,
-                 and the projector
-              c) Compute Ntrials of the randomized SCA matrix, and the eigenvectors and eigenvalues associated with each
+            * unweighted (:math:`U^0`)
+            * sequence weights applied (:math:`U^1`)
+            * both sequence and position weights applied (:math:`U^2`)
 
-:Arguments:
-     *.db (the database produced by running scaProcessMSA.py).
+    2) Positional correlations:
 
-:Keyword Arguments:
-     -n              norm type for dimension-reducing the sca matrix. Options are: 'spec' (the spectral norm) or 'frob' (frobenius norm). Default: frob
-     -l              lambda parameter for pseudo-counting the alignment. Default: 0.03
-     --Ntrials, -t   number of randomization trials
-     --matlab, -m    write out the results of these calculations to a matlab workspace for further analysis
+        a) Compute the single-site position weights and positional conservation
+           values (:math:`D_i` and :math:`D_i^a`)
+        b) Compute the dimension-reduced SCA correlation matrix
+           :math:`\\tilde{C_{ij}}`, the projected alignment :math:`tX`, and the
+           projector
+        c) Compute Ntrials of the randomized SCA matrix, and the eigenvectors
+           and eigenvalues associated with each
 
-:Example:
->>> ./scaCore.py PF00071_full.db
+**Arguments**
+     \*.db (the database produced by running scaProcessMSA.py).
+
+**Keyword Arguments**
+    -n               norm type for dimension-reducing the sca matrix. Options
+                     are: 'spec' (the spectral norm) or 'frob' (frobenius
+                     norm). Default: frob
+    -l               lambda parameter for pseudo-counting the alignment.
+                     Default: 0.03
+    --Ntrials, -t    number of randomization trials
+    --matlab, -m     write out the results of these calculations to a matlab
+                     workspace for further analysis
+
+**Example**::
+
+./scaCore.py ../data/PF00071_full.db
 
 :By: Rama Ranganathan, Kim Reynolds
 :On: 8.5.2014
+
 Copyright (C) 2015 Olivier Rivoire, Rama Ranganathan, Kimberly Reynolds
-This program is free software distributed under the BSD 3-clause
-license, please see the file LICENSE for details.
+
+This program is free software distributed under the BSD 3-clause license,
+please see the file LICENSE for details.
 """
+
 from __future__ import division
 import sys
 import time
@@ -43,13 +58,13 @@ import os
 #  import copy
 #  import scipy.cluster.hierarchy as sch
 #  import matplotlib.pyplot as plt
-import scaTools as sca
 import pickle
 import argparse
+from scipy.io import savemat
+import scaTools as sca
 #  from Bio import SeqIO
 #  from scipy.stats import t
 #  from scipy.stats import scoreatpercentile
-from scipy.io import savemat
 
 import settings
 

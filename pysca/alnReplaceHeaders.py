@@ -5,12 +5,12 @@ It assumes the sequences in the two fasta files are in identical order. This is
 useful, for example, when working with Promals3D alignments (which often have
 the header information truncated).
 
-:Arguments:
-     Headers.fasta      (Alignment that is providing the headers)
-     Sequences.fasta    (Alignment that is providing the sequences)
+**Arguments**
+    Headers.fasta      (Alignment that is providing the headers)
+    Sequences.fasta    (Alignment that is providing the sequences)
 
-:Keyword Arguments:
-     --output           output file name, default: FixedHeaders.fa
+**Keyword Arguments**
+    --output           output file name, default: FixedHeaders.fa
 
 :By: Kim Reynolds
 :On: 6.5.2015
@@ -21,9 +21,8 @@ This program is free software distributed under the BSD 3-clause
 license, please see the file LICENSE for details.
 """
 
-import scaTools as sca
 import argparse
-
+import scaTools as sca
 
 if __name__ == '__main__':
     # Parse inputs

@@ -1,43 +1,54 @@
-#!/usr/bin/env python
+#! /usr/bin/env python
 """
 The scaSectorID script does the preliminaries of sector identification and
 stores the outputs using the python tool pickle:
-     1) Chooses :math:`k_{max}` (the number of significant eigenmodes) by comparison of the :math:`\\tilde{C_{ij}}`
-        eigenspectrum to that for the randomized matrices
-     2) Rotates the top :math:`k_{max}` eigenvectors using independent components analysis
-     3) Defines the amino acid positions that significantly contribute to each of the independent components (ICs)
-        by empirically fitting each IC to the t-distribution and selecting positions with greater than a
-        specified cutoff (default: p=0.95) on the CDF.
-     4) Assign positions into groups based on the independent component with which it has the greatest degree of co-evolution.
 
-:Arguments:
-     *.db (the database produced by running scaCore.py).
+    1) Chooses :math:`k_{max}` (the number of significant eigenmodes) by
+       comparison of the :math:`\\tilde{C_{ij}}` eigenspectrum to that for the
+       randomized matrices
+    2) Rotates the top :math:`k_{max}` eigenvectors using independent
+       components analysis
+    3) Defines the amino acid positions that significantly contribute to each
+       of the independent components (ICs) by empirically fitting each IC to
+       the t-distribution and selecting positions with greater than a specified
+       cutoff (default: p=0.95) on the CDF.
+    4) Assign positions into groups based on the independent component with
+       which it has the greatest degree of co-evolution.
 
-:Keyword Arguments:
-     --kpos, -k       number of significant eigenmodes for analysis (the default is to automatically choose using the eigenspectrum)
-     --cutoff, -p     empirically chosen cutoff for selecting AA positions with a significant contribution to each IC, Default = 0.95
-     --matlab, -m     write out the results of this script to a matlab workspace for further analysis
+**Arguments**
+    \*.db (the database produced by running scaCore.py).
 
-:Example:
->>> ./scaSectorID.py PF00071_full.db
+**Key Arguments**
+    --kpos, -k       number of significant eigenmodes for analysis (the default
+                     is to automatically choose using the eigenspectrum)
+    --cutoff, -p     empirically chosen cutoff for selecting AA positions with
+                     a significant contribution to each IC, Default = 0.95
+    --matlab, -m     write out the results of this script to a matlab workspace
+                     for further analysis
+
+**Example**::
+
+./scaSectorID.py ../data/PF00071_full.db
 
 :By: Kim Reynolds
 :On: 8.19.2014
 
 Copyright (C) 2015 Olivier Rivoire, Rama Ranganathan, Kimberly Reynolds
-This program is free software distributed under the BSD 3-clause
-license, please see the file LICENSE for details.
+
+This program is free software distributed under the BSD 3-clause license,
+please see the file LICENSE for details.
 """
+
 from __future__ import division
 #  import sys
 import time
 import os
-import numpy as np
-import scaTools as sca
 import pickle
 #  import timeit
 import argparse
+import numpy as np
 from scipy.io import savemat
+import scaTools as sca
 
 import settings
 

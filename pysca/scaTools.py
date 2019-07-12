@@ -1,42 +1,45 @@
+#! /usr/bin/env python
 """
 pySCA - A SCA toolbox in Python
 
 :By:
 
-|      Olivier Rivoire (olivier.rivoire@ujf-grenoble.fr)
-|      Kimberly Reynolds (kimberly.reynolds@utsouthwestern.edu)
-|      Rama Ranganathan (rama.ranganathan@utsouthwestern.edu)
+| Olivier Rivoire (olivier.rivoire@ujf-grenoble.fr)
+| Kimberly Reynolds (kimberly.reynolds@utsouthwestern.edu)
+| Rama Ranganathan (rama.ranganathan@utsouthwestern.edu)
 
 :On:  August 2014
 :version: 6.1 beta
 
 Copyright (C) 2015 Olivier Rivoire, Rama Ranganathan, Kimberly Reynolds
-This program is free software distributed under the BSD 3-clause
-license, please see the file LICENSE for details.
+
+This program is free software distributed under the BSD 3-clause license,
+please see the file LICENSE for details.
 """
+
 from __future__ import division
 import os
 import subprocess
 import copy
 import time
-import numpy as np
 import random as rand
+import colorsys
+import tempfile
+import numpy as np
 import scipy.sparse
 import scipy.sparse.linalg
 from scipy.sparse import csr_matrix as sparsify
+from scipy.stats import t
+from scipy.stats import scoreatpercentile
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import matplotlib.cm as cm
 #  from mpl_toolkits.mplot3d import Axes3D
-import colorsys
-import tempfile
 from Bio.PDB import PDBParser
 from Bio import pairwise2
 from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
-from scipy.stats import t
-from scipy.stats import scoreatpercentile
 #  from optparse import OptionParser
 
 import settings
@@ -47,14 +50,17 @@ import settings
 
 
 class Unit:
-    ''' A class for units (sectors, sequence families, etc.)
+    '''
+    A class for units (sectors, sequence families, etc.)
 
-        **Attributes:**
-            -  `name`  = string describing the unit (ex: 'firmicutes')
-            -  `items` = set of member items (ex: indices for all firmicutes sequences in an alignment)
-            -  `col`   = color code associated to the unit (for plotting)
-            -  `vect`  = an additional vector describing the member items (ex: a list of sequence weights)
+    **Attributes**
 
+      :name:  string describing the unit (ex: 'firmicutes')
+      :items: set of member items (ex: indices for all firmicutes
+              sequence in an alignment)
+      :col:   color code associated to the unit (for plotting)
+      :vect:  an additional vector describing the member items (ex: a list
+              of sequence weights)
     '''
 
     def __init__(self):
@@ -65,14 +71,16 @@ class Unit:
 
 
 class Annot:
-    ''' A class for annotating sequences
+    '''
+    A class for annotating sequences
 
-            :Attributes:
-                -  `descr` = description (often the sequence header)
-                -  `species` = species string
-                -  `taxo` = taxonomy string
-                -  `seq` = sequence
-        '''
+    **Attributes**
+   
+      :desc:    description (often the sequence header)
+      :species: species string
+      :taxo:    taxonomy string
+      :seq:     sequence
+    '''
 
     def __init__(self, descr, species, taxo, seq=''):
         self.descr = descr
@@ -89,8 +97,9 @@ def readAlg(filename):
     Read in a multiple sequence alignment in fasta format, and return the
     headers and sequences.
 
-    >>> headers, sequences = readAlg(filename)
+    headers, sequences = readAlg(filename)
     '''
+
     filelines = open(filename, 'r').readlines()
     headers = list()
     sequences = list()
@@ -120,14 +129,17 @@ def AnnotPfam(pfam_in, pfam_out, pfam_seq=settings.path2pfamseq):
     the two sequences will be represented (twice) in the output - this should
     however not practically be an issue.
 
-    :Arguments:
-        -  input PFAM sequence alignment
-        -  output file name for the annotated PFAM alignment
+    **Arguments**
 
-    :Keyword Arguments:
-        -  `pfam_seq` = path to the file pfamseq.txt
+      - input PFAM sequence alignment
+      - output file name for the annotated PFAM alignment
+
+    **Key Arguments**
+
+      - `pfam_seq` = path to the file pfamseq.txt
 
     '''
+
     start_time = time.time()
     print('Beginning annotation')
     # Reads the pfam headers and sequences:
@@ -157,28 +169,33 @@ def AnnotPfam(pfam_in, pfam_out, pfam_seq=settings.path2pfamseq):
         # f.write('>%s|%s|%s|%s\n' % (key, info.split('\t')[6], info.split('\t')[9],\
         #        ','.join([name.strip() for name in info.split('\t')[10].split(';')])))
         # this f.write line works with the new version of pfamseq.txt
-        f.write('>%s|%s|%s|%s\n' % (key, info.split('\t')[5], info.split('\t')[
-                8], ','.join([name.strip() for name in info.split('\t')[9].split(';')])))
+        f.write('>%s|%s|%s|%s\n' % (key, info.split('\t')[5],
+                info.split('\t')[8],
+                ','.join([name.strip()
+                          for name in info.split('\t')[9].split(';')])))
         f.write('%s\n' % (sequences[i]))
     f.close()
     print('Elapsed time: %.1f min' % ((end_time - start_time) / 60))
 
 
 def clean_al(alg, code='ACDEFGHIKLMNPQRSTVWY', gap='-'):
-    ''' Replaces any character that is not a valid amino acid by a gap.
-
-        :Arguments: amino acid sequence alignment
-
-        :Keyword Arguments:
-            -  `code` = list of valid amino acid characters (case sensitive)
-            -  `gap` =  gap character for replacement
     '''
+    Replaces any character that is not a valid amino acid by a gap.
+
+    **Arguments** amino acid sequence alignment
+
+    **Key Arguments**
+
+      :code: list of valid amino acid characters (case sensitive)
+      :gap:  gap character for replacement
+    '''
+
     alg_clean = list()
     for seq in alg:
         seq_clean = ''
-        for iaa in range(len(seq)):
-            if code.find(seq[iaa]) != -1:
-                seq_clean += seq[iaa]
+        for aa in seq:
+            if code.find(aa) != -1:
+                seq_clean += aa
             else:
                 seq_clean += gap
         alg_clean.append(seq_clean)
@@ -190,17 +207,21 @@ def MSAsearch(hd, algn, seq, species=None, path2_algprog=settings.path2needle):
     Identify the sequence in the alignment that most closely corresponds to the
     species of the reference sequence, and return its index.
 
-         **Arguments:**
-           -  sequence alignment headers
-           -  alignment sequences
-           -  selected reference sequence (often from a PDB file)
+    **Arguments**
 
-         **Keyword Arguments:**
-           -  `species` =  species of the reference sequence (Used to speed up alignment searching when possible)
-           -  `path2_algprog` =  path to an alignment program
+      - sequence alignment headers
+      - alignment sequences
+      - selected reference sequence (often from a PDB file)
 
-         **Example:**
-           >>> strseqnum = MSASearch(hd, alg0, pdbseq, 'Homo sapiens')
+    **Key Arguments**
+
+      :species: species of the reference sequence (Used to speed up alignment
+                searching when possible)
+      :path2_algprog: path to an alignment program
+
+    **Example**::
+
+      strseqnum = MSASearch(hd, alg0, pdbseq, 'Homo sapiens')
     '''
 
     if species is not None:
@@ -225,9 +246,9 @@ def MSAsearch(hd, algn, seq, species=None, path2_algprog=settings.path2needle):
         output_handle.close()
         algn_tmp, algn_tmpname = tempfile.mkstemp()
         f = open(algn_tmp, "w")
-        for i in range(len(algn)):
+        for i, algn_i in enumerate(algn):
             f.write(">" + hd[i] + "\n")
-            f.write(algn[i] + "\n")
+            f.write(algn_i + "\n")
         f.close()
         args = ['ggsearch36',
                 '-M 1-' + str(len(algn[0])),
@@ -263,9 +284,9 @@ def MSAsearch(hd, algn, seq, species=None, path2_algprog=settings.path2needle):
             algn_tmp, algn_tmpname = tempfile.mkstemp()
             output_handle = open(algn_tmp, "w")
             s_records = list()
-            for k in range(len(algn)):
+            for k, algn_k in enumerate(algn):
                 s_records.append(
-                    SeqRecord(Seq(algn[k]), id=str(k), description=hd[k]))
+                    SeqRecord(Seq(algn_k), id=str(k), description=hd[k]))
             SeqIO.write(s_records, output_handle, "fasta")
             output_handle.close()
             needle_tmp, needle_tmpname = tempfile.mkstemp()
@@ -278,10 +299,10 @@ def MSAsearch(hd, algn, seq, species=None, path2_algprog=settings.path2needle):
                 outfile=needle_tmpname)
             stdout, stderr = needle_cline()
             print(stdout + stderr)
-            algres = open(needle_tmpname, 'r').readlines()
+            algres = open(needle_tmp, 'r').readlines()
             score = list()
             for k in algres:
-                if (k.find('Identity: ') > 0):
+                if k.find('Identity: ') > 0:
                     score.append(int(k.split()[2].split('/')[0]))
             i_0 = score.index(max(score))
             if species is not None:
@@ -318,11 +339,12 @@ def chooseRefSeq(alg):
     taking the sequence which has the mean pairwise sequence identity closest
     to that of the entire alignment.
 
-    :Example:
-       >>> i_ref = chooseRefSeq(msa_num)
+    **Example**::
+
+      i_ref = chooseRefSeq(msa_num)
     '''
 
-    if (len(alg) > 1000):
+    if len(alg) > 1000:
         seqw = seqWeights(alg)
         keep_seq = randSel(seqw, 1000)
     else:
@@ -337,7 +359,6 @@ def chooseRefSeq(alg):
         meanSID.append(simMat[k].mean())
     meanDiff = abs(meanSID - np.mean(listS))
     strseqnum = [i for i, k in enumerate(meanDiff) if k == min(meanDiff)]
-    ix = keep_seq[strseqnum[0]]
     return strseqnum[0]
 
 
@@ -350,19 +371,24 @@ def makeATS(sequences, refpos, refseq, iref=0, truncate=False):
 
     .. _MSAsearch: scaTools.html#scaTools.MSAsearch
 
-     **Arguments:**
-       -  sequences
-       -  reference positions
-       -  reference sequence
-       -  iref, the index of the sequence in the alignment with the highest identity to the reference
+     **Arguments**
 
-    :Keyword Arguments:
-       truncate  -- truncate the alignment to positions that align to the reference sequence.
+       - sequences
+       - reference positions
+       - reference sequence
+       - iref, the index of the sequence in the alignment with the highest
+         identity to the reference
 
-    :Example:
-      >>> sequences_trun, ats_new = sca.makeATS(sequences_full, ats_pdb, seq_pdb, i_ref)
+    **Key Arguments**
 
+       :truncate: (bool) truncate the alignment to positions that align to the
+                  reference sequence
+
+    **Example**::
+
+      sequences_trun, ats_new = sca.makeATS(sequences_full, ats_pdb, seq_pdb, i_ref)
     '''
+
     if truncate:
         print("truncating to reference sequence...")
         # Removing gaps:
@@ -377,11 +403,11 @@ def makeATS(sequences, refpos, refseq, iref=0, truncate=False):
             seq_ref, seq_tr[iref], 2, -1, -.5, -.1)[0]
         keep_ref, keep_alg = list(), list()
         j_ref, j_alg = 0, 0
-        for i in range(len(seqal_ref)):
-            if seqal_ref[i] != '-' and seqal_alg[i] != '-':
+        for i, seqal_ref_i in enumerate(seqal_ref):
+            if seqal_ref_i != '-' and seqal_alg[i] != '-':
                 keep_ref.append(j_ref)
                 keep_alg.append(j_alg)
-            if seqal_ref[i] != '-':
+            if seqal_ref_i != '-':
                 j_ref += 1
             if seqal_alg[i] != '-':
                 j_alg += 1
@@ -392,20 +418,18 @@ def makeATS(sequences, refpos, refseq, iref=0, truncate=False):
         refseq = refseq.replace('-', '')
         seqal_ref, seqal_alg, _, _, _ = pairwise2.align.globalms(
             refseq, tmp, 2, -1, -.5, -.1)[0]
-        print(
-            'Len refseq %i, len refpos %i, Len alg seq %i, len pairalg %i, len gloalg %i' %
-            (len(refseq), len(refpos), len(tmp), len(seqal_alg), len(
-                sequences[0])))
+        print('Len refseq %i, len refpos %i, Len alg seq %i, len pairalg %i,len gloalg %i' %
+              (len(refseq), len(refpos), len(tmp), len(seqal_alg), len(sequences[0])))
         # print seqal_ref
         # print seqal_alg
         ats_out = list()
         j_ref = 0
         j_pdb = 0
-        for i in range(len(seqal_alg)):
-            if seqal_alg[i] == '.' and seqal_ref[i] == '-':
+        for i, seqal_alg_i in enumerate(seqal_alg):
+            if seqal_alg_i == '.' and seqal_ref[i] == '-':
                 ats_out.insert(j_ref, '-')
                 j_ref += 1
-            elif seqal_alg[i] != '.' and seqal_alg[i] != '-':
+            elif seqal_alg_i != '.' and seqal_alg_i != '-':
                 if seqal_ref[i] != '-':
                     ats_out.insert(j_ref, refpos[j_pdb])
                     j_ref += 1
@@ -413,11 +437,11 @@ def makeATS(sequences, refpos, refseq, iref=0, truncate=False):
                 else:
                     ats_out.insert(j_ref, '-')
                     j_ref += 1
-            elif seqal_alg[i] == '.' and seqal_ref[i] != '-':
+            elif seqal_alg_i == '.' and seqal_ref[i] != '-':
                 ats_out.insert(j_ref, refpos[j_pdb])
                 j_ref += 1
                 j_pdb += 1
-            elif seqal_alg[i] == '-':
+            elif seqal_alg_i == '-':
                 j_pdb += 1
         sequences_out = sequences
     return sequences_out, ats_out
@@ -430,10 +454,11 @@ def lett2num(msa_lett, code='ACDEFGHIKLMNPQRSTVWY'):
     represented by the numbers 1,...,20, with any symbol not corresponding to
     an amino acid represented by 0.
 
-    :Example:
-       >>> msa_num = lett2num(msa_lett, code='ACDEFGHIKLMNPQRSTVWY')
+    **Example**::
 
+       msa_num = lett2num(msa_lett, code='ACDEFGHIKLMNPQRSTVWY')
     '''
+
     lett2index = {aa: i + 1 for i, aa in enumerate(code)}
     [Nseq, Npos] = [len(msa_lett), len(msa_lett[0])]
     msa_num = np.zeros((Nseq, Npos)).astype(int)
@@ -450,9 +475,9 @@ def alg2bin(alg, N_aa=20):
     by numbers between 0 and N_aa (obtained using lett2num) to a sparse binary
     array of size M x (N_aa x L).
 
-    :Example:
-      >>> Abin = alg2bin(alg, N_aa=20)
+    **Example**::
 
+      Abin = alg2bin(alg, N_aa=20)
     '''
 
     [N_seq, N_pos] = alg.shape
@@ -470,17 +495,21 @@ def seqWeights(alg, max_seqid=.8, gaps=1):
     neighborhood, defined as the sequences with sequence similarity below
     max_seqid. The sum of the weights defines an effective number of sequences.
 
-    **Arguments:**
-        -  `alg` = list of sequences
+    **Arguments**
 
-    **Keyword Arguments:**
-        -  `max_seqid`
-        -  `gaps` = If gaps == 1 (default), considering gaps as a 21st amino acid, if gaps == 0, not considering them.
+      :alg: list of sequences
 
-    :Example:
-      >>> seqw = seqWeights(alg)
+    **Keyword Arguments**
 
+      :max_seqid:
+      :gaps: If gaps == 1 (default), considering gaps as a 21st amino acid, if
+             gaps == 0, not considering them.
+
+    **Example**::
+
+      seqw = seqWeights(alg)
     '''
+
     codeaa = 'ACDEFGHIKLMNPQRSTVWY'
     if gaps == 1:
         codeaa += '-'
@@ -507,9 +536,10 @@ def filterSeq(alg0, sref=0.5, max_fracgaps=.2, min_seqid=.2, max_seqid=.8):
     .. _chooseRefSeq: scaTools.html#scaTools.chooseRefSeq
 
     **Example:**
-        >>> alg, seqw, seqkeep = filterSeq(alg0, iref, max_fracgaps=.2, min_seqid=.2, max_seqid=.8)
 
+        alg, seqw, seqkeep = filterSeq(alg0, iref, max_fracgaps=.2, min_seqid=.2, max_seqid=.8)
     '''
+
     if (sref == 0.5):
         sref = chooseRefSeq(alg0)
     Nseq, Npos = len(alg0), len(alg0[0])
@@ -523,13 +553,11 @@ def filterSeq(alg0, sref=0.5, max_fracgaps=.2, min_seqid=.2, max_seqid=.8):
     # Elimination of sequences too dissimilar to the reference (trimming):
     seqkeep = [s for s in seqkeep0 if sum(
         [alg0[s][i] == alg0[sref][i] for i in range(Npos)]) / Npos > min_seqid]
-    print(
-        "Keeping %i sequences of %i sequences (after filtering for seq similarity)" %
-        (len(seqkeep), len(seqkeep0)))
+    print("Keeping %i sequences of %i sequences (after filtering for seq similarity)" %
+          (len(seqkeep), len(seqkeep0)))
     alg = [alg0[s] for s in seqkeep]
     # Sequence weights (smoothing, here effectively treats gaps as a 21st amino
     # acid):
-    msa_num = lett2num(alg)
     seqw = seqWeights(alg, max_seqid)
     return alg, seqw, seqkeep
 
@@ -539,31 +567,37 @@ def filterPos(alg, seqw=[1], max_fracgaps=.2):
     Truncate the positions of an input alignment to reduce gaps, taking into
     account sequence weights.
 
-    **Arguments:**
-        -  `alg` = An MxL list of sequences
+    **Arguments**
 
-    **Keyword Arguments:**
-        -  `seqw` = vector of sequence weights (default is uniform weights)
-        -  `max_fracgaps` = maximum fraction of gaps allowed at a position
+      :alg: An MxL list of sequences
+
+    **Keyword Arguments**
+      :seqw: vector of sequence weights (default is uniform weights)
+      :max_fracgaps: maximum fraction of gaps allowed at a position
 
     **Returns:**
-        -  `alg_tr` = the truncated alignment
-        -  `selpos` = the index of retained positions (indices start at 0 for the first position)
+      :alg_tr: the truncated alignment
+      :selpos: the index of retained positions (indices start at 0 for the
+               first position)
 
-    :Example:
-       >>> alg_tr, selpos = filterPos(alg, seqw, max_fracgaps=.2)
+    **Example**::
 
+       alg_tr, selpos = filterPos(alg, seqw, max_fracgaps=.2)
     '''
+
     Nseq, Npos = len(alg), len(alg[0])
     if len(seqw) == 1:
         seqw = np.tile(1, (1, Nseq))
+
     # Fraction of gaps, taking into account sequence weights:
     gapsMat = np.array([[int(alg[s][i] == '-')
                          for i in range(Npos)] for s in range(Nseq)])
     seqwn = seqw / seqw.sum()
     gapsperpos = seqwn.dot(gapsMat)[0]
+
     # Selected positions:
     selpos = [i for i in range(Npos) if gapsperpos[i] < max_fracgaps]
+
     # Truncation:
     alg_tr = [''.join([alg[s][i] for i in selpos]) for s in range(Nseq)]
     return alg_tr, selpos
@@ -575,17 +609,19 @@ def randSel(seqw, Mtot, keepSeq=[]):
     replacement. The seed for the random number generator is fixed to ensure
     reproducibility.
 
-        **Arguments:**
-            -  `seqw` = the sequence weights
-            -  `Mtot` = the total number of sequences for selection
+    **Arguments**
+        - `seqw` = the sequence weights
+        - `Mtot` = the total number of sequences for selection
 
-        **Keyword Arguments:**
-            -  `keepSeq` = an (optional) list of sequnces to keep. This can be useful if you would like to
-                           retain the reference sequence for example.
+    **Keyword Arguments**
+        - `keepSeq` = an (optional) list of sequnces to keep. This can be
+          useful if you would like to retain the reference sequence for
+          example.
 
-        :Example:
-      >>> selection = randSel(seqw, Mtot, [iref])
+    **Example**::
+      selection = randSel(seqw, Mtot, [iref])
     '''
+
     rand.seed(0)
     return weighted_rand_list(seqw[0], Mtot, keepSeq)
 
@@ -597,10 +633,11 @@ def weighted_rand_list(weights, Nmax, keepList):
 
     .. _randSel: scaTools.html#scaTools.randSel
 
-    :Example:
-      >>> selection = weighted_rand_list(weights, Nmax, [iref])
+    **Example**::
 
+      selection = weighted_rand_list(weights, Nmax, [iref])
     '''
+
     Ntot = min((weights > 0).sum(), Nmax)
     wlist = [w for w in weights]
     selection = list()
@@ -622,10 +659,11 @@ def weighted_rand_sel(weights):
 
     .. _weighted_rand_list: scaTools.html#scaTools.weighted_rand_list
 
-    :Example:
-      >>> index = weighted_rand_sel(weights)
+    **Example**::
 
+      index = weighted_rand_sel(weights)
     '''
+
     rnd = rand.random() * sum(weights)
     for i, w in enumerate(weights):
         rnd -= w
@@ -640,26 +678,32 @@ def freq(alg, seqw=1, Naa=20, lbda=0, freq0=np.ones(20) / 21):
     '''
     Compute amino acid frequencies for a given alignment.
 
-    **Arguments:**
-        -  `alg` = a MxL sequence alignment (converted using lett2num_)
+    **Arguments**
+
+      :alg: a MxL sequence alignment (converted using lett2num_)
 
     .. _lett2num: scaTools.html#scaTools.lett2num
 
-    **Keyword Arguments:**
-        - `seqw` = a vector of sequence weights (1xM)
-        - `Naa` = the number of amino acids
-        - `lbda` = lambda parameter for setting the frequency of pseudo-counts (0 for no pseudo counts)
-        - `freq0` = expected average frequency of amino acids at all positions
+    **Keyword Arguments**
+      :seqw:  a vector of sequence weights (1xM)
+      :Naa:   the number of amino acids
+      :lbda:  lambda parameter for setting the frequency of pseudo-counts (0
+              for no pseudo counts)
+      :freq0: expected average frequency of amino acids at all positions
 
-    **Returns:**
-        -  `freq1` = the frequencies of amino acids at each position taken independently (Naa*L)
-        -  `freq2` = the joint frequencies of amino acids at pairs of positions (freq2, Naa*L * Naa*L)
-        -  `freq0` = the average frequency of amino acids at all positions (Naa)
+    **Returns**
 
-    :Example:
-      >>> freq1, freq2, freq0 = freq(alg, seqw, lbda=lbda)
+      :freq1: the frequencies of amino acids at each position taken
+              independently (Naa*L)
+      :freq2: the joint frequencies of amino acids at pairs of positions
+              (freq2, Naa*L * Naa*L)
+      :freq0: the average frequency of amino acids at all positions (Naa)
 
+    **Example**::
+
+      freq1, freq2, freq0 = freq(alg, seqw, lbda=lbda)
     '''
+
     Nseq, Npos = alg.shape
     if isinstance(seqw, int) and seqw == 1:
         seqw = np.ones((1, Nseq))
@@ -689,10 +733,11 @@ def eigenVect(M):
     the eigenvalues, for a real symmetric matrix M. The sign of the
     eigenvectors is fixed so that the mean of its components is non-negative.
 
-    :Example:
-       >>> eigenVectors, eigenValues = eigenVect(M)
+    **Example**::
 
+       eigenVectors, eigenValues = eigenVect(M)
     '''
+
     eigenValues, eigenVectors = np.linalg.eigh(M)
     idx = (-eigenValues).argsort()
     eigenValues = eigenValues[idx]
@@ -710,10 +755,11 @@ def svdss(X, k=6):
     singular values are ordered by decreasing values, the sign of the singular
     vectors is fixed, and the convention is that X = u.dot(s).dot(v.T):
 
-    :Example:
-      >>> u, s ,v = svdss(X, k=6)
+    **Example**::
 
+      u, s ,v = svdss(X, k=6)
     '''
+
     u, s, vt = scipy.sparse.linalg.svds(X, k)
     idx = (-s).argsort()
     s = s[idx]
@@ -730,22 +776,25 @@ def basicICA(x, r, Niter):
     Basic ICA algorithm, based on work by Bell & Sejnowski (infomax). The input
     data should preferentially be sphered, i.e., x.T.dot(x) = 1
 
-    **Arguments:**
-      -  `x` = LxM input matrix where L = # features and M = # samples
-      -  `r` = learning rate / relaxation parameter (e.g. r=.0001)
-      -  `Niter` =  number of iterations (e.g. 1000)
+    **Arguments**
 
-    **Returns:**
-      -  `w` = unmixing matrix
-      -  `change` = record of incremental changes during the iterations.
+      :x: LxM input matrix where L = # features and M = # samples
+      :r: learning rate / relaxation parameter (e.g. r=.0001)
+      :Niter: number of iterations (e.g. 1000)
 
-    **Note:** r and Niter should be adjusted to achieve convergence, which
-    should be assessed by visualizing 'change' with plot(range(iter) ,change)
+    **Returns**
 
-    **Example:**
-      >>> [w, change] = basicICA(x, r, Niter)
+      :w: unmixing matrix
+      :change: record of incremental changes during the iterations.
 
+    **Note** r and Niter should be adjusted to achieve convergence, which
+    should be assessed by visualizing 'change' with plot(range(iter), change)
+
+    **Example**::
+
+      [w, change] = basicICA(x, r, Niter)
     '''
+
     [L, M] = x.shape
     w = np.eye(L)
     change = list()
@@ -764,9 +813,10 @@ def rotICA(V, kmax=6, learnrate=.0001, iterations=10000):
     ICA rotation (using basicICA) with default parameters and normalization of
     outputs.
 
-    :Example:
-       >>> Vica, W = rotICA(V, kmax=6, learnrate=.0001, iterations=10000)
+    **Example**::
+       Vica, W = rotICA(V, kmax=6, learnrate=.0001, iterations=10000)
     '''
+
     V1 = V[:, :kmax].T
     [W, changes_s] = basicICA(V1, learnrate, iterations)
     Vica = (W.dot(V1)).T
@@ -776,6 +826,7 @@ def rotICA(V, kmax=6, learnrate=.0001, iterations=10000):
             np.linalg.norm(Vica[:, n])
     return Vica, W
 
+
 ##########################################################################
 # SCA FUNCTIONS
 
@@ -784,8 +835,8 @@ def seqSim(alg):
     ''' Take an MxL alignment (converted to numeric representation using lett2num_)
     and compute a MxM matrix of sequence similarities.
 
-    :Example:
-      >>> simMat = seqSim(alg)
+    **Example**::
+      simMat = seqSim(alg)
 
     '''
     # Get the number of sequences and number of positions:
@@ -798,25 +849,33 @@ def seqSim(alg):
     return simMat
 
 
-def posWeights(alg, seqw=1, lbda=0, N_aa=20, freq0=np.array(
-        [.073, .025, .050, .061, .042, .072, .023, .053, .064, .089, .023, .043, .052, .040, .052, .073, .056, .063, .013, .033]), tolerance=1e-12):
-    ''' Compute single-site measures of conservation, and the sca position weights, :math:`\\frac {\partial {D_i^a}}{\partial {f_i^a}}`
+def posWeights(alg, seqw=1, lbda=0, N_aa=20,
+               freq0=np.array([.073, .025, .050, .061, .042, .072, .023, .053,
+                               .064, .089, .023, .043, .052, .040, .052, .073,
+                               .056, .063, .013, .033]),
+               tolerance=1e-12):
+    '''
+    Compute single-site measures of conservation, and the sca position weights,
+    :math:`\\frac {\partial {D_i^a}}{\partial {f_i^a}}`
 
-    **Arguments:**
-         -  `alg` =  MSA, dimensions MxL, converted to numerical representation with lett2num_
-         -  `seqw` = a vector of M sequence weights (default is uniform weighting)
-         -  `lbda` = pseudo-counting frequencies, default is no pseudocounts
-         -  `freq0` =  background amino acid frequencies :math:`q_i^a`
+    **Arguments**
+         - `alg` =  MSA, dimensions MxL, converted to numerical representation
+           with lett2num_
+         - `seqw` = a vector of M sequence weights (default is uniform
+           weighting)
+         - `lbda` = pseudo-counting frequencies, default is no pseudocounts
+         - `freq0` =  background amino acid frequencies :math:`q_i^a`
 
     **Returns:**
-         -  `Wia` = positional weights from the derivation of a relative entropy, :math:`\\frac {\partial {D_i^a}}{\partial {f_i^a}}` (Lx20)
-         -  `Dia` = the relative entropy per position and amino acid (Lx20)
-         -   `Di` = the relative entropy per position (L)
+         - `Wia` = positional weights from the derivation of a relative
+           entropy, :math:`\\frac {\partial {D_i^a}}{\partial {f_i^a}}` (Lx20)
+         - `Dia` = the relative entropy per position and amino acid (Lx20)
+         - `Di` = the relative entropy per position (L)
 
-    :Example:
-       >>> Wia, Dia, Di = posWeights(alg, seqw=1,freq0)
-
+    **Example**::
+       Wia, Dia, Di = posWeights(alg, seqw=1,freq0)
     '''
+
     N_seq, N_pos = alg.shape
     if isinstance(seqw, int) and seqw == 1:
         seqw = np.ones((1, N_seq))
@@ -835,7 +894,7 @@ def posWeights(alg, seqw=1, lbda=0, N_aa=20, freq0=np.array(
                           ((1 - freq1[iok]) * freq0v[iok])))
     # Relative entropies per position and amino acid:
     Dia = np.zeros(N_pos * N_aa)
-    Dia[iok] = freq1[iok] * np.log(freq1[iok] / freq0v[iok])\
+    Dia[iok] = freq1[iok] * np.log(freq1[iok] / freq0v[iok]) \
         + (1 - freq1[iok]) * np.log((1 - freq1[iok]) / (1 - freq0v[iok]))
     # Overall relative entropies per positions (taking gaps into account):
     Di = np.zeros(N_pos)
@@ -855,11 +914,12 @@ def seqProj(msa_num, seqw, kseq=15, kica=6):
     Compute three different projections of the sequences based on eigenvectors
     of the sequence similarity matrix.
 
-    **Arguments:**
-       -  `msa_num` = sequence alignment (previously converted to numerical representation using lett2num_)
+    **Arguments**
+       -  `msa_num` = sequence alignment (previously converted to numerical
+          representation using lett2num_)
        -  `seqw` = a vector of sequence weights
 
-    **Keyword Arguments:**
+    **Keyword Arguments**
        -  `kseq` = number of eigenvectors to compute
        -  `kica` = number of independent components to compute
 
@@ -869,27 +929,32 @@ def seqProj(msa_num, seqw, kseq=15, kica=6):
        -  `Useq[2]/Uica[2]` =  use sequence weights and positional weights
 
     **Example:**
-      >>> Useq, Uica = sca.seqProj(msa_num, seqw, kseq = 30, kica = 15)
-
+      Useq, Uica = sca.seqProj(msa_num, seqw, kseq = 30, kica = 15)
     '''
+
     posw, Dia, Di = posWeights(msa_num, seqw)
     Useq = list()
+
     # 1 - raw:
     X2d = alg2bin(msa_num)
     Useq.append(svdss(X2d, k=kseq)[0])
+
     # 2 - with sequence weights:
     X2dw = sparsify(np.diag(np.sqrt(seqw[0]))).dot(X2d)
     u, s, v = svdss(X2dw, k=kseq)
     Useq.append(X2d.dot(v).dot(np.diag(1 / s)))
+
     # 3 - with sequence and position weights:
     X2dp = X2d.dot(sparsify(np.diag(posw)))
     X2dpw = sparsify(np.diag(np.sqrt(seqw[0]))).dot(X2dp)
     u, s, v = svdss(X2dpw, k=kseq)
     Useq.append(X2dp.dot(v).dot(np.diag(1 / s)))
+
     # Fixing the sign:
     for U in Useq:
         for j in range(U.shape[1]):
             U[:, j] = np.sign(np.mean(U[:, j])) * U[:, j]
+
     # Rotation by ICA (default is kica=6):
     Uica = list()
     for U in Useq:
@@ -901,29 +966,33 @@ def scaMat(alg, seqw=1, norm='frob', lbda=0, freq0=np.ones(20) / 21,):
     '''
     Computes the SCA matrix.
 
-     **Arguments:**
-        - `alg` =  A MxL multiple sequence alignment, converted to numeric
-                   representation with lett2num_
+     **Arguments**
 
-     **Keyword Arguments:**
-        -  `seqw` =  A vector of sequence weights (default: uniform weights)
-        -  `norm` =  The type of matrix norm used for dimension reduction of
-                     the SCA correlation tensor to a positional correlation
-                     matrix. Use 'spec' for spectral norm and 'frob' for
-                     Frobenius norm. The frobenius norm is the default.
-        -  `lbda` =  lambda parameter for setting the frequency of
-                     pseudo-counts (0 for no pseudo counts)
-        -  `freq0` = background expectation for amino acid frequencies
+       :alg: A MxL multiple sequence alignment, converted to numeric
+             representation with lett2num_
 
-     **Returns:**
-        -  `Cp` = the LxL SCA positional correlation matrix
-        -  `tX` = the projected MxL alignment
-        -  `projMat` = the projector
+     **Keyword Arguments**
 
-     :Example:
-      >>> Csca, tX, projMat = scaMat(alg, seqw, norm='frob', lbda=0.03)
+       :seqw: A vector of sequence weights (default: uniform weights)
+       :norm: The type of matrix norm used for dimension reduction of the SCA
+              correlation tensor to a positional correlation matrix.  Use
+              'spec' for spectral norm and 'frob' for Frobenius norm. The
+              frobenius norm is the default.
+       :lbda: lambda parameter for setting the frequency of pseudo-counts (0
+              for no pseudo counts)
+       :freq0: background expectation for amino acid frequencies
 
+     **Returns**
+
+       :Cp: the LxL SCA positional correlation matrix
+       :tX: the projected MxL alignment
+       :projMat: the projector
+
+     **Example**::
+
+       Csca, tX, projMat = scaMat(alg, seqw, norm='frob', lbda=0.03)
     '''
+
     N_seq, N_pos = alg.shape
     N_aa = 20
     if isinstance(seqw, int) and seqw == 1:
@@ -932,6 +1001,7 @@ def scaMat(alg, seqw=1, norm='frob', lbda=0, freq0=np.ones(20) / 21,):
         alg, Naa=N_aa, seqw=seqw, lbda=lbda, freq0=freq0)
     W_pos = posWeights(alg, seqw, lbda)[0]
     tildeC = np.outer(W_pos, W_pos) * (freq2 - np.outer(freq1, freq1))
+
     # Positional correlations:
     Cspec = np.zeros((N_pos, N_pos))
     Cfrob = np.zeros((N_pos, N_pos))
@@ -946,6 +1016,7 @@ def scaMat(alg, seqw=1, norm='frob', lbda=0, freq0=np.ones(20) / 21,):
             P[j, i, :] = np.sign(np.mean(u[:, 0])) * vt[0, :].T
     Cspec += np.triu(Cspec, 1).T
     Cfrob += np.triu(Cfrob, 1).T
+
     # Projector:
     al2d = np.array(alg2bin(alg).todense())
     tX = np.zeros((N_seq, N_pos))
@@ -971,10 +1042,11 @@ def projUica(msa_ann, msa_num, seqw, kica=6):
     of the sequence space of another (msa_num, seqw).This is useful to compare
     the sequence space of one alignment to another.
 
-    :Example:
-      >>> Uica_ann, Uica = projUpica(msa_ann, msa_num_ seqw, kica=6)
+    **Example**::
 
+      Uica_ann, Uica = projUpica(msa_ann, msa_num_ seqw, kica=6)
     '''
+
     X2d = alg2bin(msa_num)
     posw, Dia, Di = posWeights(msa_num, seqw)
     X2dw = sparsify(np.diag(np.sqrt(seqw[0]))).dot(X2d)
@@ -1005,10 +1077,11 @@ def projAlg(alg, Proj):
     alignment should already be converted to numeric representation using
     lett2num_.
 
-    :Example:
-      >>> tX = projAlg(msa_num, Proj)
+    **Example**::
 
+      tX = projAlg(msa_num, Proj)
     '''
+
     N_seq, N_pos = alg.shape
     N_aa = 20
     al2d = np.array(alg2bin(alg).todense())
@@ -1030,10 +1103,11 @@ def projUpica(msa_ann, msa_num, seqw, kpos):
     sequence space (as projected by the positional correlations) of one
     alignment to another.
 
-    :Example:
-      >>> Upica_ann, Upica = projUpica(msa_ann, msa_num_ seqw, kpos)
+    **Example**::
 
+      Upica_ann, Upica = projUpica(msa_ann, msa_num_ seqw, kpos)
     '''
+
     Csca, tX, Proj = scaMat(msa_num, seqw)
     Vsca, Lsca = eigenVect(Csca)
     Vpica, Wpica = rotICA(Vsca, kmax=kpos)
@@ -1060,8 +1134,8 @@ def sizeLargestCompo(adjMat):
 
     .. _numConnected: scaTools.html#scaTools.sizeLargestCompo
 
-    :Example:
-      >>> s = sizeLargestCompo(adjMat)
+    **Example**::
+      s = sizeLargestCompo(adjMat)
 
     '''
     Nnodes = adjMat.shape[0]
@@ -1075,7 +1149,7 @@ def sizeLargestCompo(adjMat):
             found.append(node)
             i = 0
             # Recursively listing the neighboors:
-            while (i < len(newcomponent)):
+            while i < len(newcomponent):
                 newneighbors = [j for j in range(Nnodes) if (
                     adjMat[newcomponent[i], j] == 1 and j not in newcomponent)]
                 newcomponent += newneighbors
@@ -1094,21 +1168,22 @@ def numConnected(Vp, k, distmat, eps_list=np.arange(.5, 0, -.01), dcontact=5):
     V_p[i,kk]`, for :math:`kk != k` and eps in eps_list. Useful for looking
     evaluating the physical connectivity of different sectors or sub-sectors.
 
-    **Arguments**:
-       -  `Vp` = A set of eigenvectors or independent components
-       -  `k`  = The eigenvector or independent component to consider
-       -  `distmat` = Distance matrix (computed by pdbSeq_)
+    **Arguments**
+       :Vp: A set of eigenvectors or independent components
+       :k: The eigenvector or independent component to consider
+       :distmat: Distance matrix (computed by pdbSeq_)
 
-    .. _pdbSeq:  scaTools.html#scaTools.pdbSeq
+    .. _pdbSeq: scaTools.html#scaTools.pdbSeq
 
-    **Keyword Arguments:**
-        -  `eps_list` = the range of values of eps for which the group is non-empty
-        -  `dcontact` = the distance cutoff for defining contacts
+    **Key Arguments**
+       :eps_list: the range of values of eps for which the group is non-empty
+       :dcontact: the distance cutoff for defining contacts
 
-    **Example:**
-       >>> eps_range, num_co, num_tot = numConnected(Vp, k, distmat, eps_list = np.arange(.5,0,-.01), dcontact=8)
+    **Example**::
 
+       eps_range, num_co, num_tot = numConnected(Vp, k, distmat, eps_list = np.arange(.5,0,-.01), dcontact=8)
     '''
+
     Npos = distmat.shape[0]
     eps_range = list()
     num_co = list()
@@ -1137,6 +1212,7 @@ def chooseKpos(Lsca, Lrand):
     set of randomized matrices (Lrand), return the number of significant
     eigenmodes.
     '''
+
     return Lsca[Lsca > (Lrand[:, 1].mean() + (3 * Lrand[:, 1].std()))].shape[0]
 
 
@@ -1148,9 +1224,13 @@ def icList(Vpica, kpos, Csca, p_cut=0.95):
     cutoff on more than one IC are assigned to one IC based on which group of
     positions to which it shows a higher degree of coevolution. Additionally
     returns the numeric value of the cutoff for each IC, and the pdf fit, which
-    can be used for plotting/evaluation. icList, icsize, sortedpos, cutoff, pd
-    = icList(Vsca,Lsca,Lrand)
+    can be used for plotting/evaluation.
+
+    **Example**::
+
+      icList, icsize, sortedpos, cutoff, pd = icList(Vsca,Lsca,Lrand)
     '''
+
     # do the PDF/CDF fit, and assign cutoffs
     Npos = len(Vpica)
     cutoff = list()
@@ -1177,10 +1257,12 @@ def icList(Vpica, kpos, Csca, p_cut=0.95):
         diff = abs(tail - p_cut)
         x_pos = diff.argmin()
         cutoff.append(x_dist[x_pos + tmp])
+
     # select the positions with significant contributions to each IC
     ic_init = list()
     for k in range(kpos):
         ic_init.append([i for i in range(Npos) if Vpica[i, k] > cutoff[k]])
+
     # construct the sorted, non-redundant iclist
     sortedpos = list()
     icsize = list()
@@ -1191,7 +1273,7 @@ def icList(Vpica, kpos, Csca, p_cut=0.95):
         Csca_nodiag[i, i] = 0
     for k in range(kpos):
         icpos_tmp = list(ic_init[k])
-        for kprime in [kp for kp in range(kpos) if (kp != k)]:
+        for kprime in [kp for kp in range(kpos) if kp != k]:
             tmp = [v for v in icpos_tmp if v in ic_init[kprime]]
             for i in tmp:
                 remsec = np.linalg.norm(Csca_nodiag[i, ic_init[k]]) \
@@ -1214,10 +1296,11 @@ def singleBar(x, loc, cols, width=.5):
 
     .. _MultiBar: scaTools.html#scaTools.MultiBar
 
-    :Example:
-      >>> singleBar(x, loc, cols, width=.5)
+    **Example**::
 
+      singleBar(x, loc, cols, width=.5)
     '''
+
     s = 0
     y = list()
     for i, v in enumerate(x):
@@ -1237,9 +1320,10 @@ def MultiBar(x, colors='wbrgymc', width=.5):
     four bars, where the first bar has 99 white elements, 1 blue element and 1
     red element.
 
-    :Example:
-     >>> x = [[99, 1, 1], [6, 13, 2], [0, 0, 13], [1, 7, 5]]
-     >>> sca.MultiBar(x)
+    **Example**::
+
+      x = [[99, 1, 1], [6, 13, 2], [0, 0, 13], [1, 7, 5]]
+      sca.MultiBar(x)
 '''
     for i, v in enumerate(x):
         singleBar(v, i, cols=colors)
@@ -1255,11 +1339,11 @@ class Pair:
     '''
     A class for a pair of positions.
 
-    :Attributes:
+    **Attributes**
 
-       -  `pos` = a pair of amino acid positions (ex: [1,3], supplied as argument p)
-       -  `DI`  = the direct information between the two positions (argument x)
-       -  `dist` = the physical distance between the positions (argument d)
+      :pos:  a pair of amino acid positions (ex: [1,3], supplied as argument p)
+      :DI:   the direct information between the two positions (argument x)
+      :dist: the physical distance between the positions (argument d)
     '''
 
     def __init__(self, p, x, d):
@@ -1274,19 +1358,23 @@ def directInfo(freq1, freq2, lbda=.5, freq0=np.ones(20) / 21, Naa=20):
     method proposed by M. Weigt et collaborators (Ref: Marcos et al, PNAS 2011,
     108: E1293-E1301).
 
-    :Example:
-      >>> DI = directInfo(freq1, freq2, lbda=.5, freq0=np.ones(20)/21, Naa=20)
+    **Example**::
+
+      DI = directInfo(freq1, freq2, lbda=.5, freq0=np.ones(20)/21, Naa=20)
     '''
     Npos = int(len(freq1) / Naa)
     Cmat_dat = freq2 - np.outer(freq1, freq1)
+
     # Background:
     block = np.diag(freq0) - np.outer(freq0, freq0)
     Cmat_bkg = np.zeros((Npos * Naa, Npos * Naa))
     for i in range(Npos):
         Cmat_bkg[Naa * i:Naa * (i + 1), Naa * i:Naa * (i + 1)] = block
+
     # Regularizations:
     Cmat = (1 - lbda) * Cmat_dat + lbda * Cmat_bkg
     frq = (1 - lbda) * freq1 + lbda * np.tile(freq0, Npos)
+
     # DI at mean-field approx:
     Jmat = -np.linalg.inv(Cmat)
     DI = np.zeros((Npos, Npos))
@@ -1304,17 +1392,19 @@ def dirInfoFromJ(i, j, Jmat, frq, Naa=20, epsilon=1e-4):
 
     .. _directInfo: scaTools.html#scaTools.directInfo
 
-    **Arguments:**
-        - `i` = position 1
-        - `j` = position 2
-        - `Jmat` = coupling matrix
-        - `frq` = frequency
-        - `Naa` = number of amino acids
+    **Arguments**
 
-    :Example:
-      >>> DI = dirInfoFromJ(i, j, Jmat, frq, Naa=20, epsilon=1e-4)
+     :i: position 1
+     :j: position 2
+     :Jmat: coupling matrix
+     :frq: frequency
+     :Naa: number of amino acids
 
+    **Example**::
+
+      DI = dirInfoFromJ(i, j, Jmat, frq, Naa=20, epsilon=1e-4)
    '''
+
     W = np.ones((Naa + 1, Naa + 1))
     W[:Naa, :Naa] = np.exp(Jmat[Naa * i:Naa * (i + 1), Naa * j:Naa * (j + 1)])
     mui = np.ones(Naa + 1) / (Naa + 1)
@@ -1348,10 +1438,11 @@ def truncDiag(M, dmax):
     Set to 0 the elements of a matrix M up to a distance dmax from the
     diagonal.
 
-    :Example:
-       >>> Mtr = truncDiag(M, dmax)
+    **Example**::
 
+      Mtr = truncDiag(M, dmax)
     '''
+
     Mtr = copy.copy(M)
     for i in range(M.shape[0]):
         for j in range(i, min(i + dmax + 1, M.shape[1])):
@@ -1361,11 +1452,13 @@ def truncDiag(M, dmax):
 
 
 class Secton:
-    ''' A class for sectons.
+    '''
+    A class for sectons.
 
-        **Attributes:**
-           -  `pos` = a list of positions
-           -  `num` = number of positions in the secton
+    **Attributes**
+
+      :pos: a list of positions
+      :num: number of positions in the secton
     '''
 
     def __init__(self, positions):
@@ -1392,13 +1485,15 @@ class Secton:
 
 
 def randAlg(frq, Mseq):
-    ''' Generate a random alignment with Mseq sequences based on the
-    frequencies frq[i,a] of amino acids with a = 0,1,...,Naa (0 for gaps).
-
-    :Example:
-       >>> msa_rand = randAlg(frq, Mseq)
-
     '''
+    Generate a random alignment with Mseq sequences based on the frequencies
+    frq[i,a] of amino acids with a = 0,1,...,Naa (0 for gaps).
+
+    **Example**::
+
+      msa_rand = randAlg(frq, Mseq)
+    '''
+
     Npos = frq.shape[0]
     msa_rand = np.zeros((Mseq, Npos), dtype=int)
     for i in range(Npos):
@@ -1416,34 +1511,43 @@ def randomize(msa_num, Ntrials, seqw=1, norm='frob', lbda=0, Naa=20, kmax=6):
     Randomize the alignment while preserving the frequencies of amino acids at
     each position and compute the resulting spectrum of the SCA matrix.
 
-    **Arguments:**
-        -  `msa_num` = a MxL sequence alignment (converted to numerical representation using lett2num_)
-        -  `Ntrials` = number of trials
-        -  `seqw` = vector of sequence weights (default is to assume equal weighting)
-        -  `norm` = either 'frob' (frobenius) or 'spec' (spectral)
-        -  `lbda` = lambda parameter for setting the frequency of pseudo-counts (0 for no pseudo counts)
-        -  `Naa` = number of amino acids
-        -  `kmax` = number of eigenvectors to keep for each randomized trial
+    **Arguments**
 
-    **Returns:**
-        -  `Vrand` =  eigenvectors for the :math:`\\tilde {C_{ij}^{ab}}` matrix of the randomized alignment (dimensions: Ntrials*Npos*kmax)
-        -  `Lrand` =  eigenvalues for the :math:`\\tilde {C_{ij}^{ab}}` matrix of the randomized alignment  (dimensions: Ntrials*Npos)
+     :msa_num: a MxL sequence alignment (converted to numerical representation
+               using lett2num_)
+     :Ntrials: number of trials
+     :seqw: vector of sequence weights (default is to assume equal weighting)
+     :norm: either 'frob' (frobenius) or 'spec' (spectral)
+     :lbda: lambda parameter for setting the frequency of pseudo-counts (0 for
+            no pseudo counts)
+     :Naa: number of amino acids
+     :kmax: number of eigenvectors to keep for each randomized trial
 
-    :Example:
-       >>> Vrand, Lrand, Crand = randomize(msa_num, 10, seqw, Naa=20, kmax=6)
+    **Returns**
 
+     :Vrand: eigenvectors for the :math:`\\tilde {C_{ij}^{ab}}` matrix of
+             the randomized alignment (dimensions: Ntrials*Npos*kmax)
+     :Lrand: eigenvalues for the :math:`\\tilde {C_{ij}^{ab}}` matrix of
+             the randomized alignment  (dimensions: Ntrials*Npos)
+
+    **Example**::
+
+      Vrand, Lrand, Crand = randomize(msa_num, 10, seqw, Naa=20, kmax=6)
     '''
+
     if isinstance(seqw, int) and seqw == 1:
         seqw = np.ones((1, Nseq))
     Mseq = np.round(seqw.sum()).astype(int)
     Nseq, Npos = msa_num.shape
     Crnd = np.zeros((Npos, Npos))
+
     # Weighted frequencies, including gaps:
     f1, f2, f0 = freq(msa_num, Naa=20, seqw=seqw,
                       lbda=lbda, freq0=np.ones(20) / 21)
     fr1 = np.reshape(f1, (Npos, Naa))
     fr0 = (1 - fr1.sum(axis=1)).reshape(Npos, 1)
     fr01 = np.concatenate((fr0, fr1), axis=1)
+
     # Multiple randomizations:
     Vrand = np.zeros((Ntrials, Npos, kmax))
     Lrand = np.zeros((Ntrials, Npos))
@@ -1462,10 +1566,14 @@ def randomize(msa_num, Ntrials, seqw=1, norm='frob', lbda=0, Naa=20, kmax=6):
 
 
 def figWeights(U1, U2, weight):
-    ''' A 2d scatter plot with color indicating weight.
+    '''
+    A 2d scatter plot with color indicating weight.
 
-        :Example:
-       >>> figWeights(U1, U2, weight) '''
+   **Example**::
+
+     figWeights(U1, U2, weight)
+    '''
+
     seqcol = -np.log(weight)
     seqcol = (seqcol - min(seqcol) + 1) / (max(seqcol) - min(seqcol) + 1)
     seqorder = sorted(range(len(seqcol)), key=lambda s: seqcol[s])
@@ -1475,14 +1583,16 @@ def figWeights(U1, U2, weight):
 
 
 def figColors():
-    ''' Color code for figUnits_.
-
-        .. _figUnits: scaTools.html#scaTools.figUnits
-
-        :Example:
-      >>> figColors()
-
     '''
+    Color code for figUnits_.
+
+    .. _figUnits: scaTools.html#scaTools.figUnits
+
+    **Example**::
+
+      figColors()
+    '''
+
     plt.rcParams['figure.figsize'] = 6, 6
     for s in np.arange(0, 1, .05):
         for a in np.arange(0, 1, .01):
@@ -1518,22 +1628,27 @@ def figUnits(v1, v2, units, marker='o', dotsize=9, notinunits=1):
     .. _Unit: scaTools.html#scaTools.Unit
     .. _figColors: scaTools.html#scaTools.figColors
 
-    **Arguments:**
-       -  `v1` = xvals
-       -  `v2` = yvals
-       -  `units` = list of elements in units
+    **Arguments**
 
-    **Keyword Arguments**
-       -  `marker` = plot marker symbol
-       -  `dotsize` = specify marker/dotsize
-       -  `notinunits` = if set to 1 : the elements not in a unit are represented in white, if set to 0
-                         these elements are not represented, if set to [w1,w2] : elements with coordinates
-                         w1,w2 are represented in white in the background.
+      :v1: xvals
+      :v2: yvals
+      :units: list of elements in units
 
-    :Example:
-      >>> figUnits(v1, v2, units, marker='o', gradcol=0, dotsize=9, notinunits=1)
+    **Key Arguments**
 
-     '''
+      :marker: plot marker symbol
+      :dotsize: specify marker/dotsize
+      :notinunits:
+        - if set to 1: the elements not in a unit are represented in white
+        - if set to 0 these elements are not represented
+        - if set to [w1,w2] : elements with coordinates w1,w2 are represented
+          in white in the background.
+
+    **Example**::
+
+      figUnits(v1, v2, units, marker='o', gradcol=0, dotsize=9, notinunits=1)
+    '''
+
     Ntot = len(v1)
     # Plot all items in white:
     if notinunits == 1:
@@ -1563,20 +1678,23 @@ def figMapping(Csca, tX, kpos, sectors, subfam):
     Useful to get a representation of the sectors/subfamilies mapping for a
     given kpos.
 
-    **Arguments:**
-        -  `Csca` = the sca matrix
-        -  `tX` = the projected alignment
-        -  `kpos` = the number of independent components to consider
-        -  `sectors` = list of Unit_ elements for each sector
-        -  `subfam` = list of Unit_ elements for each sequence family
+    **Arguments**
 
-    **Returns:**
-        -  `Vpica` = the independent components of Csca
+       :Csca: the sca matrix
+       :tX: the projected alignment
+       :kpos: the number of independent components to consider
+       :sectors: list of Unit_ elements for each sector
+       :subfam: list of Unit_ elements for each sequence family
 
-    :Example:
-    >>> Vpica = figMapping(Csca, tX, kpos, sectors, subfam)
+    **Returns**
 
+       :Vpica: the independent components of Csca
+
+    **Example**::
+
+      Vpica = figMapping(Csca, tX, kpos, sectors, subfam)
     '''
+
     Vsca, Lsca = eigenVect(Csca)
     Vpica, Wpica = rotICA(Vsca, kmax=kpos)
     Usca = tX.dot(Vsca[:, :kpos]).dot(np.diag(1 / np.sqrt(Lsca[:kpos])))
@@ -1608,15 +1726,16 @@ def pdbSeq(pdbid, chain='A', path2pdb=settings.path2structures, calcDist=1):
     '''
     Extract sequence, position labels and matrix of distances from a PDB file.
 
-    **Arguments:**
-       -  `pdbid` = PDB identifier (four letters/numbers)
-       -  `chain` = PDB chain identifier
-       -  `path2pdb` = location of the PDB file
-       -  `calcDist` = calculate a distance matrix between all pairs of positions, default is 1
+    **Arguments**
+      :pdbid: PDB identifier (four letters/numbers)
+      :chain: PDB chain identifier
+      :path2pdb: location of the PDB file
+      :calcDist: calculate a distance matrix between all pairs of positions,
+                 default is 1
 
-    :Example:
-       >>> sequence, labels, dist = pdbSeq(pdbid, chain='A', path2pdb=settings.path2structures)
+    **Example**::
 
+      sequence, labels, dist = pdbSeq(pdbid, chain='A', path2pdb=settings.path2structures)
     '''
 
     # Table of 3-letter to 1-letter code for amino acids
@@ -1660,7 +1779,7 @@ def pdbSeq(pdbid, chain='A', path2pdb=settings.path2structures, calcDist=1):
 
     # Distances between residues (minimal distance between atoms, in angstrom):
     dist = np.zeros((len(residues), len(residues)))
-    if (calcDist == 1):
+    if calcDist == 1:
         for n0, res0 in enumerate(residues):
             for n1, res1 in enumerate(residues):
                 dist[n0, n1] = min(
@@ -1679,12 +1798,14 @@ def writePymol(
         chain='A',
         inpath=settings.path2structures,
         quit=1):
-    ''' Write basic a pymol script for displaying sectors and exporting an image.
-
-    :Example:
-      >>> writePymol(pdb, sectors, ics, ats, outfilename, chain='A',inpath=settings.path2structures, quit=1)
-
     '''
+    Write basic a pymol script for displaying sectors and exporting an image.
+
+    **Example**::
+
+      writePymol(pdb, sectors, ics, ats, outfilename, chain='A',inpath=settings.path2structures, quit=1)
+    '''
+
     f = open(outfilename, 'w')
     f.write('delete all\n')
     f.write('load %s%s.pdb, main\n' % (inpath, pdb))
@@ -1719,18 +1840,19 @@ def writePymol(
     f.close()
 
 
-def figStruct(pdbid, sectors, ats, chainid='A', outfile=settings.path2output+'sectors.pml',
-              quit=1, pymol=settings.path2pymol):
+def figStruct(pdbid, sectors, ats, chainid='A',
+              outfile=settings.path2output+'sectors.pml', quit=1,
+              pymol=settings.path2pymol):
     '''
     Make and display an image of the sectors (within a python notebook). By
     default quit PyMol after running it, unless the option 'quit=0' is given.
     The default name and location of the output can also be changed.
 
-    :Example:
-     >>> figStruct(pdbid, sectors, ats, chainid='A', outfile = settings.path2output+'sectors.pml',\
-              quit=1, pymol = settings.path2pymol)
+    **Example**::
 
+      figStruct(pdbid, sectors, ats, chainid='A', outfile = settings.path2output+'sectors.pml', quit=1, pymol = settings.path2pymol)
     '''
+
     writePymol(pdbid, sectors, ats, outfile, chain=chainid, quit=1)
     os.system(pymol + ' ' + outfile)
     img = mpimg.imread(outfile.replace('.pml', '.png'))
@@ -1748,9 +1870,11 @@ def cytoscapeOut(ats, cutoff, Csca, Di, sectors, Vp, outfilename):
     nodes, and couplings are edges. Within cytoscape, the graph can be
     color-coded or weighted by Csca, Di, sector definition or Vp.
 
-    :Example:
-      >>> cytoscapeOut(ats, cutoff, Csca, Di, sectors, Vp, outfilename)
+    **Example**::
+
+      cytoscapeOut(ats, cutoff, Csca, Di, sectors, Vp, outfilename)
     '''
+
     f = open(outfilename + '.sif', 'w')
     for k in range(len(ats)):
         flag = 0

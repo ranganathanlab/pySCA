@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#! /usr/bin/env python
 """
 A basic script to filter a fasta file of sequences by size - a useful step to
 remove partial sequences or sequences that would potentially introduce a large
@@ -6,11 +6,14 @@ number of gaps in the alignment. This script reads in the alignment, computes
 the average sequence length, and outputs a new alignment that keeps sequences
 of length mean +/- tolerance (tolerance default = 50)
 
-:Arguments:
+**Arguments**
+
     Input_MSA.fasta (the alignment to be processed)
 
-:Keyword Arguments:
-    --tolerance, -t      allowable sequence length variation (in number of amino acids), default: 50
+**Keyword Arguments**
+
+    --tolerance, -t      allowable sequence length variation (in number of
+                         amino acids), default: 50
     --output             output file name, default: FilteredAln.fa
 
 :By: Kim Reynolds
@@ -22,9 +25,9 @@ This program is free software distributed under the BSD 3-clause license,
 please see the file LICENSE for details.
 """
 
-import scaTools as sca
-import numpy as np
 import argparse
+import numpy as np
+import scaTools as sca
 
 if __name__ == '__main__':
     # Parse inputs

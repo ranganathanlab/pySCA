@@ -1,5 +1,7 @@
 # pySCA
 
+![Website Build Status](https://gitlab.com/sudorook/pySCA/badges/master/build.svg)
+
 > 03.2015 
 >
 > Copyright (C) 2015 Olivier Rivoire, Rama Ranganathan, Kimberly Reynolds

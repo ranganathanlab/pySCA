@@ -1,7 +1,0 @@
-scaSectorID Module
-==================
-
-.. automodule:: scaSectorID
-    :members:
-    :undoc-members:
-    :show-inheritance:
