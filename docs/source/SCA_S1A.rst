@@ -1,52 +1,50 @@
-========================
-The S1A Serine Proteases
-========================
+
+SCA6.0 - The S1A Serine Proteases
+---------------------------------
 
 **Summary:** This script repeats the analysis of the S1A serine protease
-family, an example of a single protein containing at least three independent
-sectors. This analysis starts from the alignment used in: - Halabi, Rivoire,
-Leibler and Ranganathan. (2009) Cell 138:774-786. The goal is to examine the
-output of the pySCA (v6) analysis for the comparison to earlier results. In the
-S1A serine protease family, prior results indicate three sectors: "red" -
-associated with catalytic specificity, "green" - associated with catalytic
-function (the catalytic triad), and "blue" - associated with stability.
+family, an example of a single protein containing at least three
+independent sectors. This analysis starts from the alignment used in:
+
+::
+
+   -  Halabi, Rivoire, Leibler and Ranganathan. (2009) Cell 138:774-786.
+
+The goal is to examine the output of the pySCA (v6) analysis for the
+comparison to earlier results. In the S1A serine protease family, prior
+results indicate three sectors: “red” - associated with catalytic
+specificity, “green” - associated with catalytic function (the catalytic
+triad), and “blue” - associated with stability.
 
 To facilitate comparison, here are the S1A sector definitions as
-described in Halabi et al. in a format suitable for pasting into pyMol::
+described in Halabi et al. in a format suitable for pasting into pyMol:
 
->>\*\* Red:\*\*
->>17+161+172+176+177+180+183+187+188+189+191+192+213+215+216+220+221+226+227+228
->>\*\* Green:\*\*
->>19+33+42+43+55+56+57+58+102+141+142+184+194+195+196+197+198+199+213+214+216+225
->>\*\* Blue:\*\*
->>21+26+46+52+68+69+71+77+80+81+104+105+108+118+123+124+136+153+157+201+210+229+237+242+245
+::
 
-.. **Red:**
-.. 17+161+172+176+177+180+183+187+188+189+191+192+213+215+216+220+221+226+227+228
-.. 
-.. **Green:**
-.. 19+33+42+43+55+56+57+58+102+141+142+184+194+195+196+197+198+199+213+214+216+225
-.. 
-.. **Blue:**
-.. 21+26+46+52+68+69+71+77+80+81+104+105+108+118+123+124+136+153+157+201+210+229+237+242+245
+   ** Red:**   17+161+172+176+177+180+183+187+188+189+191+192+213+215+216+220+221+226+227+228
+   ** Green:** 19+33+42+43+55+56+57+58+102+141+142+184+194+195+196+197+198+199+213+214+216+225
+   ** Blue:** 21+26+46+52+68+69+71+77+80+81+104+105+108+118+123+124+136+153+157+201+210+229+237+242+245
 
 Prior to running this tutorial, the core calculation scripts must be
-executed from the command line as follows::
+executed from the command line as follows:
 
-    ./scaProcessMSA.py ../data/s1Ahalabi_1470_nosnakes.an -s 3TGI -c E -t -n
-    ./scaCore.py ../output/s1Ahalabi_1470_nosnakes.db
-    ./scaSectorID.py ../output/s1Ahalabi_1470_nosnakes.db
+::
 
-Note that we supply annotated alignments (\*.an files) for all tutorial scripts
-in the `data/` submodule. (This is because the `annotateMSA.py` step is very
-slow and should only be run once.)
+   >> ./scaProcessMSA.py ../data/s1Ahalabi_1470_nosnakes.an -s 3TGI -c E -t -n
+   >> ./scaCore.py ../output/s1Ahalabi_1470_nosnakes.db
+   >> ./scaSectorID.py ../output/s1Ahalabi_1470_nosnakes.db
+
+Note that we supply pre-annotated alignments for all tutorial scripts
+*(the annotate_pfMSA step is slow, and should only be run once)*.
 
 **O.Rivoire, K.Reynolds and R.Ranganathan** 10/2015
 
-.. code:: python
+.. code:: python3
 
-    %matplotlib inline
     from __future__ import division
+    
+    import sys
+    sys.path.append('../pysca')
     
     import os
     import time
@@ -62,19 +60,22 @@ slow and should only be run once.)
     from Bio import motifs
     import colorsys
     import scaTools as sca
-    import mpld3
-    import cPickle as pickle
+    #import mpld3
+    import pickle as pickle
     from optparse import OptionParser
     
-    if not os.path.exists('Outputs/'): os.makedirs('Outputs/')  
+    %matplotlib inline
+    
+    if not os.path.exists('../output/'):
+        os.makedirs('../outpus/')  
 
 To begin, we read in the results of the above three scripts
 (scaProcessMSA, scaCore and scaSectorID), stored as three dictionaries
-in the database s1Ahalabi\_1470\_nosnakes.db
+in the database s1Ahalabi_1470_nosnakes.db
 
-.. code:: python
+.. code:: python3
 
-    db = pickle.load(open('Outputs/s1Ahalabi_1470_nosnakes.db','rb'))
+    db = pickle.load(open('../output/s1Ahalabi_1470_nosnakes.db','rb'))
     Dseq = db['sequence']  #the results of scaProcessMSA
     Dsca = db['sca']       #the results of scaCore
     Dsect = db['sector']   #the results of scaSectorID
@@ -84,7 +85,7 @@ I. Alignment processing and composition
 
 First, we print out a few statistics describing the alignment:
 
-.. code:: python
+.. code:: python3
 
     print("After processing, the alignment size is %i sequences and %i positions" % \
           (Dseq['Nseq'], Dseq['Npos']))
@@ -104,19 +105,21 @@ similarity matrix (defined by :math:`S\equiv \frac{1}{L}XX^\top`)
 nearly homogeneous distribution of sequence identities with a mean value
 of about 30%.
 
-.. code:: python
+.. code:: python3
 
     # List all elements above the diagonal (i<j):
     listS = [Dsca['simMat'][i,j] for i in range(Dsca['simMat'].shape[0]) \
              for j in range(i+1, Dsca['simMat'].shape[1])]
-    #Cluster the sequence similarity matrix
-    Z = sch.linkage(Dsca['simMat'],method = 'complete', metric = 'cityblock')
-    R = sch.dendrogram(Z,no_plot = True)
-    ind = map(int, R['ivl'])
-    #Plotting
+    
+    # Cluster the sequence similarity matrix
+    Z = sch.linkage(Dsca['simMat'], method = 'complete', metric = 'cityblock')
+    R = sch.dendrogram(Z, no_plot = True)
+    ind = R['leaves']
+    
+    # Plotting
     plt.rcParams['figure.figsize'] = 9, 4 
     plt.subplot(121)
-    plt.hist(listS, Dseq['Npos']/2)
+    plt.hist(listS, int(round(Dseq['Npos']/2)))
     plt.xlabel('Pairwise sequence identities', fontsize=14)
     plt.ylabel('Number', fontsize=14)
     plt.subplot(122)
@@ -132,11 +135,11 @@ annotations (parsed from the sequence headers) and check the
 representation of sequences in the top taxonomic levels. For each level,
 we print a list of taxonomic classes, and the number of sequences found
 for each. We also construct dictionaries of annotations for vertebrate
-vs. non vertebrate sequences, and substrate specificity (to later be
+vs. non vertebrate sequences, and substrate specificity (to later be
 used when mapping to sequence space). We print a list of common
 specificities following the list of taxonomic classes.
 
-.. code:: python
+.. code:: python3
 
     #construct a dictionary of phylogenetic groups
     annot = dict()
@@ -166,45 +169,45 @@ specificities following the list of taxonomic classes.
                       if len(a.taxo.split(',')) > level]
         descr_dict = {k:descr_list.count(k) for k in descr_list \
                       if descr_list.count(k)>=atleast}
-        print '\n Level %i:' % level
-        print descr_dict    
+        print('\n Level %i:' % level)
+        print(descr_dict)
         
     # Most frequent catalytic specificities:  
-    print '\nCatalytic Specificities: '
+    print('\nCatalytic Specificities: ')
     for k in spec.keys():
         if len(spec[k]) > 5:
-            print k+': '+str(len(spec[k]))
+            print(k+': '+str(len(spec[k])))
 
 
 .. parsed-literal::
 
     
      Level 0:
-    {'Oligochaeta': 11, 'Malacostraca': 12, 'Actinopterygii': 127, 'Actinobacteria (class)': 14, 'Mammalia': 447, 'Amphibia': 58, 'Insecta': 564, 'Arachnida': 25}
+    {'Mammalia': 447, 'Insecta': 564, 'Actinopterygii': 127, 'Arachnida': 25, 'Actinobacteria (class)': 14, 'Malacostraca': 12, 'Amphibia': 58, 'Oligochaeta': 11}
     
      Level 1:
-    {'Astigmata': 23, 'Decapoda': 12, 'Pleuronectiformes': 14, 'Carnivora': 45, 'Cypriniformes': 60, 'Anura': 58, 'Hymenoptera': 15, 'Ruminantia': 61, 'Coleoptera': 81, 'Tetraodontiformes': 19, 'Rodentia': 174, 'Perciformes': 12, 'Lepidoptera': 59, 'Actinomycetales': 14, 'Haplotaxida': 11, 'Primates': 142, 'Diptera': 391, 'Laurasiatheria': 14}
+    {'Rodentia': 174, 'Diptera': 391, 'Lepidoptera': 59, 'Carnivora': 45, 'Ruminantia': 61, 'Tetraodontiformes': 19, 'Coleoptera': 81, 'Astigmata': 23, 'Actinomycetales': 14, 'Primates': 142, 'Decapoda': 12, 'Anura': 58, 'Cypriniformes': 60, 'Hymenoptera': 15, 'Haplotaxida': 11, 'Perciformes': 12, 'Laurasiatheria': 14, 'Pleuronectiformes': 14}
     
      Level 2:
-    {'Streptomycetaceae': 12, 'Muridae': 170, 'Bovidae': 61, 'Lumbricidae': 11, 'Noctuidae': 28, 'Drosophilidae': 203, 'Tetraodontidae': 19, 'Tenebrionidae': 70, 'Pipidae': 58, 'Canidae': 44, 'Apidae': 10, 'Paralichthyidae': 12, 'Sarcoptidae': 14, 'Cyprinidae': 60, 'Suidae': 14, 'Culicidae': 153, 'Hominidae': 129, 'Cercopithecidae': 11}
+    {'Muridae': 170, 'Culicidae': 153, 'Drosophilidae': 203, 'Noctuidae': 28, 'Canidae': 44, 'Bovidae': 61, 'Tetraodontidae': 19, 'Tenebrionidae': 70, 'Sarcoptidae': 14, 'Hominidae': 129, 'Pipidae': 58, 'Cyprinidae': 60, 'Apidae': 10, 'Streptomycetaceae': 12, 'Lumbricidae': 11, 'Suidae': 14, 'Paralichthyidae': 12, 'Cercopithecidae': 11}
     
     Catalytic Specificities: 
+    trypsin: 182
+    ELSE: 611
+    granzyme: 52
     chymotrypsin: 85
-    kallikrein: 86
-    tryptase: 19
     chymase: 8
     allergen: 21
-    not trypsin: 34
-    thrombin: 7
-    plasminogen activator: 6
-    haptoglobin: 13
-    ELSE: 611
     mast cell protease: 24
-    plasminogen: 6
-    marapsin: 6
-    granzyme: 52
+    haptoglobin: 13
+    not trypsin: 34
+    kallikrein: 86
+    tryptase: 19
     elastase: 42
-    trypsin: 182
+    marapsin: 6
+    plasminogen activator: 6
+    thrombin: 7
+    plasminogen: 6
 
 
 Based on this, we select both taxonomic groups and specificity classes,
@@ -215,11 +218,11 @@ a complete legend that maps numeric codes to color, use:
 
 ::
 
-    >>> sca.figColors()
+   >>> sca.figColors()
 
 We start with taxonomic groups:
 
-.. code:: python
+.. code:: python3
 
     phylo = list();
     fam_names = ['Oligochaeta', 'Malacostraca','Actinopterygii','Actinobacteria',\
@@ -238,7 +241,7 @@ We start with taxonomic groups:
 Now we assign substrate specificity classes, and also sort sequences
 into catalytically active and inactive enzymes (the haptoglobins).
 
-.. code:: python
+.. code:: python3
 
     spec_names = ['chymotrypsin','trypsin','tryptase', 'kallikrein', 'granzyme']
     cat_act = ['active','haptoglobin']
@@ -282,10 +285,10 @@ components of the sequence correlation matrix (including sequence
 weights). In these plots, each point represents a particular sequence,
 and the distance between points reflects global sequence identity. The
 color codings are as follows: **top row:** phylogenetic annotation
-**second row:** active *(blue)* vs. inactive/haptoglobin *(cyan)*
+**second row:** active *(blue)* vs. inactive/haptoglobin *(cyan)*
 **third row:** specificity, chymotrypsin *(red)*, trypsin *(orange)*,
 tryptase *(green)*, kallikrein *(cyan)*, granzyme *(bright pink)*
-**fourth row:** vertebrate *(orange)* vs. invertebrate *(cyan)*
+**fourth row:** vertebrate *(orange)* vs. invertebrate *(cyan)*
 
 The data show some seperation of particular phylogenetic groups along
 ICs 1-5. For example, a subset of mammalian sequences *(cyan)* seperate
@@ -297,11 +300,11 @@ sequence identity, but are largely encoded in a subset of positions. We
 will later see that these sequences *can* be seperated by projecting the
 sequence space using the positional correlations.
 
-.. code:: python
+.. code:: python3
 
     plt.rcParams['figure.figsize'] = 9, 13
     U = Dsca['Uica'][1]
-    pairs = [[2*i,2*i+1] for i in range(3)]
+    pairs = [[i, i+1] for i in range(0, 6, 2)]
     for k,[k1,k2] in enumerate(pairs):
         plt.subplot(4,3,k+1)
         sca.figUnits(U[:,k1], U[:,k2], phylo)
@@ -333,7 +336,7 @@ Plot the position-specific conservation values for each S1A protease
 position. :math:`D_i` is calculated according to equation S4
 (supplemental information).
 
-.. code:: python
+.. code:: python3
 
     fig, axs = plt.subplots(1,1, figsize=(9,4))
     xvals = [i+1 for i in range(len(Dsca['Di']))]
@@ -356,7 +359,7 @@ III. Second-order statistics: conserved correlations.
 Plot the SCA correlation matrix ( :math:`\tilde{C_{ij}}` ) computed
 according to Equations 4 + 5 of Rivoire et al.
 
-.. code:: python
+.. code:: python3
 
     plt.rcParams['figure.figsize'] = 9, 8
     plt.imshow(Dsca['Csca'], vmin=0, vmax=1.4,interpolation='none',\
@@ -367,7 +370,7 @@ according to Equations 4 + 5 of Rivoire et al.
 
 .. parsed-literal::
 
-    <matplotlib.image.AxesImage at 0x10a44ee90>
+    <matplotlib.image.AxesImage at 0x67e12783f048>
 
 
 
@@ -380,7 +383,7 @@ Plot the eigenspectrum of (1) the SCA positional coevolution matrix
 randomization for comparison. This graph is used to choose the number of
 significant eigenmodes (:math:`k^* = 7`).
 
-.. code:: python
+.. code:: python3
 
     plt.rcParams['figure.figsize'] = 9, 4 
     hist0, bins = np.histogram(Dsca['Lrand'].flatten(), bins=Dseq['Npos'], \
@@ -391,13 +394,13 @@ significant eigenmodes (:math:`k^* = 7`).
     plt.plot(bins[:-1], hist0/Dsca['Ntrials'], 'r', linewidth=3)
     plt.tick_params(labelsize=11)
     plt.xlabel('Eigenvalues', fontsize=18); plt.ylabel('Numbers', fontsize=18);
-    print 'Number of eigenmodes to keep is %i' %(Dsect['kpos'])
+    print('Number of eigenmodes to keep is %i' %(Dsect['kpos']))
     #mpld3.display()
 
 
 .. parsed-literal::
 
-    Number of eigenmodes to keep is 7
+    Number of eigenmodes to keep is 6
 
 
 
@@ -408,18 +411,19 @@ Plot the top significant eigenmodes *(top row)* and associated
 independent components *(bottom row)*. The ICs are an optimally
 independent representation of the seven different residue groups.
 
-.. code:: python
+.. code:: python3
 
     plt.rcParams['figure.figsize'] = 9.5, 5.5
-    pairs = [[0,1],[2,3],[4,5],[5,6]]
     EVs = Dsect['Vsca']
     ICs = Dsect['Vpica']
+    pairs = [ [x,x+1] for x in range(0, Dsect['kpos']-1, 2)]
+    ncols = len(pairs)
     for k,[k1,k2] in enumerate(pairs):
-        plt.subplot(2,4,k+1)
+        plt.subplot(2,ncols,k+1)
         plt.plot(EVs[:,k1], EVs[:,k2], 'ok')
         plt.xlabel("EV%i"%(k1+1), fontsize=16)
         plt.ylabel("EV%i"%(k2+1), fontsize=16)
-        plt.subplot(2,4,k+5)
+        plt.subplot(2,ncols,k+1+ncols)
         plt.plot(ICs[:,k1], ICs[:,k2], 'ok')
         plt.xlabel("IC%i"%(k1+1), fontsize=16)
         plt.ylabel("IC%i"%(k2+1), fontsize=16)
@@ -448,7 +452,7 @@ The data indicate generally good fits for the top seven ICs, and we
 return the positions contributing to each IC in a format suitable for
 cut and paste into PyMol.
 
-.. code:: python
+.. code:: python3
 
     plt.rcParams['figure.figsize'] = 8, 8 
     
@@ -456,8 +460,8 @@ cut and paste into PyMol.
     for k in range(Dsect['kpos']):
         iqr = scoreatpercentile(Vpica[:,k],75) - scoreatpercentile(Vpica[:,k],25)
         binwidth=2*iqr*(len(Vpica)**(-0.33))
-        nbins=round((max(Vpica[:,k])-min(Vpica[:,k]))/binwidth)
-        plt.subplot(Dsect['kpos'],1,k)
+        nbins=int(round((max(Vpica[:,k])-min(Vpica[:,k]))/binwidth))
+        plt.subplot(Dsect['kpos'],1,k+1)
         h_params = plt.hist(Vpica[:,k], nbins)
         x_dist = np.linspace(min(h_params[1]), max(h_params[1]), num=100)
         plt.plot(x_dist,Dsect['scaled_pd'][k],'r',linewidth = 2)  
@@ -479,34 +483,25 @@ cut and paste into PyMol.
     IC 1 is composed of 32 positions:
     16+19+28+42+43+44+54+55+56+57+58+102+140+141+142+155+168+182+191+193+194+195+196+197+198+199+211+214+220+225+237+238
     
-    IC 2 is composed of 22 positions:
-    29+138+160+161+172+176+177+180+183+184+188A+189+192+213+215+216+221+222+226+227+228+230
+    IC 2 is composed of 19 positions:
+    29+138+160+161+172+176+177+180+183+184+189+192+213+215+216+221+226+227+228
     
-    IC 3 is composed of 20 positions:
-    21+25+26+27+46+52+68+69+71+77+81+104+107+108+114+118+123+124+136+201
+    IC 3 is composed of 14 positions:
+    26+46+52+69+71+81+104+105+108+118+123+124+136+201
     
-    IC 4 is composed of 10 positions:
-    30+31+32+34+40+51+139+152+156+200
+    IC 4 is composed of 11 positions:
+    17+27+30+31+32+40+45+51+139+152+156
     
-    IC 5 is composed of 6 positions:
-    85+89+91+92+94+95
+    IC 5 is composed of 7 positions:
+    85+89+91+92+94+95+231
     
-    IC 6 is composed of 7 positions:
-    47+53+101+103+105+229+234
-    
-    IC 7 is composed of 0 positions:
-    
+    IC 6 is composed of 6 positions:
+    47+53+101+103+229+234
     
 
 
-.. parsed-literal::
 
-    /Users/kreynolds/anaconda/lib/python2.7/site-packages/matplotlib/axes/_subplots.py:69: MatplotlibDeprecationWarning: The use of 0 (which ends up being the _last_ sub-plot) is deprecated in 1.4 and will raise an error in 1.5
-      mplDeprecation)
-
-
-
-.. image:: _static/SCA_S1A_30_2.png
+.. image:: _static/SCA_S1A_30_1.png
 
 
 To define protein sectors, we examine the structure of the SCA
@@ -517,7 +512,7 @@ statistically independent (defining an independent sector) and which
 represent hierarchical breakdowns of one sector. In this case, the data
 suggest that ICs 1-7 are indeed relatively independent.
 
-.. code:: python
+.. code:: python3
 
     #plot the SCA positional correlation matrix, ordered by contribution to the top ICs
     plt.rcParams['figure.figsize'] = 10, 10 
@@ -579,9 +574,7 @@ Print the sector positions, in a format suitable for pyMol, and create a
 pyMol session (in the Outputs directory) with the sectors (and
 decomposition into independent components) as seperate objects.
 
-
-
-.. code:: python
+.. code:: python3
 
     for i,k in enumerate(sectors):
         sort_ipos = sorted(k.items)
@@ -590,7 +583,7 @@ decomposition into independent components) as seperate objects.
         print('Sector %i is composed of %i positions:' % (i+1,len(ats_ipos)))
         print(ic_pymol + "\n")
     sca.writePymol('3TGI', sectors, Dsect['ics'], Dseq['ats'], \
-                   'Outputs/S1A.pml','E', '../Inputs/', 0)  
+                   '../output/S1A.pml','E', '../Inputs/', 0)  
 
 
 .. parsed-literal::
@@ -598,20 +591,20 @@ decomposition into independent components) as seperate objects.
     Sector 1 is composed of 32 positions:
     16+19+28+42+43+44+54+55+56+57+58+102+140+141+142+155+168+182+191+193+194+195+196+197+198+199+211+214+220+225+237+238
     
-    Sector 2 is composed of 22 positions:
-    29+138+160+161+172+176+177+180+183+184+188A+189+192+213+215+216+221+222+226+227+228+230
+    Sector 2 is composed of 19 positions:
+    29+138+160+161+172+176+177+180+183+184+189+192+213+215+216+221+226+227+228
     
-    Sector 3 is composed of 20 positions:
-    21+25+26+27+46+52+68+69+71+77+81+104+107+108+114+118+123+124+136+201
+    Sector 3 is composed of 14 positions:
+    26+46+52+69+71+81+104+105+108+118+123+124+136+201
     
-    Sector 4 is composed of 10 positions:
-    30+31+32+34+40+51+139+152+156+200
+    Sector 4 is composed of 11 positions:
+    17+27+30+31+32+40+45+51+139+152+156
     
-    Sector 5 is composed of 6 positions:
-    85+89+91+92+94+95
+    Sector 5 is composed of 7 positions:
+    85+89+91+92+94+95+231
     
-    Sector 6 is composed of 7 positions:
-    47+53+101+103+105+229+234
+    Sector 6 is composed of 6 positions:
+    47+53+101+103+229+234
     
 
 
@@ -640,32 +633,33 @@ are color-coded according to phylogenetic classifications *(row 2)*,
 specificity *(row 3)*, vertebrate/invertebrate *(row 4)*, or catalytic
 activity *(row 5)* as we defined above.
 
-.. code:: python
+.. code:: python3
 
     plt.rcParams['figure.figsize'] = 18, 20 
-    pairs= [[0,1],[1,2],[2,3],[4,5],[5,6]]
+    pairs = [ [x,x+1] for x in range(Dsect['kpos']-1)]
+    ncols = len(pairs)
     for n,[k1,k2] in enumerate(pairs):
-        plt.subplot(5,5,n+1)
+        plt.subplot(5,ncols,n+1)
         sca.figUnits(Dsect['Vpica'][:,k1], Dsect['Vpica'][:,k2], \
                      sectors, dotsize = 6)
         plt.xlabel('IC%i' % (k1+1), fontsize=16)
         plt.ylabel('IC%i' % (k2+1), fontsize=16)
-        plt.subplot(5,5,n+6)
+        plt.subplot(5,ncols,n+1+ncols)
         sca.figUnits(Dsect['Upica'][:,k1], Dsect['Upica'][:,k2], \
                      phylo, dotsize = 6)
         plt.xlabel(r'$U^p_{%i}$' % (k1+1), fontsize=16)
         plt.ylabel(r'$U^p_{%i}$' % (k2+1), fontsize=16)
-        plt.subplot(5,5,n+11)
+        plt.subplot(5,ncols,n+1+ncols*2)
         sca.figUnits(Dsect['Upica'][:,k1], Dsect['Upica'][:,k2], \
                      spec_classes, dotsize = 6)
         plt.xlabel(r'$U^p_{%i}$' % (k1+1), fontsize=16)
         plt.ylabel(r'$U^p_{%i}$' % (k2+1), fontsize=16)
-        plt.subplot(5,5,n+16)
+        plt.subplot(5,ncols,n+1+ncols*3)
         sca.figUnits(Dsect['Upica'][:,k1], Dsect['Upica'][:,k2], \
                      vert_classes, dotsize = 6)
         plt.xlabel(r'$U^p_{%i}$' % (k1+1), fontsize=16)
         plt.ylabel(r'$U^p_{%i}$' % (k2+1), fontsize=16)
-        plt.subplot(5,5,n+21)
+        plt.subplot(5,ncols,n+1+ncols*4)
         sca.figUnits(Dsect['Upica'][:,k1], Dsect['Upica'][:,k2], \
                      cat_classes, dotsize = 6)
         plt.xlabel(r'$U^p_{%i}$' % (k1+1), fontsize=16)
@@ -674,7 +668,7 @@ activity *(row 5)* as we defined above.
 
 
 
-.. image:: _static/SCA_S1A_39_0.png
+.. image:: _static/SCA_S1A_38_0.png
 
 
 As previously described, we see a clear correpsondence between the top
@@ -690,7 +684,7 @@ to particular sequence functional groups.
 To more clearly see seperations in sequence classification, we also plot
 the above distributions of sequences as stacked bar plots.
 
-.. code:: python
+.. code:: python3
 
     plt.rcParams['figure.figsize'] = 18, 12 
     
@@ -737,5 +731,7 @@ the above distributions of sequences as stacked bar plots.
 
 
 
-.. image:: _static/SCA_S1A_42_0.png
+.. image:: _static/SCA_S1A_41_0.png
 
+
+This concludes the script.

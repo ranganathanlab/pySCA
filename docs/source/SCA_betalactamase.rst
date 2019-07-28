@@ -1,57 +1,66 @@
-================================
-The Beta-lactamase Enzyme Family
-================================
 
-This script describes the basic flow of the analytical steps in SCA6.0, using
-the :math: `\beta`-lactamase enzyme family as an example (PFAM PF13354). The
-alignment contains some subfamily structure (clades of related sequences) as
-evidenced in Section 1. We identify two sectors: a core sector surrounding the
-active site that is shared across all sequences, and a more peripheral sector
-containing groups of residues that diverge in particular subfamilies. For this
-tutorial, the core scripts should be run as follows::
+SCA6.0 - The Beta-lactamase enzyme family
+-----------------------------------------
 
-    ./annotateMSA.py ../data/PF13354_full.txt ../data/PF13354_full.an
-    ./scaProcessMSA.py ../data/PF13354_full.an -s 1FQG -c A -f 'Escherichia coli'-t -n
-    ./scaCore.py ../outputs/PF13354_full.db
-    ./scaSectorID.py ../outputs/PF13354_full.db
+This script describes the basic flow of the analytical steps in SCA6.0,
+using the :math:`\beta`-lactamase enzyme family as an example (PFAM
+PF13354). The alignment contains some subfamily structure (clades of
+related sequences) as evidenced in Section 1. We identify two sectors: a
+core sector surrounding the active site that is shared across all
+sequences, and a more peripheral sector containing groups of residues
+that diverge in particular subfamilies. For this tutorial, the core
+scripts should be run as follows:
 
-Note that we supply annotated alignments (the output from the first step) for
-all tutorial scripts in the `data/` submodule. (This is because the
-`annotateMSA.py` step is very slow, and should only be run once.)
+::
+
+   >> ./annotate_pfMSA.py ../data/PF13354_full.txt ../data/PF13354_full.an
+   >> ./scaProcessMSA.py ../data/PF13354_full.an -s 1FQG -c A -f 'Escherichia coli'-t -n
+   >> ./scaCore.py ../output/PF13354_full.db
+   >> ./scaSectorID.py ../output/PF13354_full.db
+
+Note that we supply annotated alignments for all tutorial scripts *(the
+annotate_pfMSA step is slow, and should only be run once)*.
 
 **O.Rivoire, K.Reynolds and R.Ranganathan** 9/2014
 
-.. code:: python
+.. code:: python3
 
-    %matplotlib inline
     from __future__ import division
+    
+    import sys
+    sys.path.append('../pysca')
     
     import os
     import time
     import matplotlib.pyplot as plt
+    import math
     import numpy as np
     import copy
     import scipy.cluster.hierarchy as sch
     from scipy.stats import scoreatpercentile 
     import scaTools as sca
     import colorsys
-    import mpld3
-    import cPickle as pickle
+    #import mpld3
+    import pickle as pickle
     from optparse import OptionParser
     
-    if not os.path.exists('Outputs/'): os.makedirs('Outputs/')  
+    if not os.path.exists('../output/'):
+        os.makedirs('../output/')
+        
+    %matplotlib inline
 
-Read in the results of the above three scripts (`scaProcessMSA`, `scaCore`, and
-`scaSectorID`), stored as three dictionaries in the database PF13354_full.db.
-To see what variables are stored in each dictionary, use:
+Read in the results of the above three scripts (scaProcessMSA, scaCore
+and scaSectorID), stored as three dictionaries in the database
+PF13354_full.db. To see what variables are stored in each dictionary,
+use:
 
 ::
 
-    >>> print dict.keys()
+   >>> list(db)
 
-.. code:: python
+.. code:: python3
 
-    db = pickle.load(open('Outputs/PF13354_full.db','rb'))
+    db = pickle.load(open('../output/PF13354_full.db','rb'))
     Dseq = db['sequence']
     Dsca = db['sca']
     Dsect = db['sector']
@@ -67,27 +76,42 @@ identities with peaks near 25% and 45%. From the matrix at right, it is
 clear that the alignment is composed of several distinct sequence
 families.
 
-.. code:: python
+.. code:: python3
 
     # List all elements above the diagonal (i<j):
     listS = [Dsca['simMat'][i,j] for i in range(Dsca['simMat'].shape[0]) \
              for j in range(i+1, Dsca['simMat'].shape[1])]
-    #Cluster the sequence similarity matrix
-    Z = sch.linkage(Dsca['simMat'],method = 'complete', metric = 'cityblock')
+    
+    # Cluster the sequence similarity matrix
+    Z = sch.linkage(Dsca['simMat'], method = 'complete', metric = 'cityblock')
     R = sch.dendrogram(Z,no_plot = True)
-    ind = map(int, R['ivl'])
-    #Plotting
+    ind = R['leaves']
+
+.. code:: python3
+
+    # Plotting
     plt.rcParams['figure.figsize'] = 9, 4 
+    
     plt.subplot(121)
-    plt.hist(listS, Dseq['Npos']/2)
+    plt.hist(listS, math.floor(Dseq['Npos']/2))
     plt.xlabel('Pairwise sequence identities', fontsize=14)
     plt.ylabel('Number', fontsize=14)
+    
     plt.subplot(122)
-    plt.imshow(Dsca['simMat'][np.ix_(ind,ind)], vmin=0, vmax=1); plt.colorbar();
+    plt.imshow(Dsca['simMat'][np.ix_(ind,ind)], vmin=0, vmax=1)
+    plt.colorbar()
 
 
 
-.. image:: _static/SCA_betalactamase_7_0.png
+
+.. parsed-literal::
+
+    <matplotlib.colorbar.Colorbar at 0x6d17a98b6fd0>
+
+
+
+
+.. image:: _static/SCA_betalactamase_8_1.png
 
 
 To examine the role of sequence and position weighting on the structure
@@ -97,7 +121,7 @@ project the corresponding sequence space (by eigenvalue decomposition)
 down to a small set of top modes that contain the statistically dominant
 relationships between sequences. Since eigenvalue decomposition does not
 necessarily provide the best representation of sequence groups (for
-reasons described in "xx"), we also apply independent components
+reasons described in “xx”), we also apply independent components
 analysis (or ICA) to the top few eigenmodes; this manipulation provides
 a representation in which the top groupings of sequences in the
 alignment (if such exists) should separate along the so-called
@@ -119,7 +143,7 @@ we see that application of the sequence and position weights makes the
 sequence space apparently more uniform (removes some of the family or
 clade-like structure).
 
-.. code:: python
+.. code:: python3
 
     Useq = Dsca['Useq']
     Uica = Dsca['Uica']
@@ -134,7 +158,7 @@ clade-like structure).
 
 
 
-.. image:: _static/SCA_betalactamase_9_0.png
+.. image:: _static/SCA_betalactamase_10_0.png
 
 
 To examine the relationship between divergence in *sequence similarity*
@@ -145,7 +169,7 @@ constructing a dictionary of phylogenetic annotations and checking the
 representation of sequences in the top taxonomic levels. The annotations
 are parsed from the sequence headers.
 
-.. code:: python
+.. code:: python3
 
     #construct a dictionary of phylogenetic groups
     annot = dict()
@@ -160,24 +184,24 @@ are parsed from the sequence headers.
                       if len(a.taxo.split(',')) > level]
         descr_dict = {k:descr_list.count(k) for k in descr_list \
                       if descr_list.count(k)>=atleast}
-        print '\n Level %i:' % level
-        print descr_dict    
+        print('\n Level %i:' % level)
+        print(descr_dict)
 
 
 .. parsed-literal::
 
     
      Level 0:
-    {'Bacteria': 745}
+    {'Bacteria': 803}
     
      Level 1:
-    {'environmental samples': 18, 'Firmicutes': 100, 'Bacteroidetes': 49, 'Actinobacteria': 133, 'Cyanobacteria': 62, 'Proteobacteria': 353, 'Acidobacteria': 10}
+    {'Proteobacteria': 380, 'Actinobacteria': 145, 'Firmicutes': 119, 'Deinococcus-Thermus': 11, 'Bacteroidetes': 46, 'Cyanobacteria': 59, 'Acidobacteria': 10, 'environmental samples': 18}
     
      Level 2:
-    {'Lactobacillales': 11, 'Betaproteobacteria': 66, 'Bacteroidia': 25, 'Flavobacteriia': 11, 'Gammaproteobacteria': 176, 'Chroococcales': 34, 'Oscillatoriales': 11, 'Actinobacteridae': 128, 'Bacillales': 47, 'Clostridia': 33, 'Alphaproteobacteria': 103, 'Nostocales': 11}
+    {'Gammaproteobacteria': 200, 'Actinobacteridae': 139, 'Bacillales': 55, 'Deinococci': 11, 'Clostridia': 41, 'Betaproteobacteria': 57, 'Chroococcales': 31, 'Alphaproteobacteria': 115, 'Lactobacillales': 12, 'Negativicutes': 11, 'Bacteroidia': 21, 'Nostocales': 10, 'Oscillatoriales': 11}
     
      Level 3:
-    {'Burkholderiales': 64, 'Flavobacteriales': 11, 'Sphingomonadales': 30, 'Rhizobiales': 39, 'Vibrionales': 24, 'Rhodospirillales': 15, 'Clostridiales': 28, 'Actinomycetales': 128, 'Thiotrichales': 13, 'Enterobacteriales': 79, 'Xanthomonadales': 17, 'Nostocaceae': 11, 'Bacteroidales': 25, 'Synechococcus': 14, 'Caulobacterales': 10, 'Bacillaceae': 29, 'Pseudomonadales': 25}
+    {'Enterobacteriales': 89, 'Actinomycetales': 139, 'Paenibacillaceae': 10, 'Clostridiales': 35, 'Burkholderiales': 55, 'Vibrionales': 28, 'Synechococcus': 14, 'Bacillaceae': 31, 'Rhizobiales': 48, 'Pseudomonadales': 28, 'Rhodospirillales': 16, 'Selenomonadales': 11, 'Sphingomonadales': 31, 'Caulobacterales': 10, 'Bacteroidales': 21, 'Thiotrichales': 12, 'Xanthomonadales': 16, 'Rhodobacterales': 10, 'Nostocaceae': 10}
 
 
 Based on this, we select taxonomic groups and colors for representation.
@@ -186,16 +210,17 @@ see a complete color-coding legend, use:
 
 ::
 
-    >>> sca.figColors()
+   >>> sca.figColors()
 
-.. code:: python
+.. code:: python3
 
     phylo = list();
     fam_names = ['Firmicutes', 'Actinobacteria', 'Bacteroidetes', \
                  'Cyanobacteria', 'Proteobacteria']
     col = (0, 0.18, 0.38, 0.5, 0.6)
-    #Firmicutes = red, Actinobacteria = yellow, Bacteroidetes = cyan, 
-    #Cyanobacteria = green, Proteobacteria = blue
+    # Firmicutes = red, Actinobacteria = yellow, Bacteroidetes = cyan, 
+    # Cyanobacteria = green, Proteobacteria = blue
+    
     for i,k in enumerate(fam_names):
         sf = sca.Unit()
         sf.name = fam_names[i].lower()
@@ -211,12 +236,11 @@ Proteobacteria *(blue)* seperate out on :math:`U_1`, the Firmicutes
 seperate out on :math:`U_3`, and the Bacteroidetes *(cyan)* seperate out
 on :math:`U_5`.
 
-.. code:: python
+.. code:: python3
 
     plt.rcParams['figure.figsize'] = 9, 3.5
     U = Dsca['Uica'][1]
     pairs = [[2*i,2*i+1] for i in range(3)]
-    print pairs
     for k,[k1,k2] in enumerate(pairs):
         plt.subplot(1,3,k+1)
         sca.figUnits(U[:,k1], U[:,k2], phylo)
@@ -226,13 +250,8 @@ on :math:`U_5`.
     plt.tight_layout()
 
 
-.. parsed-literal::
 
-    [[0, 1], [2, 3], [4, 5]]
-
-
-
-.. image:: _static/SCA_betalactamase_15_1.png
+.. image:: _static/SCA_betalactamase_16_0.png
 
 
 II. SCA conservation and coevolution
@@ -243,7 +262,7 @@ Plot the eigenspectrum of the SCA positional coevolution matrix
 randomization for comparison *(red line)*. This graph is used to choose
 the number of significant eigenmodes.
 
-.. code:: python
+.. code:: python3
 
     plt.rcParams['figure.figsize'] = 9, 3.5 
     hist0, bins = np.histogram(Dsca['Lrand'].flatten(), bins=Dseq['Npos'], \
@@ -254,16 +273,16 @@ the number of significant eigenmodes.
     plt.plot(bins[:-1], hist0/Dsca['Ntrials'], 'r', linewidth=3)
     plt.tick_params(labelsize=11)
     plt.xlabel('Eigenvalues', fontsize=18); plt.ylabel('Numbers', fontsize=18);
-    print 'Number of eigenmodes to keep is %i' %(Dsect['kpos'])
+    print('Number of eigenmodes to keep is %i' %(Dsect['kpos']))
 
 
 .. parsed-literal::
 
-    Number of eigenmodes to keep is 6
+    Number of eigenmodes to keep is 7
 
 
 
-.. image:: _static/SCA_betalactamase_18_1.png
+.. image:: _static/SCA_betalactamase_19_1.png
 
 
 To define the positions with significant contributions each of the
@@ -279,7 +298,7 @@ The data indicate generally good fits for the top six ICs, and we return
 the positions contributing to each IC in a format suitable for cut and
 paste into PyMol.
 
-.. code:: python
+.. code:: python3
 
     plt.rcParams['figure.figsize'] = 10,5 
     
@@ -287,8 +306,8 @@ paste into PyMol.
     for k in range(Dsect['kpos']):
         iqr = scoreatpercentile(Vpica[:,k],75) - scoreatpercentile(Vpica[:,k],25)
         binwidth=2*iqr*(len(Vpica)**(-0.33))
-        nbins=round((max(Vpica[:,k])-min(Vpica[:,k]))/binwidth)
-        plt.subplot(1,Dsect['kpos'],k)
+        nbins=int(round((max(Vpica[:,k])-min(Vpica[:,k]))/binwidth))
+        plt.subplot(1,Dsect['kpos'],k+1)
         h_params = plt.hist(Vpica[:,k], nbins)
         x_dist = np.linspace(min(h_params[1]), max(h_params[1]), num=100)
         plt.plot(x_dist,Dsect['scaled_pd'][k],'r',linewidth = 2)    
@@ -305,34 +324,31 @@ paste into PyMol.
 
 .. parsed-literal::
 
-    IC 1 is composed of 21 positions:
-    65+66+71+117+123+125+136+157+164+169+170+178+179+180+210+229+233+247+250+251+255
+    IC 1 is composed of 20 positions:
+    61+65+109+117+125+136+157+164+170+179+180+210+213+229+233+241+247+250+251+255
     
-    IC 2 is composed of 14 positions:
-    70+73+91+130+131+132+134+143+156+182+234+235+236+245
+    IC 2 is composed of 16 positions:
+    63+70+71+73+91+130+131+132+134+143+156+182+196+226+234+236
     
-    IC 3 is composed of 18 positions:
-    72+102+105+106+107+126+144+145+166+183+185+199+207+215+216+226+238+244
+    IC 3 is composed of 17 positions:
+    66+68+102+105+106+107+126+144+145+183+185+199+207+215+216+238+244
     
-    IC 4 is composed of 11 positions:
-    85+87+97+129+200+203+211+221+225+231+240
+    IC 4 is composed of 12 positions:
+    69+72+123+139+149+151+153+161+162+163+186+193
     
-    IC 5 is composed of 15 positions:
-    68+69+119+122+139+149+151+153+161+162+163+181+186+193+220
+    IC 5 is composed of 0 positions:
     
-    IC 6 is composed of 2 positions:
-    241+256
+    
+    IC 6 is composed of 13 positions:
+    67+85+87+148+160+181+190+200+203+211+221+225+231
+    
+    IC 7 is composed of 11 positions:
+    77+84+101+122+138+220+223+224+232+235+245
     
 
 
-.. parsed-literal::
 
-    /Users/kreynolds/anaconda/lib/python2.7/site-packages/matplotlib/axes/_subplots.py:69: MatplotlibDeprecationWarning: The use of 0 (which ends up being the _last_ sub-plot) is deprecated in 1.4 and will raise an error in 1.5
-      mplDeprecation)
-
-
-
-.. image:: _static/SCA_betalactamase_20_2.png
+.. image:: _static/SCA_betalactamase_21_1.png
 
 
 To define protein sectors, we examine the structure of the SCA
@@ -350,9 +366,9 @@ total) are defined accordingly, and in the *right panel*, these
 independent components have been re-ordered accordingly to visualize
 this decomposition.
 
-.. code:: python
+.. code:: python3
 
-    #plot the SCA positional correlation matrix, ordered by contribution to the top ICs
+    # plot the SCA positional correlation matrix, ordered by contribution to the top ICs
     plt.rcParams['figure.figsize'] = 10, 10 
     plt.subplot(121)
     plt.imshow(Dsca['Csca'][np.ix_(Dsect['sortedpos'], Dsect['sortedpos'])], \
@@ -367,7 +383,7 @@ this decomposition.
         line_index += Dsect['icsize'][i] 
     
     #define the new sector groupings - 2 total
-    sec_groups = ([1],[0,2,4,5,3])
+    sec_groups = ([1],[0,2,4,5,3,6])
     sectors = list()
     for n,k in enumerate(sec_groups):
         s = sca.Unit()
@@ -377,7 +393,7 @@ this decomposition.
         s.col = (1/len(sec_groups))*n
         sectors.append(s)
     
-    #plot the re-ordered matrix
+    # plot the re-ordered matrix
     plt.subplot(122)
     line_index=0
     sortpos = list()
@@ -396,16 +412,16 @@ this decomposition.
 
 
 
-.. image:: _static/SCA_betalactamase_22_0.png
+.. image:: _static/SCA_betalactamase_23_0.png
 
 
 Print the sector positions, in a format suitable for pyMol, and create a
 pyMol session with the sectors (and decomposition into independent
 components) as seperate objects. Structurally, sectors 1+3 form
-physically contiguous units, and 2 is less so... this is consistent with
+physically contiguous units, and 2 is less so… this is consistent with
 the idea that sector 2/IC4 might be associated with sector 1/ICs1+3+5+6
 
-.. code:: python
+.. code:: python3
 
     for i,k in enumerate(sectors):
         sort_ipos = sorted(k.items)
@@ -414,16 +430,16 @@ the idea that sector 2/IC4 might be associated with sector 1/ICs1+3+5+6
         print('Sector %i is composed of %i positions:' % (i+1,len(ats_ipos)))
         print(ic_pymol + "\n")
     sca.writePymol('1FQG', sectors, Dsect['ics'], Dseq['ats'], \
-                   'Outputs/PF13354.pml','A', '../Inputs/', 0)  
+                   '../output/PF13354.pml','A', '../data/', 0)  
 
 
 .. parsed-literal::
 
-    Sector 1 is composed of 14 positions:
-    70+73+91+130+131+132+134+143+156+182+234+235+236+245
+    Sector 1 is composed of 16 positions:
+    63+70+71+73+91+130+131+132+134+143+156+182+196+226+234+236
     
-    Sector 2 is composed of 67 positions:
-    65+66+68+69+71+72+85+87+97+102+105+106+107+117+119+122+123+125+126+129+136+139+144+145+149+151+153+157+161+162+163+164+166+169+170+178+179+180+181+183+185+186+193+199+200+203+207+210+211+215+216+220+221+225+226+229+231+233+238+240+241+244+247+250+251+255+256
+    Sector 2 is composed of 73 positions:
+    61+65+66+67+68+69+72+77+84+85+87+101+102+105+106+107+109+117+122+123+125+126+136+138+139+144+145+148+149+151+153+157+160+161+162+163+164+170+179+180+181+183+185+186+190+193+199+200+203+207+210+211+213+215+216+220+221+223+224+225+229+231+232+233+235+238+241+244+245+247+250+251+255
     
 
 
@@ -438,16 +454,16 @@ plot the top :math:`k_{pos}` ICs as 2-D scatter plots with the
 corresponding sequence space divergence. The colors for the sequence
 space are according to the phylogenetic classifications we chose above.
 
-.. code:: python
+.. code:: python3
 
     plt.rcParams['figure.figsize'] = 15,8
-    pairs= [[0,1],[2,3],[4,5]]
+    pairs = [ [x, x+1] for x in range(0, len(Dsect['ics'])-1, 2) ]
     for n,[k1,k2] in enumerate(pairs):
-        plt.subplot(2,3,n+1)
+        plt.subplot(2,len(pairs),n+1)
         sca.figUnits(Dsect['Vpica'][:,k1], Dsect['Vpica'][:,k2], sectors, dotsize = 6)
         plt.xlabel(r'$V^p_{%i}$' % (k1+1), fontsize=16)
         plt.ylabel(r'$V^p_{%i}$' % (k2+1), fontsize=16)
-        plt.subplot(2,3,n+4)
+        plt.subplot(2,len(pairs),n+len(pairs)+1)
         sca.figUnits(Dsect['Upica'][:,k1], Dsect['Upica'][:,k2], phylo, dotsize = 6)
         plt.xlabel(r'$U^p_{%i}$' % (k1+1), fontsize=16)
         plt.ylabel(r'$U^p_{%i}$' % (k2+1), fontsize=16)
@@ -455,7 +471,7 @@ space are according to the phylogenetic classifications we chose above.
 
 
 
-.. image:: _static/SCA_betalactamase_27_0.png
+.. image:: _static/SCA_betalactamase_28_0.png
 
 
 The interpretation for the two sectors:
@@ -480,7 +496,7 @@ sector.
 
 For clarity, we also plot the same data as a stacked bar chart below.
 
-.. code:: python
+.. code:: python3
 
     plt.rcParams['figure.figsize'] = 20, 5 
         
@@ -496,7 +512,7 @@ For clarity, we also plot the same data as a stacked bar chart below.
 
 
 
-.. image:: _static/SCA_betalactamase_29_0.png
+.. image:: _static/SCA_betalactamase_30_0.png
 
 
 This concludes the script.
