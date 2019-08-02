@@ -6,7 +6,7 @@ done in one of two ways:
 
     1) For PFAM alignments, annotations can be extracted from the file
        pfamseq.txt (please download from:
-       http://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/pfamseq.gz)
+       ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/database_files/pfamseq.txt.gz)
 
     2) For Blast alignments, annotations can be added using the NCBI Entrez
        utilities provided by BioPython. In this case, an additional command

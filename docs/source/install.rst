@@ -40,7 +40,7 @@ Before running pySCA, you will need to download and install the following
 *The following steps are optional but highly recommended.*	
 
     4) `PFAM annotations
-       <ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/pfamseq.gz>`_ -
+       <ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/database_files/pfamseq.txt.gz>`_ -
        the file `pfamseq.txt` contains phylogenetic annotations for PFAM
        sequences. This is necessary if you would like to annotate PFAM
        alignments with taxonomic/phylogenetic information using the
