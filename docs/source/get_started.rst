@@ -86,7 +86,7 @@ SCA_S1A.ipynb
 alnFilterSeqSize.py, alnParseGI.py, alnReplaceHeaders.py
   These aren't essential to the main SCA utilities/package, but are little
   scripts that we often find useful in alignment construction.
-annotate_MSA.py
+annotateMSA.py
   A script for adding taxonomic annotations to fasta-formatted sequence
   alignments
 scaProcessMSA.py
@@ -117,14 +117,14 @@ contain on the order of 100 or more effective sequences.
 Once you have an alignment, it is helpful to add taxonomic annotations to the
 headers. These annnotations are used in SCA to examine the relationship between
 sector positions and phylogenetic divergence (i.e. in the mapping between
-independent components and sequence space). The annotate_MSA script contains
+independent components and sequence space). The annotateMSA script contains
 two utilities to automate sequence annotation: one which uses the NCBI Entrez
 tools in BioPython, and one which uses PFAM database annotations (PFAM
 alignment specific). Please note that the annotation step can be slow (on the
 order of hours), but only needs to be done once per alignment. For further
-details please see the `annotate_MSA`_ documentation.
+details please see the `annotateMSA`_ documentation.
 
-.. _annotate_MSA: annotate_MSA.html
+.. _annotateMSA: annotateMSA.html
 
 2. Alignment pre-processing and conditioning
 ============================================
@@ -184,7 +184,7 @@ analysis.
 5. Interpretation of the results and sector definition
 ======================================================
 
-Execution of annotate_MSA, scaProcessMSA, scaCore, and scaSectorID completes
+Execution of annotateMSA, scaProcessMSA, scaCore, and scaSectorID completes
 the calculation of SCA terms and results in a single pickle database (\*.db
 file, and optionally, a matlab workspace) containing the collected results. The
 final step is to interpret these calculations and evaluate the

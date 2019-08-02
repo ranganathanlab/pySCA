@@ -17,11 +17,11 @@ command line as follows:
 
 ::
 
-   >> ./annotate_MSA.py ../data/PF00186_full.txt -o Outputs/PF00186_full.an -a 'pfam'
+   >> ./annotateMSA.py ../data/PF00186_full.txt -o Outputs/PF00186_full.an -a 'pfam'
    >> ./scaProcessMSA.py ../data/PF00186_full.an -s 1RX2 -c A -f 'Escherichia coli' -t -n
    >> ./scaCore.py ../output/PF00186_full.db
    >> ./scaSectorID.py ../output/PF00186_full.db
-   >> ./annotate_MSA.py ../data/DHFR_PEPM3.fasta -o ../output DHFR_PEPM3.an -a 'ncbi' -g ../data/DHFR_PEPM3.gis
+   >> ./annotateMSA.py ../data/DHFR_PEPM3.fasta -o ../output DHFR_PEPM3.an -a 'ncbi' -g ../data/DHFR_PEPM3.gis
    >> ./scaProcessMSA.py ../data/DHFR_PEPM3.an -s 1RX2 -c A -t -n
    >> ./scaCore.py ../output/DHFR_PEPM3.db
    >> ./scaSectorID.py ../output/DHFR_PEPM3.db

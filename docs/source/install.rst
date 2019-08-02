@@ -44,7 +44,7 @@ Before running pySCA, you will need to download and install the following
        the file `pfamseq.txt` contains phylogenetic annotations for PFAM
        sequences. This is necessary if you would like to annotate PFAM
        alignments with taxonomic/phylogenetic information using the
-       annotate_MSA.py script provided by pySCA. This file is quite large (~10
+       annotateMSA.py script provided by pySCA. This file is quite large (~10
        GB) and is not included here, but it is available from the PFAM FTP
        site in compressed (\*.gz) format.
 
