@@ -5,7 +5,7 @@ Installation
 1. Downloading the code
 =======================
 The pySCA package, tutorials, and associated scripts are available for download
-from the `GitLab repository <https://gitlab.com/sudorook/pySCA>`_.
+from the `GitHub repository <https://github.com/ranganathanlab/pySCA>`_.
 
 2. Package Dependencies
 =======================

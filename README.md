@@ -1,6 +1,6 @@
 # pySCA
 
-![Website Build Status](https://gitlab.com/sudorook/pySCA/badges/master/build.svg)
+![Website Build Status](https://gitlab.com/ranganathanlab/pySCA/badges/master/build.svg)
 
 > 09.2019
 >
@@ -19,9 +19,9 @@ Jupyter notebooks; for details please see:
 [https://jupyter.org/](https://jupyter.org/).
 
 For installation instructions, and an introduction to using the toolbox, please
-see:
+refer to the website:
 
-[https://gitlab.com/sudorook/pySCA](https://gitlab.com/sudorook/pySCA)
+[https://ranganathanlab.gitlab.io/pySCA](https://ranganathanlab.gitlab.io/pySCA)
 
 or open the html files included with the pySCA distribution in a browser:
 
