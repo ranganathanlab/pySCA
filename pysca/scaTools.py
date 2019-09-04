@@ -75,7 +75,7 @@ class Annot:
     A class for annotating sequences
 
     **Attributes**
-   
+
       :desc:    description (often the sequence header)
       :species: species string
       :taxo:    taxonomy string

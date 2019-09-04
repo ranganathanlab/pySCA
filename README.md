@@ -2,9 +2,10 @@
 
 ![Website Build Status](https://gitlab.com/sudorook/pySCA/badges/master/build.svg)
 
-> 03.2015 
+> 09.2019
 >
-> Copyright (C) 2015 Olivier Rivoire, Rama Ranganathan, Kimberly Reynolds
+> Copyright (C) 2019 Olivier Rivoire, Rama Ranganathan, Kimberly Reynolds,
+> Ansel George
 >
 > This program is free software distributed under the BSD 3-clause license,
 > please see the file LICENSE for details.
