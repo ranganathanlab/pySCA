@@ -1506,7 +1506,8 @@ def randAlg(frq, Mseq):
     return msa_rand
 
 
-def randomize(msa_num, Ntrials, seqw=1, norm='frob', lbda=0, Naa=20, kmax=6):
+def randomize(msa_num, Ntrials, seqw=1, norm='frob', lbda=0, Naa=20, kmax=6,
+              tolerance=1e-15):
     '''
     Randomize the alignment while preserving the frequencies of amino acids at
     each position and compute the resulting spectrum of the SCA matrix.
@@ -1522,6 +1523,8 @@ def randomize(msa_num, Ntrials, seqw=1, norm='frob', lbda=0, Naa=20, kmax=6):
             no pseudo counts)
      :Naa: number of amino acids
      :kmax: number of eigenvectors to keep for each randomized trial
+     :tolerance: workaround for roundoff error that occurs when calculating gap
+                 probability fr0
 
     **Returns**
 
@@ -1545,7 +1548,8 @@ def randomize(msa_num, Ntrials, seqw=1, norm='frob', lbda=0, Naa=20, kmax=6):
     f1, f2, f0 = freq(msa_num, Naa=20, seqw=seqw,
                       lbda=lbda, freq0=np.ones(20) / 21)
     fr1 = np.reshape(f1, (Npos, Naa))
-    fr0 = (1 - fr1.sum(axis=1)).reshape(Npos, 1)
+    fr0 = (1.0 - fr1.sum(axis=1)).reshape(Npos, 1)
+    fr0[fr0 < tolerance] = 0  # workaround for roundoff errors giving negative fr0
     fr01 = np.concatenate((fr0, fr1), axis=1)
 
     # Multiple randomizations:
