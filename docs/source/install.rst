@@ -14,7 +14,7 @@ Before running pySCA, you will need to download and install the following
 
     1) `Anaconda Scientific Python <https://www.anaconda.com/distribution/>`_
        - this package will install Python, as well as several libraries
-       necessary for the operation of pySCA (NumPy, SciPy, IPython, and
+       necessary for the operation of pySCA (NumPy, SciPy, Jupyter, and
        Matplotlib).
 
     2) Biopython - this can be done in two ways:
@@ -83,20 +83,20 @@ the files ar found on your system if they differ from the defaults.)
 
 4. Getting started and Running the tutorials
 ============================================
-The `"getting started"`_ section of this documentation provides instructions on
-how to run some initial calculations and the tutorials. The basic idea behind
-the pySCA code is that the core calculations are performed using a series of
-executable Python scripts, and then the results can be loaded and
-analyzed/visualized using an Jupyter notebook (or alternatively, Matlab).
+The :doc:`"getting started" <get_started>` section of this documentation
+provides instructions on how to run some initial calculations and the
+tutorials. The basic idea behind the pySCA code is that the core calculations
+are performed using a series of executable Python scripts, and then the results
+can be loaded and analyzed/visualized using an Jupyter notebook (or
+alternatively, MATLAB).
 
 All of the tutorials are written provided as Jupyter notebooks. For more on
-how Jupyter notebooks work, see: http://ipython.org/notebook.html. Prior to
-running the notebook tutorials, you'll need to run the core calculation scripts
-that generate the input for the notebooks. One way to do this is with the shell
+how Jupyter notebooks work, see: `<https://jupyter.org>`_. Prior to running the
+notebook tutorials, you'll need to run the core calculation scripts that
+generate the input for the notebooks. One way to do this is with the shell
 script "runAllNBCalcs.sh", and there is more information on this in the
-`"getting started"`_ section. Once the calculations are completed, you can
-begin the tutorial in interactive Python from the command line, by typing:
+:doc:`"getting started" <get_started>` section. Once the calculations are
+completed, you can begin the tutorial in interactive Python from the command
+line, by typing:
 
->>> ipython notebook <NOTEBOOK_NAME_HERE>
-
-.. _"getting started": get_started.html
+>>> jupyter notebook <NOTEBOOK_NAME_HERE>

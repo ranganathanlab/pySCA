@@ -16,16 +16,16 @@ For each example, this will generate the following outputs in the output/
 directory:
 
   1.  A pickle database (\*.db file) that contains the results of the
-      calculations (these are then read in and analyzed in the ipython
+      calculations (these are then read in and analyzed in the IPython
       notebooks - \*.ipynb)
   2.  A \*.log file that provides some information about the analysis
   3.  A processed alignment (\*.fasta file) resulting from the
       scaProcessMSA script.
 
-Following this step, you can begin the tutorial as an interactive ipython
+Following this step, you can begin the tutorial as an interactive Jupyter
 notebook from the command line as follows::
 
-  ipython notebook SCA_G.ipynb
+  jupyter notebook SCA_G.ipynb
 
 This should open the notebook in a browser window, where you can run the code,
 and examine the SCA results.

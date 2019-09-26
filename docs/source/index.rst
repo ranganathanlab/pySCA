@@ -21,8 +21,10 @@ functional interactions between amino acids, and more importantly, help define
 the basic physical principles underlying protein structure, function, and
 evolution. 
 
-**Please Cite:** *Olivier Rivoire, Kimberly Reynolds, and Rama Ranganathan.
-"Evolution-Based Functional Decomposition of Proteins".*
+**Please Cite:**
+
+  Rivoire, O., Reynolds, K. A., and Ranganathan, R.  Evolution-Based Functional
+  Decomposition of Proteins. *PLOS Computational Biology* 12, e1004817 (2016).
 
 I. Installing and Using pySCA
 ==============================
