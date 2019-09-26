@@ -63,6 +63,7 @@ html_static_path = ['_static']
 
 # logo
 html_logo = '_static/logo.png'
+html_favicon = '_static/favicon.ico'
 
 html_theme_options = {'logo_only': True
 }
