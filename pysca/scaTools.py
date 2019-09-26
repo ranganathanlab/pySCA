@@ -471,9 +471,9 @@ def lett2num(msa_lett, code='ACDEFGHIKLMNPQRSTVWY'):
 
 def alg2bin(alg, N_aa=20):
     '''
-    Translate an alignment of size M x L where the amino acids are represented
-    by numbers between 0 and N_aa (obtained using lett2num) to a sparse binary
-    array of size M x (N_aa x L).
+    Translate an alignment of matrix of size M sequences by L positions where
+    the amino acids are represented by numbers between 0 and N_aa (obtained
+    using lett2num) to a sparse binary array of size M x (N_aa x L).
 
     **Example**::
 
@@ -481,10 +481,10 @@ def alg2bin(alg, N_aa=20):
     '''
 
     [N_seq, N_pos] = alg.shape
-    Abin_tens = np.zeros((N_aa, N_pos, N_seq))
+    Abin_tensor = np.zeros((N_aa, N_pos, N_seq))
     for ia in range(N_aa):
-        Abin_tens[ia, :, :] = (alg == ia + 1).T
-    Abin = sparsify(Abin_tens.reshape(N_aa * N_pos, N_seq, order='F').T)
+        Abin_tensor[ia, :, :] = (alg == ia + 1).T
+    Abin = sparsify(Abin_tensor.reshape(N_aa * N_pos, N_seq, order='F').T)
     return Abin
 
 
@@ -622,7 +622,7 @@ def randSel(seqw, Mtot, keepSeq=[]):
       selection = randSel(seqw, Mtot, [iref])
     '''
 
-    rand.seed(0)
+    rand.seed(0)  # sets the RNG from the 'random' module, not 'numpy.random'
     return weighted_rand_list(seqw[0], Mtot, keepSeq)
 
 
@@ -654,7 +654,7 @@ def weighted_rand_list(weights, Nmax, keepList):
 
 def weighted_rand_sel(weights):
     '''
-    Generate a random index with probability given by input weights.  Called by
+    Generate a random index with probability given by input weights. Called by
     weighted_rand_list_.
 
     .. _weighted_rand_list: scaTools.html#scaTools.weighted_rand_list
