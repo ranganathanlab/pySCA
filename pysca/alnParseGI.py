@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 """
 A script to parse GI numbers from the headers of an alignment with typical
 Blast formatting.

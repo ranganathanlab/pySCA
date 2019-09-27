@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 """
 The annotateMSA script provides utilities to automatically annotate sequence
 headers (for a fasta file) with taxonomic information. Currently this can be

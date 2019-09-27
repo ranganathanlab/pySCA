@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 """
 The scaCore script runs the core calculations for SCA, and stores the output
 using the python tool pickle. These calculations can be divided into two parts:

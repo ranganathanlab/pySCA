@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 """
 The scaProcessMSA script conducts the basic steps in multiple sequence
 alignment (MSA) pre-processing for SCA, and stores the results using the python

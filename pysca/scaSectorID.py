@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 """
 The scaSectorID script does the preliminaries of sector identification and
 stores the outputs using the python tool pickle:

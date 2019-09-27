@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 """
 A basic script to filter a fasta file of sequences by size - a useful step to
 remove partial sequences or sequences that would potentially introduce a large
