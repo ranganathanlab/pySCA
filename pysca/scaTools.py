@@ -140,7 +140,7 @@ def AnnotPfam(pfam_in, pfam_out, pfam_seq=settings.path2pfamseq):
 
     '''
 
-    start_time = time.time()
+    start_time = time.process_time()
     print('Beginning annotation')
     # Reads the pfam headers and sequences:
     headers, sequences = readAlg(pfam_in)
@@ -153,7 +153,8 @@ def AnnotPfam(pfam_in, pfam_out, pfam_seq=settings.path2pfamseq):
             if pf_id in pfamseq_ids:
                 seq_info[pf_id] = line
                 pfamseq_ids.remove(pf_id)
-    end_time = time.time()
+    end_time = time.process_time()
+
     # Writes in output file:
     f = open(pfam_out, 'w')
     pfamseq_ids = [h.split('/')[0] for h in headers]
