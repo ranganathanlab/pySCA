@@ -57,10 +57,8 @@ please see the file LICENSE for details.
 import time
 import sys
 import argparse
-#  from Bio import SeqIO
+import os
 from Bio import Entrez
-#  from Bio.Seq import Seq
-#  from Bio.SeqRecord import SeqRecord
 import scaTools as sca
 
 import settings
@@ -85,8 +83,11 @@ if __name__ == '__main__':
                              "particular sequence.")
     parser.add_argument("-p", "--pfam_seq", dest="pfamseq", default=None,
                         help="Location of the pfamseq.txt file. Defaults to "
-                             "path2pfamseq (specified at the top of "
-                             "scaTools.py)")
+                             "path2pfamseq (specified in settings.py)")
+    parser.add_argument("-d", "--pfam_db", dest="pfamdb", default=None,
+                        help="Location of the pfamseq.db file. Priority over "
+                             "pfamseq.txt file. Defaults to path2pfamseqdb "
+                             "(specified in settings.py)")
     options = parser.parse_args()
 
     if (options.annot != 'pfam') & (options.annot != 'ncbi'):
@@ -98,11 +99,18 @@ if __name__ == '__main__':
                  "containing a list of gi numbers (see the --giList argument)")
 
     if options.annot == 'pfam':
-        # Annotate a PFAM alignment
-        if options.pfamseq is None:
-            sca.AnnotPfam(options.Input_MSA, options.output)
-        else:
+        # Annotate a Pfam alignment
+        if options.pfamdb is not None:  # default to db query over txt search
+            sca.AnnotPfamDB(options.Input_MSA, options.output, options.pfamdb)
+        elif options.pfamseq is not None:
             sca.AnnotPfam(options.Input_MSA, options.output, options.pfamseq)
+        else:
+            # If no database or text file supplied to annotateMSA, then default
+            # to the files defined in settings.py.
+            if os.path.exists(settings.path2pfamseqdb):
+                sca.AnnotPfamDB(options.Input_MSA, options.output)
+            elif os.path.exists(settings.path2pfamseq):
+                sca.AnnotPfam(options.Input_MSA, options.output)
     else:
         # Annotate using GI numbers/NCBI entrez
         gi_lines = open(options.giList, 'r').readlines()

@@ -24,6 +24,7 @@ import copy
 import time
 import random as rand
 import colorsys
+import sqlite3
 import tempfile
 import numpy as np
 import scipy.sparse
@@ -176,6 +177,63 @@ def AnnotPfam(pfam_in, pfam_out, pfam_seq=settings.path2pfamseq):
                           for name in info.split('\t')[9].split(';')])))
         f.write('%s\n' % (sequences[i]))
     f.close()
+    print('Elapsed time: %.1f min' % ((end_time - start_time) / 60))
+
+
+def AnnotPfamDB(pfam_in, pfam_out, pfam_db=settings.path2pfamseqdb):
+    '''
+    Phylogenetic annotation of a Pfam alignment (in fasta format) using
+    information from pfamseq.txt. The output is a fasta file containing
+    phylogenetic annotations in the header (to be parsed with '|' as a
+    delimiter).
+
+    Note: the headers for the original alignment take the form >AAA/x-y.  If
+    two entries have same AAA but correspond to different sequences only one of
+    the two sequences will be represented (twice) in the output - this should
+    however not practically be an issue.
+
+    **Arguments**
+
+      - input Pfam sequence alignment
+      - output file name for the annotated Pfam alignment
+
+    **Key Arguments**
+
+      - `pfam_db` = path to the file pfamseq.db
+
+    '''
+
+    start_time = time.process_time()
+    print('Beginning annotation')
+
+    # Reads the pfam headers and sequences:
+    headers, sequences = readAlg(pfam_in)
+    pfamseq_ids = [h.split('/')[0] for h in headers]
+
+    # Reads the sequence information for those sequences:
+    seq_info = []
+    with sqlite3.connect(pfam_db) as conn:
+        c = conn.cursor()
+        for pfamseq_id in pfamseq_ids:
+            c.execute("SELECT pfamseq_id,description,species,taxonomy "
+                      "FROM pfamseq WHERE pfamseq_id = '%s'" % pfamseq_id)
+            res = c.fetchall()
+            if res:
+                row = [field for match in res for field in match]
+            else:
+                row = [pfamseq_id, 'unknown', 'unknown', 'unknown']
+            print(row)
+            seq_info.append(row)
+    end_time = time.process_time()
+
+    # Write to output file:
+    with open(pfam_out, 'w') as f:
+        for i, row in enumerate(seq_info):
+            f.write('>%s|%s|%s|%s\n' %
+                    (row[0], row[1], row[2],
+                     ','.join([taxon.strip() for
+                               taxon in row[3].split(';')])))
+            f.write('%s\n' % sequences[i])
     print('Elapsed time: %.1f min' % ((end_time - start_time) / 60))
 
 
