@@ -118,7 +118,7 @@ if __name__ == '__main__':
         gi_blocks = [gi[x:x + 200] for x in range(0, len(gi), 200)]
 
         taxID = list()
-        start = time.clock()
+        start = time.process_time()
         for i, k in enumerate(gi_blocks):
             taxonList = Entrez.read(Entrez.elink(dbfrom="protein",
                                                  db="taxonomy", id=k))
@@ -128,12 +128,12 @@ if __name__ == '__main__':
                 except BaseException as e:
                     print('Error: ' + str(e))
                     taxID.append('')
-        end = time.clock()
+        end = time.process_time()
         print("Look up for Tax IDs complete. Time: %f" % (end - start))
 
         # Collect records with lineage information
         print("Collecting taxonomy information...")
-        start = time.clock()
+        start = time.process_time()
         records = list()
         for i, k in enumerate(taxID):
             try:
@@ -146,7 +146,7 @@ if __name__ == '__main__':
             except BaseException as e:
                 print('Error: ' + str(e))
                 records.append('')
-        end = time.clock()
+        end = time.process_time()
         print("Look up for taxonomy information complete. Time: %f"
               % (end - start))
 
