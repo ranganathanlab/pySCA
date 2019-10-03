@@ -9,6 +9,7 @@
 # (this directory should contain the file 'pfamseq.txt' from
 # ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/database_files/
 path2pfamseq = 'data/pfamseq.txt'
+path2pfamseqdb = 'data/pfamseq.db'
 
 # the location of your PDB structures
 path2structures = 'data/'
