@@ -1,3 +1,7 @@
+*.zip
+*.xz
+*.gz
+.listing
 *.sw[ap]
 *.DS_Store
 *~
