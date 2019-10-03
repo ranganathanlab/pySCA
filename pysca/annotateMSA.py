@@ -63,7 +63,9 @@ from Bio import Entrez
 #  from Bio.SeqRecord import SeqRecord
 import scaTools as sca
 
-Entrez.email = "your.email@youruniversity.edu"  # PLEASE to your email!!!
+import settings
+
+Entrez.email = settings.entrezemail  # PLEASE use your email! (see settings.py)
 
 if __name__ == '__main__':
     # parse inputs

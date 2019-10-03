@@ -19,3 +19,7 @@ path2needle = '/usr/bin/'
 
 # Also assumes that a folder named 'output/' is in the path
 path2output = 'output/'
+
+# Used for pulling species, taxonomy annotations from ncbi database. PLEASE
+# change to your own your email!!!
+entrezemail = 'your.email@youruniversity.edu'
