@@ -41,6 +41,7 @@ from Bio import pairwise2
 from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
+from Bio import Entrez
 #  from optparse import OptionParser
 
 import settings
@@ -235,6 +236,88 @@ def AnnotPfamDB(pfam_in, pfam_out, pfam_db=settings.path2pfamseqdb):
                                taxon in row[3].split(';')])))
             f.write('%s\n' % sequences[i])
     print('Elapsed time: %.1f min' % ((end_time - start_time) / 60))
+
+
+def AnnotNCBI(alg_in, alg_out, gi_list, email=settings.entrezemail):
+    '''
+    Phylogenetic annotation of a NCBI alignment (in fasta format) using a list
+    GI numbers to query the NCBI database. The output is a fasta file
+    containing phylogenetic annotations in the header (to be parsed with '|' as
+    a delimiter).
+
+    **Arguments**
+
+      - input NCBI sequence alignment
+      - output file name for the annotated alignment
+      - list of GIs
+      - email address for querying database
+
+    **Key Arguments**
+
+      - `alg_in` = path to the input alignment file
+
+    '''
+
+    print('Beginning annotation')
+    Entrez.email = email  # PLEASE use your email! (see settings.py)
+
+    # Annotate using GI numbers/NCBI entrez
+    gi_lines = open(gi_list, 'r').readlines()
+    gi = [int(k) for k in gi_lines]
+
+    # Group GI numbers into blocks of 200, and submit each block as a query to
+    # the database.
+    gi_blocks = [gi[x:x + 200] for x in range(0, len(gi), 200)]
+
+    taxID = list()
+    start = time.process_time()
+    for i, k in enumerate(gi_blocks):
+        handle = Entrez.elink(dbfrom="protein", db="taxonomy", id=k)
+        taxonList = Entrez.read(handle)
+        handle.close()
+        time.sleep(1)  # Don't spam the web API.
+        for x, y in enumerate(taxonList):
+            try:
+                taxID.append(taxonList[x]["LinkSetDb"][0]["Link"][0]["Id"])
+            except BaseException as e:
+                print('Error: ' + str(e))
+                taxID.append('')
+    end = time.process_time()
+    print("Look up for Tax IDs complete. Time: %f" % (end - start))
+
+    # Collect records with lineage information
+    print("Collecting taxonomy information...")
+    start = time.process_time()
+    records = list()
+    for i, k in enumerate(taxID):
+        try:
+            handle = Entrez.efetch(db="taxonomy", id=k, retmode="xml")
+            temp_rec = Entrez.read(handle)
+            handle.close()
+            records.append(temp_rec[0])
+            print("%s" % (temp_rec[0]['Lineage']))
+            print("%s" % (temp_rec[0]['ScientificName']))
+        except BaseException as e:
+            print('Error: ' + str(e))
+            records.append('')
+    end = time.process_time()
+    print("Look up for taxonomy information complete. Time: %f"
+          % (end - start))
+
+    # Write to the output fasta file.
+    [hd, seqs] = readAlg(alg_in)
+    f = open(alg_out, 'w')
+    for i, k in enumerate(seqs):
+        try:
+            hdnew = hd[i] + '|' + records[i]['ScientificName'] + '|' + \
+                    ','.join(records[i]['Lineage'].split(';'))
+        except BaseException as e:
+            print('Error: ' + str(e))
+            hdnew = hd[i] + '| unknown '
+            print("Unable to add taxonomy information for seq: %s" % hd[i])
+        f.write('>%s\n' % hdnew)
+        f.write('%s\n' % k)
+    f.close()
 
 
 def clean_al(alg, code='ACDEFGHIKLMNPQRSTVWY', gap='-'):

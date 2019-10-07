@@ -88,6 +88,8 @@ if __name__ == '__main__':
                         help="Location of the pfamseq.db file. Priority over "
                              "pfamseq.txt file. Defaults to path2pfamseqdb "
                              "(specified in settings.py)")
+    parser.add_argument("-e", "--entrez_email", dest="email", default=None,
+                        help="email address for querying Entrez web API")
     options = parser.parse_args()
 
     if (options.annot != 'pfam') & (options.annot != 'ncbi'):
@@ -111,57 +113,10 @@ if __name__ == '__main__':
                 sca.AnnotPfamDB(options.Input_MSA, options.output)
             elif os.path.exists(settings.path2pfamseq):
                 sca.AnnotPfam(options.Input_MSA, options.output)
-    else:
+    elif options.annot == 'ncbi':
         # Annotate using GI numbers/NCBI entrez
-        gi_lines = open(options.giList, 'r').readlines()
-        gi = [int(k) for k in gi_lines]
-        gi_blocks = [gi[x:x + 200] for x in range(0, len(gi), 200)]
-
-        taxID = list()
-        start = time.process_time()
-        for i, k in enumerate(gi_blocks):
-            taxonList = Entrez.read(Entrez.elink(dbfrom="protein",
-                                                 db="taxonomy", id=k))
-            for x, y in enumerate(taxonList):
-                try:
-                    taxID.append(taxonList[x]["LinkSetDb"][0]["Link"][0]["Id"])
-                except BaseException as e:
-                    print('Error: ' + str(e))
-                    taxID.append('')
-        end = time.process_time()
-        print("Look up for Tax IDs complete. Time: %f" % (end - start))
-
-        # Collect records with lineage information
-        print("Collecting taxonomy information...")
-        start = time.process_time()
-        records = list()
-        for i, k in enumerate(taxID):
-            try:
-                handle = Entrez.efetch(db="taxonomy", id=k, retmode="xml")
-                temp_rec = Entrez.read(handle)
-                handle.close()
-                records.append(temp_rec[0])
-                print("%s" % (temp_rec[0]['Lineage']))
-                print("%s" % (temp_rec[0]['ScientificName']))
-            except BaseException as e:
-                print('Error: ' + str(e))
-                records.append('')
-        end = time.process_time()
-        print("Look up for taxonomy information complete. Time: %f"
-              % (end - start))
-
-        # Write to the output fasta file.
-        s_records = list()
-        [hd, seqs] = sca.readAlg(options.Input_MSA)
-        f = open(options.output, 'w')
-        for i, k in enumerate(seqs):
-            try:
-                hdnew = hd[i] + '|' + records[i]['ScientificName'] + '|' + \
-                    ','.join(records[i]['Lineage'].split(';'))
-            except BaseException as e:
-                print('Error: ' + str(e))
-                hdnew = hd[i] + '| unknown '
-                print("Unable to add taxonomy information for seq: %s" % hd[i])
-            f.write('>%s\n' % hdnew)
-            f.write('%s\n' % k)
-        f.close()
+        if options.email is None:
+            sca.AnnotNCBI(options.Input_MSA, options.output, options.giList)
+        else:
+            sca.AnnotNCBI(options.Input_MSA, options.output, options.giList,
+                          options.email)
