@@ -10,6 +10,8 @@ the header information truncated).
     Sequences.fasta    (Alignment that is providing the sequences)
 
 **Keyword Arguments**
+    --headers          header alignment file name
+    --seqs             sequences alignment file name
     --output           output file name, default: FixedHeaders.fa
 
 :By: Kim Reynolds
@@ -23,15 +25,16 @@ license, please see the file LICENSE for details.
 
 import argparse
 import scaTools as sca
+import sys
 
 if __name__ == '__main__':
     # Parse inputs
     parser = argparse.ArgumentParser()
-    parser.add_argument("alignment_for_headers",
-                        help='Alignment that is providing the headers')
-    parser.add_argument("alignment_for_seqs",
-                        help='ALignment that is providing the sequences')
-    parser.add_argument("--output", dest="outputfile",
+    parser.add_argument("-r", "--headers", dest="alg_headers",
+                        help='alignment providing the headers')
+    parser.add_argument("-s", "--sequences", dest="alg_seqs",
+                        help='alignment providing the sequences')
+    parser.add_argument("-o", "--output", dest="outputfile",
                         default='FixedHeaders.fa',
                         help="specify an outputfile name")
     options = parser.parse_args()
@@ -40,12 +43,15 @@ if __name__ == '__main__':
           "fasta files are in IDENTICAL order. If this is NOT true, the "
           "script will give incorrect results.")
 
-    headers1, seqs1 = sca.readAlg(options.alignment_for_headers)
-    headers2, seqs2 = sca.readAlg(options.alignment_for_seqs)
+    headers1, seqs1 = sca.readAlg(options.alg_headers)
+    headers2, seqs2 = sca.readAlg(options.alg_seqs)
+
+    if (options.alg_headers is None) or (options.alg_seqs is None):
+        sys.exit("Incorrect usage. (See `alnReplaceHeaders --help`)")
 
     if (len(seqs2) != len(headers1)):
         print("ERROR: The length of the two alignments does not match.")
-        exit
+        sys.exit()
 
     f = open(options.outputfile, 'w')
     for i, k in enumerate(headers1):
