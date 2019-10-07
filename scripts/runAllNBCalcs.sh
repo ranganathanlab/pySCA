@@ -1,15 +1,57 @@
 #! /bin/bash
 set -eu
 
-cd ../
-
-git submodule init
-git submodule update --force
+# Globals
 
 pyscadir=pysca
 scriptdir=scripts
 datadir=data
 outputdir=output
+
+datarepo="https://github.com/ranganathanlab/pySCA-data"
+version=6.0
+
+# Download the data
+
+cd ../
+
+# In the event git is not installed, just directly download the data from
+# GitHub using wget or curl (in order of preference). Also, check to see if tar
+# is installed. If not, download the zipped archive.
+if [ -x "$(command -v git)" ]; then
+  git submodule init
+  git submodule update --force
+elif [ -x "$(command -v wget)" ]; then
+  echo "git not installed --- trying wget"
+  if [ -x "$(command -v tar)" ]; then
+    wget -nc ${datarepo}/archive/v${version}.tar.gz
+    tar xf v${version}.tar.gz
+  elif [ -x "$(command -v unzip)" ]; then
+    wget -nc ${datarepo}/archive/v${version}.zip
+    unzip v${version}.zip
+  fi
+  if [ -d "${datadir}" ]; then
+    echo "${datadir} is not empty. Rename or delete it."
+    exit 3
+  fi
+  mv -v pySCA-data-${version} ${datadir}
+elif [ -x "$(command -v curl)" ]; then
+  echo "git not installed --- trying curl"
+  if [ -x "$(command -v tar)" ]; then
+    curl -L -O -C ${datarepo}/archive/v${version}.tar.gz
+    tar xf v${version}.tar.gz
+  elif [ -x "$(command -v unzip)" ]; then
+    curl -L -O -C ${datarepo}/archive/v${version}.zip
+    unzip v${version}.zip
+  fi
+  if [ -d "${datadir}" ]; then
+    echo "${datadir} is not empty. Rename or delete it."
+    exit 3
+  fi
+  mv -v pySCA-data-${version} ${datadir}
+fi
+
+# Generate the output files
 
 mkdir -vp ${outputdir}
 
