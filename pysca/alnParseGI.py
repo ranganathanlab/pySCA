@@ -33,6 +33,10 @@ if __name__ == '__main__':
 
     headers, seqs = sca.readAlg(options.alignment)
     gis = [h.split(options.delim)[1] for h in headers]
+    bad_gis = [gi for gi in gis if not gi.isnumeric()]
+    for bad_gi in bad_gis:
+        print("Omitting '%s': non-numeric GI." % bad_gi)
+    gis = [gi for gi in gis if gi not in bad_gis]
 
     f = open(options.outputfile, 'w')
     for gi in gis:
