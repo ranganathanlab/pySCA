@@ -32,7 +32,15 @@ if __name__ == '__main__':
     options = parser.parse_args()
 
     headers, seqs = sca.readAlg(options.alignment)
-    gis = [h.split(options.delim)[1] for h in headers]
+
+    # Get index of GI number in the header fields.
+    try:
+        gi_idx = (headers[0].split(options.delim)).index('gi') + 1
+    except BaseException as e:
+        print("ERROR: %s" % e)
+        sys.exit("GI field not found in %s." % options.alignment)
+
+    gis = [h.split(options.delim)[gi_idx] for h in headers]
     bad_gis = [gi for gi in gis if not gi.isnumeric()]
     for bad_gi in bad_gis:
         print("Omitting '%s': non-numeric GI." % bad_gi)
