@@ -8,6 +8,8 @@ Blast formatting.
 
 **Keyword Arguments**
     --output             output file name, default: FilteredAln.fa
+    --delim              delimiter for fields in the header for each sequence,
+                         default: '_'
 
 :By: Kim Reynolds
 :On: 6.5.2015
@@ -19,18 +21,21 @@ license, please see the file LICENSE for details.
 """
 
 import argparse
+import sys
 import scaTools as sca
 
 if __name__ == '__main__':
     # Parse inputs
     parser = argparse.ArgumentParser()
-    parser.add_argument("alignment", help='Input Sequence Alignment')
-    parser.add_argument("-o", "--output", dest="outputfile", default='GI_Num',
+    parser.add_argument("alignment", help='input sequence alignment')
+    parser.add_argument("-o", "--output", dest="outputfile",
+                        default='input.gi',
                         help="specify an outputfile name")
     parser.add_argument("-d", "--delim", dest="delim", default="_",
                         help="specify the field delimiter in the header")
     options = parser.parse_args()
 
+    # Read in the MSA.
     headers, seqs = sca.readAlg(options.alignment)
 
     # Get index of GI number in the header fields.
