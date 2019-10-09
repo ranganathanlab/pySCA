@@ -262,25 +262,25 @@ def AnnotNCBI(alg_in, alg_out, gi_list, email=settings.entrezemail):
 
     # Annotate using GI numbers/NCBI entrez
     gi_lines = open(gi_list, 'r').readlines()
-    gi = [int(k) for k in gi_lines]
+    gis = [int(k) for k in gi_lines]
 
     # Group GI numbers into blocks of 200, and submit each block as a query to
-    # the database.
-    gi_blocks = [gi[x:x + 200] for x in range(0, len(gi), 200)]
+    # the web API.
+    gi_blocksize = 200
+    gi_blocks = [gis[x:x + gi_blocksize]
+                 for x in range(0, len(gis), gi_blocksize)]
 
-    taxID = list()
+    taxonIDs = list()
     start = time.process_time()
-    for i, k in enumerate(gi_blocks):
-        handle = Entrez.elink(dbfrom="protein", db="taxonomy", id=k)
+    for i, gi_block in enumerate(gi_blocks):
+        handle = Entrez.elink(dbfrom="protein", db="taxonomy", id=gi_block)
         taxonList = Entrez.read(handle)
         handle.close()
-        time.sleep(1)  # Don't spam the web API.
-        for x, y in enumerate(taxonList):
-            try:
-                taxID.append(taxonList[x]["LinkSetDb"][0]["Link"][0]["Id"])
-            except BaseException as e:
-                print('Error: ' + str(e))
-                taxID.append('')
+        for j, taxon in enumerate(taxonList):
+            if taxon["LinkSetDb"]:
+                taxonIDs.append(taxon["LinkSetDb"][0]["Link"][0]["Id"])
+            else:
+                taxonIDs.append('')
     end = time.process_time()
     print("Look up for Tax IDs complete. Time: %f" % (end - start))
 
@@ -288,17 +288,17 @@ def AnnotNCBI(alg_in, alg_out, gi_list, email=settings.entrezemail):
     print("Collecting taxonomy information...")
     start = time.process_time()
     records = list()
-    for i, k in enumerate(taxID):
-        try:
-            handle = Entrez.efetch(db="taxonomy", id=k, retmode="xml")
+    for i, taxonID in enumerate(taxonIDs):
+        if taxonID:
+            handle = Entrez.efetch(db="taxonomy", id=taxonID, retmode="xml")
             temp_rec = Entrez.read(handle)
             handle.close()
             records.append(temp_rec[0])
-            print("%s" % (temp_rec[0]['Lineage']))
-            print("%s" % (temp_rec[0]['ScientificName']))
-        except BaseException as e:
-            print('Error: ' + str(e))
-            records.append('')
+        else:
+            temp_rec = {}
+            temp_rec['Lineage'] = 'unknown'
+            temp_rec['ScientificName'] = 'unknown'
+            records.append(temp_rec)
     end = time.process_time()
     print("Look up for taxonomy information complete. Time: %f"
           % (end - start))
@@ -307,12 +307,9 @@ def AnnotNCBI(alg_in, alg_out, gi_list, email=settings.entrezemail):
     [hd, seqs] = readAlg(alg_in)
     f = open(alg_out, 'w')
     for i, k in enumerate(seqs):
-        try:
-            hdnew = hd[i] + '|' + records[i]['ScientificName'] + '|' + \
-                    ','.join(records[i]['Lineage'].split(';'))
-        except BaseException as e:
-            print('Error: ' + str(e))
-            hdnew = hd[i] + '| unknown '
+        hdnew = hd[i] + '|' + records[i]['ScientificName'] + '|' + \
+                ','.join(records[i]['Lineage'].split(';'))
+        if records[i]['Lineage'] == 'unknown':
             print("Unable to add taxonomy information for seq: %s" % hd[i])
         f.write('>%s\n' % hdnew)
         f.write('%s\n' % k)
