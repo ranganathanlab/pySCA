@@ -41,12 +41,15 @@ if __name__ == '__main__':
         sys.exit("GI field not found in %s." % options.alignment)
 
     gis = [h.split(options.delim)[gi_idx] for h in headers]
-    bad_gis = [gi for gi in gis if not gi.isnumeric()]
-    for bad_gi in bad_gis:
-        print("Omitting '%s': non-numeric GI." % bad_gi)
-    gis = [gi for gi in gis if gi not in bad_gis]
+
+    good_gis = []
+    for gi in gis:
+        if not gi.isnumeric():
+            print("Omitting '%s': non-numeric GI." % gi)
+        else:
+            good_gis.append(gi)
 
     f = open(options.outputfile, 'w')
-    for gi in gis:
+    for gi in good_gis:
         f.write('%s\n' % gi)
     f.close()
