@@ -21,7 +21,6 @@ license, please see the file LICENSE for details.
 """
 
 import argparse
-import time
 import sys
 from Bio import Entrez
 import scaTools as sca
@@ -59,6 +58,13 @@ if __name__ == '__main__':
             good_idx.append(i)
 
     # Filter out headers and sequeneces with invalid GI numbers.
+    #
+    # The rationale for filtering is that the Entrez queries don't return
+    # errors or any information when blocks of GI contain invalid entries. It
+    # just ignores them silently. This makes matching headers and sequences
+    # difficult, so the solution is to either query one GI at a time or ignore
+    # invalid GIs (and their corresponding sequences) and continue to process
+    # headers 200 at a time.
     headers = [headers[idx] for idx in good_idx]
     seqs = [seqs[idx] for idx in good_idx]
     gis = [h.split(options.delim)[1] for h in headers]
@@ -77,7 +83,7 @@ if __name__ == '__main__':
         if len(res) == len(gi_block):
             acc_ids.extend([acc_id.strip() for acc_id in res])
         else:
-            sys.exit("ERROR: Entrez returned different number of Accession IDs.")
+            sys.exit("ERROR: Different number of accession IDs returned.")
 
     # Replace GI field with accession numbers in the headers and write the
     # updated alignment to disk.
