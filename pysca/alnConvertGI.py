@@ -53,7 +53,9 @@ if __name__ == '__main__':
     good_idx = []
     for i, gi in enumerate(gis):
         if not gi.isdigit():
-            print("Bad GI '%s' at line %s. Omitting." % (gi, i))
+            print("Invalid GI '%s' at line %s. Omitting." % (gi, i))
+        elif gi == 0:
+            print("Unassigned GI '%s' at line %s. Omitting." % (gi, i))
         else:
             good_idx.append(i)
 
