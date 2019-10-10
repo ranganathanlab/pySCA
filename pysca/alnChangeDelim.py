@@ -1,0 +1,84 @@
+#! /usr/bin/env python3
+"""
+A script to change the field delimiter of a multiple sequence alignment (FASTA
+format).
+
+**Arguments**
+    Input_MSA.fasta (the alignment to be processed)
+
+**Keyword Arguments**
+    --output             output file name, default: FilteredAln.fa
+    --old-delim          delimiter separating header fields, default: "_"
+    --new-delim          delimiter separating header fields
+
+:By: Kim Reynolds
+:On: 6.5.2015
+
+Copyright (C) 2015 Olivier Rivoire, Rama Ranganathan, Kimberly Reynolds
+
+This program is free software distributed under the BSD 3-clause
+license, please see the file LICENSE for details.
+"""
+
+import argparse
+import sys
+import statistics as stat
+import scaTools as sca
+
+import settings
+
+if __name__ == '__main__':
+    # Parse inputs
+    parser = argparse.ArgumentParser()
+    parser.add_argument("alignment", help='Input Sequence Alignment')
+    parser.add_argument("-o", "--output", dest="outputfile",
+                        default='output.acc',
+                        help="specify an outputfile name")
+    parser.add_argument("-d", "--old-delim", dest="old_delim",
+                        help="specify the field delimiter in the header")
+    parser.add_argument("-n", "--new-delim", dest="new_delim",
+                        help="specify the field delimiter in the header")
+
+    options = parser.parse_args()
+
+    if (options.new_delim is None) or (options.old_delim is None):
+        sys.exit("ERROR: Input and output delimiters must be specified.")
+
+    headers, seqs = sca.readAlg(options.alignment)
+
+    # Check that the old delimiter and new delimiters return a consistent
+    # number of fields across all sequences.
+    counts = []
+    checks = []
+    for i, header in enumerate(headers):
+        # Check that the old delimiter works.
+        fields = header.split(options.old_delim)
+        counts.append(len(fields))
+        # Check that the new delimiter is not found inside the fields.
+        checks.append(sum([options.new_delim in field for field in fields]))
+
+    # Assume the correct number of fields is the mode of the entire set.
+    count = stat.mode(counts)
+
+    # Print error messages for each sequences where either the number of fields
+    # is inconsistent or if the new delimiter is a bad choice given the content
+    # of the fields.
+    arewegood = True
+    for i, header in enumerate(headers):
+        if counts[i] != count:
+            print("WARNING: sequence %s has %s fields" % (header, counts[i]))
+            #  arewegood = False
+        if checks[i] > 0:
+            print("ERROR: delimiter '%s' incompatible with %s" % (options.new_delim, header))
+            arewegood = False
+
+    if not arewegood:
+        sys.exit("Errors found. Output not written.")
+
+    # Write the file if no serious errors are found.
+    f = open(options.outputfile, 'w')
+    for i, header in enumerate(headers):
+        fields = header.split(options.old_delim)
+        f.write('>%s\n' % (options.new_delim).join(fields))
+        f.write('%s\n' % seqs[i])
+    print("Done. Output written to %s." % options.outputfile)
