@@ -18,7 +18,7 @@ cd ../
 # In the event git is not installed, just directly download the data from
 # GitHub using wget or curl (in order of preference). Also, check to see if tar
 # is installed. If not, download the zipped archive.
-if [ -x "$(command -v git)" ]; then
+if [ -x "$(command -v git)" ] && [ -d ".git/" ]; then
   git submodule init
   git submodule update --force
 elif [ -x "$(command -v wget)" ]; then
@@ -33,6 +33,7 @@ elif [ -x "$(command -v wget)" ]; then
     echo "'unzip' or 'tar' (with gzip) is required for decompressing data."
     exit 3
   fi
+  mkdir -p ${datadir}
   mv -v pySCA-data-${version}/* ${datadir}/
   rmdir pySCA-data-${version}
 elif [ -x "$(command -v curl)" ]; then
@@ -47,6 +48,7 @@ elif [ -x "$(command -v curl)" ]; then
     echo "'unzip' or 'tar' (with gzip) is required for decompressing data."
     exit 3
   fi
+  mkdir -p ${datadir}
   mv -v pySCA-data-${version}/* ${datadir}/
   rmdir pySCA-data-${version}
 fi
