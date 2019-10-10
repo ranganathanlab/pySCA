@@ -29,12 +29,12 @@ elif [ -x "$(command -v wget)" ]; then
   elif [ -x "$(command -v unzip)" ]; then
     wget -nc ${datarepo}/archive/v${version}.zip
     unzip v${version}.zip
-  fi
-  if [ -d "${datadir}" ]; then
-    echo "${datadir} is not empty. Rename or delete it."
+  else
+    echo "'unzip' or 'tar' (with gzip) is required for decompressing data."
     exit 3
   fi
-  mv -v pySCA-data-${version} ${datadir}
+  mv -v pySCA-data-${version}/* ${datadir}/
+  rmdir pySCA-data-${version}
 elif [ -x "$(command -v curl)" ]; then
   echo "git not installed --- trying curl"
   if [ -x "$(command -v tar)" ]; then
@@ -43,12 +43,12 @@ elif [ -x "$(command -v curl)" ]; then
   elif [ -x "$(command -v unzip)" ]; then
     curl -L -O -C ${datarepo}/archive/v${version}.zip
     unzip v${version}.zip
-  fi
-  if [ -d "${datadir}" ]; then
-    echo "${datadir} is not empty. Rename or delete it."
+  else
+    echo "'unzip' or 'tar' (with gzip) is required for decompressing data."
     exit 3
   fi
-  mv -v pySCA-data-${version} ${datadir}
+  mv -v pySCA-data-${version}/* ${datadir}/
+  rmdir pySCA-data-${version}
 fi
 
 # Generate the output files
