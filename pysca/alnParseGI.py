@@ -48,9 +48,10 @@ if __name__ == '__main__':
     gis = [h.split(options.delim)[gi_idx] for h in headers]
 
     good_gis = []
-    for gi in gis:
+    for i, gi in enumerate(gis):
         if not gi.isnumeric():
-            print("Omitting '%s': non-numeric GI." % gi)
+            print("Warning: non-numeric GI '%s' at line %s." % (gi, i))
+            good_gis.append(0)
         else:
             good_gis.append(gi)
 

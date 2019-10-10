@@ -50,26 +50,10 @@ if __name__ == '__main__':
     gis = [h.split(options.delim)[1] for h in headers]
 
     # Check that the GI numbers are valid.
-    good_idx = []
     for i, gi in enumerate(gis):
         if not gi.isdigit():
             print("Invalid GI '%s' at line %s. Omitting." % (gi, i))
-        elif gi == 0:
-            print("Unassigned GI '%s' at line %s. Omitting." % (gi, i))
-        else:
-            good_idx.append(i)
-
-    # Filter out headers and sequeneces with invalid GI numbers.
-    #
-    # The rationale for filtering is that the Entrez queries don't return
-    # errors or any information when blocks of GI contain invalid entries. It
-    # just ignores them silently. This makes matching headers and sequences
-    # difficult, so the solution is to either query one GI at a time or ignore
-    # invalid GIs (and their corresponding sequences) and continue to process
-    # headers 200 at a time.
-    headers = [headers[idx] for idx in good_idx]
-    seqs = [seqs[idx] for idx in good_idx]
-    gis = [h.split(options.delim)[1] for h in headers]
+            gis[i] = '0'  # Needs to be a character, not an int.
 
     gi_blocksize = 200  # more GIs need to be submitted as a POST request
     gi_blocks = [gis[x:x + gi_blocksize]
@@ -80,10 +64,10 @@ if __name__ == '__main__':
     acc_ids = []
     for gi_block in gi_blocks:
         handle = Entrez.efetch(db="protein", rettype="acc", id=gi_block)
-        res = handle.readlines()
+        res = handle.read().splitlines()
         handle.close()
         if len(res) == len(gi_block):
-            acc_ids.extend([acc_id.strip() for acc_id in res])
+            acc_ids.extend([acc_id if acc_id else '0' for acc_id in res])
         else:
             sys.exit("ERROR: Different number of accession IDs returned.")
 
