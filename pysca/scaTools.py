@@ -237,18 +237,19 @@ def AnnotPfamDB(pfam_in, pfam_out, pfam_db=settings.path2pfamseqdb):
     print('Elapsed time: %.1f min' % ((end_time - start_time) / 60))
 
 
-def AnnotNCBI(alg_in, alg_out, gi_list, email=settings.entrezemail):
+def AnnotNCBI(alg_in, alg_out, id_list, id_type='acc', email=settings.entrezemail):
     '''
-    Phylogenetic annotation of a NCBI alignment (in fasta format) using a list
-    GI numbers to query the NCBI database. The output is a fasta file
-    containing phylogenetic annotations in the header (to be parsed with '|' as
-    a delimiter).
+    Phylogenetic annotation of a NCBI alignment (in fasta format). Uses GI
+    numbers or accession numbers embedded in the headers of the multiple
+    sequences alignment. Requires that all the fields are consistent for all
+    sequences.
 
     **Arguments**
 
       - input NCBI sequence alignment
       - output file name for the annotated alignment
-      - list of GIs
+      - file containing a list of sequences identifiers
+      - type of sequence identifier used
       - email address for querying database
 
     **Key Arguments**
@@ -260,20 +261,19 @@ def AnnotNCBI(alg_in, alg_out, gi_list, email=settings.entrezemail):
     print('Beginning annotation')
     Entrez.email = email  # PLEASE use your email! (see settings.py)
 
-    # Annotate using GI numbers/NCBI entrez
-    gi_lines = open(gi_list, 'r').readlines()
-    gis = [int(k) for k in gi_lines]
+    # Annotate using GI or accession numbers
+    seq_ids = open(id_list, 'r').read().splitlines()
 
     # Group GI numbers into blocks of 200, and submit each block as a query to
     # the web API.
-    gi_blocksize = 200
-    gi_blocks = [gis[x:x + gi_blocksize]
-                 for x in range(0, len(gis), gi_blocksize)]
+    id_blocksize = 200
+    id_blocks = [seq_ids[x:x + id_blocksize]
+                 for x in range(0, len(seq_ids), id_blocksize)]
 
     taxonIDs = list()
     start = time.process_time()
-    for i, gi_block in enumerate(gi_blocks):
-        handle = Entrez.elink(dbfrom="protein", db="taxonomy", id=gi_block)
+    for i, id_block in enumerate(id_blocks):
+        handle = Entrez.elink(dbfrom="protein", db="taxonomy", id=id_block)
         taxonList = Entrez.read(handle)
         handle.close()
         for j, taxon in enumerate(taxonList):
@@ -290,7 +290,12 @@ def AnnotNCBI(alg_in, alg_out, gi_list, email=settings.entrezemail):
     records = list()
     for i, taxonID in enumerate(taxonIDs):
         if taxonID:
-            handle = Entrez.efetch(db="taxonomy", id=taxonID, retmode="xml")
+            if id_type == 'acc':
+                handle = Entrez.efetch(db="taxonomy", id=taxonID,
+                                       retmode="xml", idtype="acc")
+            elif id_type == 'gi':
+                handle = Entrez.efetch(db="taxonomy", id=taxonID,
+                                       retmode="xml")
             temp_rec = Entrez.read(handle)
             handle.close()
             records.append(temp_rec[0])

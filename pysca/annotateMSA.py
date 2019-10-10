@@ -10,20 +10,18 @@ done in one of two ways:
 
     2) For Blast alignments, annotations can be added using the NCBI Entrez
        utilities provided by BioPython. In this case, an additional command
-       line argument (--giList, see below) should specify a list of gi numbers.
-       These numbers are then used to query NCBI for taxonomy information (note
-       that this approach requires a network connection).
+       line argument (--idType, see below) should specify whether sequences are
+       identified by GI or accession nmbers. These numbers are then used to
+       query NCBI for taxonomy information (note that this approach requires a
+       network connection).
 
-To quickly extract gi numbers from a list of headers (variable name 'hd') with
-typical Blast alignment formatting, the following line of python code is
-useful:
+To extract GI or accession numbers, use the scripts alnParseGI.py or
+alnParseAcc.py, respectively.
 
->>> gis = [h.split('_')[1] for h in hd]
-
-Alternatively, the script alnParseGI.py will accomplish this. For both the PFAM
-and NCBI utilities, the process of sequence annotation *can be slow* (on the
-order of hours, particularly for NCBI entrez with larger alignments). However,
-the annotation process only needs to be run once per alignment.
+For both the Pfam and NCBI utilities, the process of sequence annotation *can
+be slow* (on the order of hours, particularly for NCBI entrez with larger
+alignments). However, the annotation process only needs to be run once per
+alignment.
 
 **Arguments**
     Input_MSA.fasta (some input sequence alignment)
@@ -32,18 +30,22 @@ the annotation process only needs to be run once per alignment.
     -o, --output        Specify an output file, Output_MSA.an
     -a, --annot         Annotation method. Options are 'pfam' or 'ncbi'.
                         Default: 'pfam'
-    -g, --giList        This argument is necessary for the 'ncbi' method.
-                        Specifies a file containing a list of gi numbers
+    -t, --idType        ID used to annotate FASTA input ('gi' or 'acc').
+                        Default: 'acc'
+    -l, --idList        This argument is necessary for the 'ncbi' method.
+                        Specifies a file containing a list of GI numbers
                         corresponding to the sequence order in the alignment; a
-                        gi number of "0" indicates that a gi number wasn't
+                        number of "0" indicates that a GI number wasn't
                         assigned for a particular sequence.
+    -g, --giList        Deprecated. Identical to '--idList' and kept to keep
+                        the CLI consistent with older versions of pySCA.
     -p, --pfam_seq      Location of the pfamseq.txt file. Defaults to
                         path2pfamseq (specified at the top of scaTools.py)
 
 **Examples**::
 
   ./annotateMSA.py ../data/PF00186_full.txt -o ../output/PF00186_full.an -a 'pfam'
-  ./annotateMSA.py ../data/DHFR_PEPM3.fasta -o ../output/DHFR_PEPM3.an -a 'ncbi' -g ../data/DHFR_PEPM3.gis
+  ./annotateMSA.py ../data/DHFR_PEPM3.fasta -o ../output/DHFR_PEPM3.an -a 'ncbi' -l ../data/DHFR_PEPM3.gi -t 'gi'
 
 :By: Rama Ranganathan, Kim Reynolds
 :On: 9.22.2014
@@ -74,13 +76,19 @@ if __name__ == '__main__':
     parser.add_argument("-a", "--annot", dest="annot", default='pfam',
                         help="Annotation method. Options are 'pfam' or 'ncbi'."
                              " Default: 'pfam'")
-    parser.add_argument("-g", "--giList", dest="giList", default=None,
+    parser.add_argument("-t", "--idType", dest="idType", default='acc',
+                        help="Sequence identifier. Options are 'acc' or 'gi'."
+                             " Default: 'acc'")
+    parser.add_argument("-l", "--idList", dest="idList", default=None,
                         help="This argument is necessary for the 'ncbi' "
                              "method. Specifies a file containing a list of "
-                             "gi numbers corresponding to the sequence order "
-                             "in the alignment; a gi number of 0 indicates "
-                             "that a gi number wasn't assigned for a "
+                             "GI or accession numbers corresponding to the "
+                             "sequence order in the alignment; a number of 0 "
+                             "indicates that one wasn't assigned for a "
                              "particular sequence.")
+    parser.add_argument("-g", "--giList", dest="idList", default=None,
+                        help="Command kept for compatibility with previous "
+                             "versions. Use '-l' or '--idList' instead.")
     parser.add_argument("-p", "--pfam_seq", dest="pfamseq", default=None,
                         help="Location of the pfamseq.txt file. Defaults to "
                              "path2pfamseq (specified in settings.py)")
@@ -96,9 +104,14 @@ if __name__ == '__main__':
         sys.exit("The option -a must be set to 'pfam' or 'ncbi' - other"
                  " keywords are not allowed.")
 
-    if (options.annot == 'ncbi') & (options.giList is None):
-        sys.exit("To use NCBI entrez annotation, you must specify a file "
-                 "containing a list of gi numbers (see the --giList argument)")
+    if (options.annot == 'ncbi'):
+        if (options.idList is None):
+            sys.exit("To use NCBI entrez annotation, you must specify a file "
+                     "containing a list of GI numbers (see the --idList "
+                     "argument).")
+        if not ((options.idType == "acc") or (options.idType == "gi")):
+            sys.exit("To use NCBI Entrez annotation, specify a valid "
+                     "sequence identifier type ('acc' or 'gi').")
 
     if options.annot == 'pfam':
         # Annotate a Pfam alignment
@@ -116,7 +129,8 @@ if __name__ == '__main__':
     elif options.annot == 'ncbi':
         # Annotate using GI numbers/NCBI entrez
         if options.email is None:
-            sca.AnnotNCBI(options.Input_MSA, options.output, options.giList)
+            sca.AnnotNCBI(options.Input_MSA, options.output, options.idList,
+                          options.idType)
         else:
-            sca.AnnotNCBI(options.Input_MSA, options.output, options.giList,
-                          options.email)
+            sca.AnnotNCBI(options.Input_MSA, options.output, options.idList,
+                          options.idType, options.email)
