@@ -42,10 +42,8 @@ from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from Bio import Entrez
-#  from optparse import OptionParser
 
 import settings
-
 
 ##########################################################################
 # CLASSES
@@ -96,7 +94,7 @@ class Annot:
 
 def readAlg(filename):
     '''
-    Read in a multiple sequence alignment in fasta format, and return the
+    Read in a multiple sequence alignment in FASTA format, and return the
     headers and sequences.
 
     headers, sequences = readAlg(filename)
@@ -121,8 +119,8 @@ def readAlg(filename):
 
 def AnnotPfam(pfam_in, pfam_out, pfam_seq=settings.path2pfamseq):
     '''
-    Phylogenetic annotation of a Pfam alignment (in fasta format) using
-    information from pfamseq.txt. The output is a fasta file containing
+    Phylogenetic annotation of a Pfam alignment (in FASTA format) using
+    information from pfamseq.txt. The output is a FASTA file containing
     phylogenetic annotations in the header (to be parsed with '|' as a
     delimiter).
 
@@ -133,8 +131,8 @@ def AnnotPfam(pfam_in, pfam_out, pfam_seq=settings.path2pfamseq):
 
     **Arguments**
 
-      - input PFAM sequence alignment
-      - output file name for the annotated PFAM alignment
+      - input Pfam sequence alignment
+      - output file name for the annotated Pfam alignment
 
     **Key Arguments**
 
@@ -144,9 +142,11 @@ def AnnotPfam(pfam_in, pfam_out, pfam_seq=settings.path2pfamseq):
 
     start_time = time.process_time()
     print('Beginning annotation')
+
     # Reads the pfam headers and sequences:
     headers, sequences = readAlg(pfam_in)
     pfamseq_ids = [h.split('/')[0] for h in headers]
+
     # Reads the sequence information for those sequences:
     seq_info = dict()
     with open(pfam_seq) as fp:
@@ -169,8 +169,10 @@ def AnnotPfam(pfam_in, pfam_out, pfam_seq=settings.path2pfamseq):
             info = '\t'.join(['unknown'] * 10 + ['unknown;unknown'])
         # this f.write line works with older pfamseq.txt files (release 4 and
         # before, was used to annotate the tutorial alignments
-        # f.write('>%s|%s|%s|%s\n' % (key, info.split('\t')[6], info.split('\t')[9],\
-        #        ','.join([name.strip() for name in info.split('\t')[10].split(';')])))
+        # f.write('>%s|%s|%s|%s\n' % (key, info.split('\t')[6],
+        #         info.split('\t')[9],
+        #         ','.join([name.strip()
+        #                   for name in info.split('\t')[10].split(';')])))
         # this f.write line works with the new version of pfamseq.txt
         f.write('>%s|%s|%s|%s\n' % (key, info.split('\t')[5],
                 info.split('\t')[8],
@@ -183,8 +185,8 @@ def AnnotPfam(pfam_in, pfam_out, pfam_seq=settings.path2pfamseq):
 
 def AnnotPfamDB(pfam_in, pfam_out, pfam_db=settings.path2pfamseqdb):
     '''
-    Phylogenetic annotation of a Pfam alignment (in fasta format) using
-    information from pfamseq.txt. The output is a fasta file containing
+    Phylogenetic annotation of a Pfam alignment (in FASTA format) using
+    information from pfamseq.txt. The output is a FASTA file containing
     phylogenetic annotations in the header (to be parsed with '|' as a
     delimiter).
 
@@ -237,9 +239,10 @@ def AnnotPfamDB(pfam_in, pfam_out, pfam_db=settings.path2pfamseqdb):
     print('Elapsed time: %.1f min' % ((end_time - start_time) / 60))
 
 
-def AnnotNCBI(alg_in, alg_out, id_list, id_type='acc', email=settings.entrezemail):
+def AnnotNCBI(alg_in, alg_out, id_list, id_type='acc',
+              email=settings.entrezemail):
     '''
-    Phylogenetic annotation of a NCBI alignment (in fasta format). Uses GI
+    Phylogenetic annotation of a NCBI alignment (in FASTA format). Uses GI
     numbers or accession numbers embedded in the headers of the multiple
     sequences alignment. Requires that all the fields are consistent for all
     sequences.
@@ -308,16 +311,16 @@ def AnnotNCBI(alg_in, alg_out, id_list, id_type='acc', email=settings.entrezemai
     print("Look up for taxonomy information complete. Time: %f"
           % (end - start))
 
-    # Write to the output fasta file.
+    # Write to the output FASTA file.
     [hd, seqs] = readAlg(alg_in)
     f = open(alg_out, 'w')
-    for i, k in enumerate(seqs):
+    for i, seq in enumerate(seqs):
         hdnew = hd[i] + '|' + records[i]['ScientificName'] + '|' + \
                 ','.join(records[i]['Lineage'].split(';'))
         if records[i]['Lineage'] == 'unknown':
             print("Unable to add taxonomy information for seq: %s" % hd[i])
         f.write('>%s\n' % hdnew)
-        f.write('%s\n' % k)
+        f.write('%s\n' % seq)
     f.close()
 
 

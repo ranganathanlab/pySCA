@@ -1,20 +1,21 @@
 #! /bin/bash
 set -eu
 
+#
 # This script is intended to change the URLs and file names of the zipped
 # output from a Jupyter notebook (see 'Download as rst' option). By default,
 # the images names are 'output_\*.png', with corresponding URLs in the RST
-# file, which will cause naming clashes when including multiple notebooks with
-# different images in each.
+# file, which will cause naming clashes when including multiple notebooks, each
+# with different images, to the _static folder.
 #
 # This script will take the filename of the zip file, extract its contents,
 # rename the images from 'output' to '<filename>', and update the URLS in the
 # RST files.
 #
 # Input:
-#   - zip file containing rst and image from Jupyter notebook
+#   - zip file containing RST and image from Jupyter notebook
 # Output:
-#   - directory containing rst file and images with updated urls
+#   - directory containing RST file and images with updated URLs
 #
 # Usage:
 #   ./rstZipFixUrl.sh <path to zip>

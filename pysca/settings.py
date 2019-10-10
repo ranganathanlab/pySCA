@@ -1,12 +1,16 @@
-##########################################################################
+#! /usr/bin/env python3
+""" Global settings for pySCA. """
+
+#
 # PATHS
 #
 # These have to be changed to be consistent with user-defined paths. This
 # script is tested against the `runAllNBCalcs.sh` scripts, and because the
 # script includes a `cd ../` command before running any of the python scripts,
 # the base directory is the root of the repository.
+#
 
-# (this directory should contain the file 'pfamseq.txt' from
+# this directory should contain the file 'pfamseq.txt' from
 # ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/database_files/
 path2pfamseq = 'data/pfamseq.txt'
 path2pfamseqdb = 'data/pfamseq.db'

@@ -54,17 +54,10 @@ from __future__ import division
 import sys
 import time
 import os
-#  import numpy as np
-#  import copy
-#  import scipy.cluster.hierarchy as sch
-#  import matplotlib.pyplot as plt
 import pickle
 import argparse
 from scipy.io import savemat
 import scaTools as sca
-#  from Bio import SeqIO
-#  from scipy.stats import t
-#  from scipy.stats import scoreatpercentile
 
 import settings
 

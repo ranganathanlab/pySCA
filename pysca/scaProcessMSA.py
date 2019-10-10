@@ -88,14 +88,10 @@ please see the file LICENSE for details.
 
 from __future__ import division
 import sys
-#  import time
 import os
 import pickle
 import argparse
 import numpy as np
-#  import copy
-#  import scipy.cluster.hierarchy as sch
-#  from Bio import SeqIO
 from scipy.io import savemat
 import scaTools as sca
 
@@ -320,7 +316,7 @@ if __name__ == '__main__':
             print('Error: ' + str(e))
             sys.exit("Error!! Can't find reference sequence...")
 
-    # filtering sequences and positions, calculations of effective number of
+    # Filtering sequences and positions, calculations of effective number of
     # seqs
     print("Conducting sequence and position filtering: alignment size is %i"
           " seqs, %i pos" % (len(sequences), len(sequences[0])))
@@ -364,7 +360,7 @@ if __name__ == '__main__':
         alg = alg1
         hd = headers
 
-    # calculation of final MSA, sequence weights
+    # Calculation of final MSA, sequence weights
     seqw = sca.seqWeights(alg)
     effseqs = seqw.sum()
     msa_num = sca.lett2num(alg)

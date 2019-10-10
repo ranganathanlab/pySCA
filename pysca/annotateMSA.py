@@ -1,10 +1,10 @@
 #! /usr/bin/env python3
 """
 The annotateMSA script provides utilities to automatically annotate sequence
-headers (for a fasta file) with taxonomic information. Currently this can be
+headers (for a FASTA file) with taxonomic information. Currently this can be
 done in one of two ways:
 
-    1) For PFAM alignments, annotations can be extracted from the file
+    1) For Pfam alignments, annotations can be extracted from the file
        pfamseq.txt (please download from:
        ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/database_files/pfamseq.txt.gz)
 
@@ -56,7 +56,6 @@ This program is free software distributed under the BSD 3-clause license,
 please see the file LICENSE for details.
 """
 
-import time
 import sys
 import argparse
 import os

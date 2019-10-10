@@ -40,11 +40,9 @@ please see the file LICENSE for details.
 """
 
 from __future__ import division
-#  import sys
 import time
 import os
 import pickle
-#  import timeit
 import argparse
 import numpy as np
 from scipy.io import savemat
