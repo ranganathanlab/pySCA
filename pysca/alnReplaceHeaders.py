@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-A script that replaces the headers of one fasta file with headers from another.
-It assumes the sequences in the two fasta files are in identical order. This is
+A script that replaces the headers of one FASTA file with headers from another.
+It assumes the sequences in the two FASTA files are in identical order. This is
 useful, for example, when working with Promals3D alignments (which often have
 the header information truncated).
 
@@ -39,19 +39,18 @@ if __name__ == '__main__':
                         help="specify an outputfile name")
     options = parser.parse_args()
 
-    print("WARNING: This script assumes that the headers of the two input "
-          "fasta files are in IDENTICAL order. If this is NOT true, the "
-          "script will give incorrect results.")
+    print("WARNING: This script assumes that the headers of the two input")
+    print("FASTA files are in IDENTICAL order. If this is NOT true, the")
+    print("script will give incorrect results.")
+
+    if (options.alg_headers is None) or (options.alg_seqs is None):
+        sys.exit("Incorrect usage. (See `alnReplaceHeaders.py --help`)")
 
     headers1, seqs1 = sca.readAlg(options.alg_headers)
     headers2, seqs2 = sca.readAlg(options.alg_seqs)
 
-    if (options.alg_headers is None) or (options.alg_seqs is None):
-        sys.exit("Incorrect usage. (See `alnReplaceHeaders --help`)")
-
     if (len(seqs2) != len(headers1)):
-        print("ERROR: The length of the two alignments does not match.")
-        sys.exit()
+        sys.exit("ERROR: The length of the two alignments does not match.")
 
     f = open(options.outputfile, 'w')
     for i, k in enumerate(headers1):
