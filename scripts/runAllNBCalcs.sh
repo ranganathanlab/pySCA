@@ -65,6 +65,7 @@ python3 ${pyscadir}/scaCore.py ${outputdir}/s1Ahalabi_1470_nosnakes.db 2>&1 | \
   tee -a ${outputdir}/s1A_halabi.log
 python3 ${pyscadir}/scaSectorID.py ${outputdir}/s1Ahalabi_1470_nosnakes.db 2>&1 | \
   tee -a ${outputdir}/s1A_halabi.log
+echo
 
 # Beta-lactamase
 echo "Beta-lactamase Calculations:" | tee ${outputdir}/PF13354.log
@@ -74,6 +75,7 @@ python3 ${pyscadir}/scaCore.py ${outputdir}/PF13354_full.db 2>&1 | \
   tee -a ${outputdir}/PF13354.log
 python3 ${pyscadir}/scaSectorID.py ${outputdir}/PF13354_full.db 2>&1 | \
   tee -a ${outputdir}/PF13354.log
+echo
 
 # G-protein - this analysis is run with two alignments - the full PFAM
 # alignment (PF00071_full) and the PFAM alignment filtered to remove several
@@ -86,6 +88,7 @@ python3 ${pyscadir}/scaCore.py ${outputdir}/PF00071_full.db 2>&1 | \
   tee -a ${outputdir}/PF00071.log
 python3 ${pyscadir}/scaSectorID.py ${outputdir}/PF00071_full.db 2>&1 | \
   tee -a ${outputdir}/PF00071.log
+echo
 
 echo "G-protein calculations:" | tee ${outputdir}/PF00071_rd2.log
 python3 ${pyscadir}/scaProcessMSA.py ${datadir}/PF00071_rd2.an -s 5P21 -c A \
@@ -94,6 +97,7 @@ python3 ${pyscadir}/scaCore.py ${outputdir}/PF00071_rd2.db 2>&1 | \
   tee -a ${outputdir}/PF00071_rd2.log
 python3 ${pyscadir}/scaSectorID.py ${outputdir}/PF00071_rd2.db 2>&1 | \
   tee -a ${outputdir}/PF00071_rd2.log
+echo
 
 # DHFR - this analysis is also run with two alignments for comparison -
 # the full PFAM alignment (PF00186_full.an) and a manually curated alignment
@@ -105,6 +109,7 @@ python3 ${pyscadir}/scaCore.py ${outputdir}/PF00186_full.db 2>&1 | \
   tee -a ${outputdir}/PF00186.log
 python3 ${pyscadir}/scaSectorID.py ${outputdir}/PF00186_full.db 2>&1 | \
   tee -a ${outputdir}/PF00186.log
+echo
 
 echo "DHFR Calculations:" | tee ${outputdir}/DHFR_PEPM3.log
 python3 ${pyscadir}/scaProcessMSA.py ${datadir}/DHFR_PEPM3.an -s 1RX2 -c A -t -n 2>&1 | \
