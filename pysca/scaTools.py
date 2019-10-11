@@ -141,7 +141,7 @@ def AnnotPfam(pfam_in, pfam_out, pfam_seq=settings.path2pfamseq):
 
     '''
 
-    start_time = time.process_time()
+    start_time = time.time()
     print('Beginning annotation')
 
     # Reads the pfam headers and sequences:
@@ -156,7 +156,7 @@ def AnnotPfam(pfam_in, pfam_out, pfam_seq=settings.path2pfamseq):
             if pf_id in pfamseq_ids:
                 seq_info[pf_id] = line
                 pfamseq_ids.remove(pf_id)
-    end_time = time.process_time()
+    end_time = time.time()
 
     # Writes in output file:
     f = open(pfam_out, 'w')
@@ -207,7 +207,7 @@ def AnnotPfamDB(pfam_in, pfam_out, pfam_db=settings.path2pfamseqdb):
 
     '''
 
-    start_time = time.process_time()
+    start_time = time.time()
     print('Beginning annotation')
 
     # Reads the pfam headers and sequences:
@@ -227,7 +227,7 @@ def AnnotPfamDB(pfam_in, pfam_out, pfam_db=settings.path2pfamseqdb):
             else:
                 row = [pfamseq_id, 'unknown', 'unknown', 'unknown']
             seq_info.append(row)
-    end_time = time.process_time()
+    end_time = time.time()
 
     # Write to output file:
     with open(pfam_out, 'w') as f:
@@ -282,7 +282,7 @@ def AnnotNCBI(alg_in, alg_out, id_list, email=settings.entrezemail):
                  for x in range(0, len(seq_ids), id_blocksize)]
 
     taxonIDs = list()
-    start = time.process_time()
+    start = time.time()
     for i, id_block in enumerate(id_blocks):
         handle = Entrez.esummary(db="protein", id=','.join(id_block))
         time.sleep(1)
@@ -294,7 +294,7 @@ def AnnotNCBI(alg_in, alg_out, id_list, email=settings.entrezemail):
             else:
                 print("TaxId not found for %s" % id_block[j])
                 taxonIDs.append("1")
-    end = time.process_time()
+    end = time.time()
 
     # Add back taxID of 1 (the root of the taxonomic tree) for sequences
     # without an ID.
@@ -310,7 +310,7 @@ def AnnotNCBI(alg_in, alg_out, id_list, email=settings.entrezemail):
 
     # Collect records with lineage information
     print("Collecting taxonomy information...")
-    start = time.process_time()
+    start = time.time()
     records = list()
     for i, taxid_block in enumerate(taxid_blocks):
         handle = Entrez.efetch(db="taxonomy", id=taxid_block, retmode="xml")
@@ -324,7 +324,7 @@ def AnnotNCBI(alg_in, alg_out, id_list, email=settings.entrezemail):
                 taxon['Lineage'] = 'unknown'
                 taxon['ScientificName'] = 'unknown'
                 records.append(taxon)
-    end = time.process_time()
+    end = time.time()
     print("Look up for taxonomy information complete. Time: %f"
           % (end - start))
 

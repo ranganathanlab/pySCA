@@ -109,10 +109,10 @@ if __name__ == '__main__':
 
     # Matrix randomizations
     print("Computing matrix randomizations...")
-    start = time.process_time()
+    start = time.time()
     Vrand, Lrand, Crand = sca.randomize(msa_num, options.Ntrials, seqw,
                                         options.lbda)
-    end = time.process_time()
+    end = time.time()
     print("Randomizations complete, %i trials, time: %.1f minutes"
           % (options.Ntrials, (end - start) / 60))
 
