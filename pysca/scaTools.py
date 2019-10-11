@@ -276,13 +276,14 @@ def AnnotNCBI(alg_in, alg_out, id_list, id_type='acc',
     taxonIDs = list()
     start = time.process_time()
     for i, id_block in enumerate(id_blocks):
-        handle = Entrez.elink(dbfrom="protein", db="taxonomy", id=id_block)
+        handle = Entrez.esummary(db="protein", id=','.join(id_block))
         taxonList = Entrez.read(handle)
         handle.close()
         for j, taxon in enumerate(taxonList):
-            if taxon["LinkSetDb"]:
-                taxonIDs.append(taxon["LinkSetDb"][0]["Link"][0]["Id"])
+            if taxon["TaxId"]:
+                taxonIDs.append(taxon["TaxId"])
             else:
+                print("TaxId not found for %s" % id_block[j])
                 taxonIDs.append('')
     end = time.process_time()
     print("Look up for Tax IDs complete. Time: %f" % (end - start))
