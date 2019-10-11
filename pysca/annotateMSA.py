@@ -9,11 +9,9 @@ done in one of two ways:
        ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/database_files/pfamseq.txt.gz)
 
     2) For Blast alignments, annotations can be added using the NCBI Entrez
-       utilities provided by BioPython. In this case, an additional command
-       line argument (--idType, see below) should specify whether sequences are
-       identified by GI or accession nmbers. These numbers are then used to
-       query NCBI for taxonomy information (note that this approach requires a
-       network connection).
+       utilities provided by BioPython. They can be based on GI or accession
+       numbers that are used to query NCBI for taxonomy information (note that
+       this approach requires a network connection).
 
 To extract GI or accession numbers, use the scripts alnParseGI.py or
 alnParseAcc.py, respectively.
@@ -30,8 +28,6 @@ alignment.
     -o, --output        Specify an output file, Output_MSA.an
     -a, --annot         Annotation method. Options are 'pfam' or 'ncbi'.
                         Default: 'pfam'
-    -t, --idType        ID used to annotate FASTA input ('gi' or 'acc').
-                        Default: 'acc'
     -l, --idList        This argument is necessary for the 'ncbi' method.
                         Specifies a file containing a list of GI numbers
                         corresponding to the sequence order in the alignment; a
@@ -75,9 +71,6 @@ if __name__ == '__main__':
     parser.add_argument("-a", "--annot", dest="annot", default='pfam',
                         help="Annotation method. Options are 'pfam' or 'ncbi'."
                              " Default: 'pfam'")
-    parser.add_argument("-t", "--idType", dest="idType", default='acc',
-                        help="Sequence identifier. Options are 'acc' or 'gi'."
-                             " Default: 'acc'")
     parser.add_argument("-l", "--idList", dest="idList", default=None,
                         help="This argument is necessary for the 'ncbi' "
                              "method. Specifies a file containing a list of "
@@ -104,13 +97,10 @@ if __name__ == '__main__':
                  " keywords are not allowed.")
 
     if (options.annot == 'ncbi'):
-        if (options.idList is None):
+        if ((options.idList is None) and (options.giList is None)):
             sys.exit("To use NCBI entrez annotation, you must specify a file "
                      "containing a list of GI numbers (see the --idList "
                      "argument).")
-        if not ((options.idType == "acc") or (options.idType == "gi")):
-            sys.exit("To use NCBI Entrez annotation, specify a valid "
-                     "sequence identifier type ('acc' or 'gi').")
 
     if options.annot == 'pfam':
         # Annotate a Pfam alignment
@@ -128,8 +118,7 @@ if __name__ == '__main__':
     elif options.annot == 'ncbi':
         # Annotate using GI numbers/NCBI entrez
         if options.email is None:
-            sca.AnnotNCBI(options.Input_MSA, options.output, options.idList,
-                          options.idType)
+            sca.AnnotNCBI(options.Input_MSA, options.output, options.idList)
         else:
             sca.AnnotNCBI(options.Input_MSA, options.output, options.idList,
-                          options.idType, options.email)
+                          options.email)

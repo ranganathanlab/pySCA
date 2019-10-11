@@ -26,6 +26,7 @@ import random as rand
 import colorsys
 import sqlite3
 import tempfile
+import sys
 import numpy as np
 import scipy.sparse
 import scipy.sparse.linalg
@@ -239,8 +240,7 @@ def AnnotPfamDB(pfam_in, pfam_out, pfam_db=settings.path2pfamseqdb):
     print('Elapsed time: %.1f min' % ((end_time - start_time) / 60))
 
 
-def AnnotNCBI(alg_in, alg_out, id_list, id_type='acc',
-              email=settings.entrezemail):
+def AnnotNCBI(alg_in, alg_out, id_list, email=settings.entrezemail):
     '''
     Phylogenetic annotation of a NCBI alignment (in FASTA format). Uses GI
     numbers or accession numbers embedded in the headers of the multiple
@@ -264,12 +264,20 @@ def AnnotNCBI(alg_in, alg_out, id_list, id_type='acc',
     print('Beginning annotation')
     Entrez.email = email  # PLEASE use your email! (see settings.py)
 
-    # Annotate using GI or accession numbers
+    # Annotate using GI or accession numbers.
     seq_ids = open(id_list, 'r').read().splitlines()
 
-    # Group GI numbers into blocks of 200, and submit each block as a query to
-    # the web API.
-    id_blocksize = 200
+    # esummary will not return blank lines when a 0 ID is used for the query.
+    # The result is that returned list will not have the same number of
+    # elements as the number of sequences. A workaround is to filter out the
+    # unidentified sequences (id = 0), store the indices where they occur, run
+    # esummary with the remainder, and then add the indices back to the list.
+    zeros_idx = [key for key, value in enumerate(seq_ids) if value == '0']
+    seq_ids = list(filter(lambda x: x != '0', seq_ids))
+
+    # Group ID numbers into blocks, and submit each block as a query to the web
+    # API.
+    id_blocksize = 10
     id_blocks = [seq_ids[x:x + id_blocksize]
                  for x in range(0, len(seq_ids), id_blocksize)]
 
@@ -277,43 +285,55 @@ def AnnotNCBI(alg_in, alg_out, id_list, id_type='acc',
     start = time.process_time()
     for i, id_block in enumerate(id_blocks):
         handle = Entrez.esummary(db="protein", id=','.join(id_block))
+        time.sleep(1)
         taxonList = Entrez.read(handle)
         handle.close()
         for j, taxon in enumerate(taxonList):
             if taxon["TaxId"]:
-                taxonIDs.append(taxon["TaxId"])
+                taxonIDs.append(str(taxon["TaxId"]))
             else:
                 print("TaxId not found for %s" % id_block[j])
-                taxonIDs.append('')
+                taxonIDs.append("1")
     end = time.process_time()
+
+    # Add back taxID of 1 (the root of the taxonomic tree) for sequences
+    # without an ID.
+    for idx in zeros_idx:
+        taxonIDs.insert(idx, '1')
+
     print("Look up for Tax IDs complete. Time: %f" % (end - start))
+
+    # Group taxIDs into blocks and submit each block as a query to the web API.
+    taxid_blocksize = 200
+    taxid_blocks = [taxonIDs[x:x + taxid_blocksize]
+                    for x in range(0, len(taxonIDs), taxid_blocksize)]
 
     # Collect records with lineage information
     print("Collecting taxonomy information...")
     start = time.process_time()
     records = list()
-    for i, taxonID in enumerate(taxonIDs):
-        if taxonID:
-            if id_type == 'acc':
-                handle = Entrez.efetch(db="taxonomy", id=taxonID,
-                                       retmode="xml", idtype="acc")
-            elif id_type == 'gi':
-                handle = Entrez.efetch(db="taxonomy", id=taxonID,
-                                       retmode="xml")
-            temp_rec = Entrez.read(handle)
-            handle.close()
-            records.append(temp_rec[0])
-        else:
-            temp_rec = {}
-            temp_rec['Lineage'] = 'unknown'
-            temp_rec['ScientificName'] = 'unknown'
-            records.append(temp_rec)
+    for i, taxid_block in enumerate(taxid_blocks):
+        handle = Entrez.efetch(db="taxonomy", id=taxid_block, retmode="xml")
+        recordList = Entrez.read(handle)
+        handle.close()
+        for j, record in enumerate(recordList):
+            if record["Lineage"]:
+                records.append(record)
+            else:
+                taxon = {}
+                taxon['Lineage'] = 'unknown'
+                taxon['ScientificName'] = 'unknown'
+                records.append(taxon)
     end = time.process_time()
     print("Look up for taxonomy information complete. Time: %f"
           % (end - start))
 
-    # Write to the output FASTA file.
     [hd, seqs] = readAlg(alg_in)
+    if len(records) != len(seqs):
+        sys.exit("ERROR: number of records found do not match the number of "
+                 "aligned sequences.")
+
+    # Write to the output FASTA file.
     f = open(alg_out, 'w')
     for i, seq in enumerate(seqs):
         hdnew = hd[i] + '|' + records[i]['ScientificName'] + '|' + \
