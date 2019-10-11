@@ -71,6 +71,18 @@ if __name__ == '__main__':
         else:
             sys.exit("ERROR: Different number of accession IDs returned.")
 
+    # Using '_' as a delimiter is a problem for accession numbers because they
+    # are often in the form XX_XXXXX.1, meaning the number will be split. If
+    # the supplied (or defaulted) delimited is '_', convert the delimiter to
+    # something else.
+    if options.delim == '_':
+        print("WARNING: '_' is not a good delimiter for accession "
+              "numbers (e.g. YP_969813.1).")
+        print("The output will use '___' as a delimiter instead.")
+        newdelim = '___'
+    else:
+        newdelim = options.delim
+
     # Replace GI field with accession numbers in the headers and write the
     # updated alignment to disk.
     f = open(options.outputfile, 'w')
@@ -78,6 +90,6 @@ if __name__ == '__main__':
         fields = header.split(options.delim)
         fields[0] = 'res'
         fields[1] = acc_ids[i]
-        f.write('>%s\n' % (options.delim).join(fields))
+        f.write('>%s\n' % (newdelim).join(fields))
         f.write('%s\n' % seqs[i])
     print("Done. Output written to %s." % options.outputfile)
