@@ -21,11 +21,9 @@ be slow* (on the order of hours, particularly for NCBI entrez with larger
 alignments). However, the annotation process only needs to be run once per
 alignment.
 
-**Arguments**
-    Input_MSA.fasta (some input sequence alignment)
-
 **Keyword Arguments**
-    -o, --output        Specify an output file, Output_MSA.an
+    -i, --input         Some input sequence alignment, Default: Input_MSA.fasta
+    -o, --output        Specify an output file, Default: Output_MSA.an
     -a, --annot         Annotation method. Options are 'pfam' or 'ncbi'.
                         Default: 'pfam'
     -l, --idList        This argument is necessary for the 'ncbi' method.
@@ -40,8 +38,8 @@ alignment.
 
 **Examples**::
 
-  ./annotateMSA.py ../data/PF00186_full.txt -o ../output/PF00186_full.an -a 'pfam'
-  ./annotateMSA.py ../data/DHFR_PEPM3.fasta -o ../output/DHFR_PEPM3.an -a 'ncbi' -l ../data/DHFR_PEPM3.gi -t 'gi'
+  annotateMSA -i PF00186_full.txt -o PF00186_full.an -a 'pfam'
+  annotateMSA -i DHFR_PEPM3.fasta -o DHFR_PEPM3.an -a 'ncbi' -l DHFR_PEPM3.gi
 
 :By: Rama Ranganathan, Kim Reynolds
 :On: 9.22.2014
@@ -57,17 +55,16 @@ import argparse
 import os
 from Bio import Entrez
 from pysca import scaTools as sca
-
 from pysca import settings
 
-Entrez.email = settings.entrezemail  # PLEASE use your email! (see settings.py)
-
 if __name__ == '__main__':
+
     # parse inputs
     parser = argparse.ArgumentParser()
-    parser.add_argument("Input_MSA", help='input sequence alignment')
-    parser.add_argument("-o", "--output", dest="output", default='sys.stdout',
-                        help="Outputfile name. Default: sys.stdout")
+    parser.add_argument("-i", "--input", required=True, dest="Input_MSA",
+                        help='input sequence alignment')
+    parser.add_argument("-o", "--output", dest="output", default='Output.an',
+                        help="Outputfile name. Default: Output.an")
     parser.add_argument("-a", "--annot", dest="annot", default='pfam',
                         help="Annotation method. Options are 'pfam' or 'ncbi'."
                              " Default: 'pfam'")
@@ -96,7 +93,7 @@ if __name__ == '__main__':
         sys.exit("The option -a must be set to 'pfam' or 'ncbi' - other"
                  " keywords are not allowed.")
 
-    if (options.annot == 'ncbi'):
+    if options.annot == 'ncbi':
         if ((options.idList is None) and (options.giList is None)):
             sys.exit("To use NCBI entrez annotation, you must specify a file "
                      "containing a list of GI numbers (see the --idList "
@@ -115,6 +112,8 @@ if __name__ == '__main__':
                 sca.AnnotPfamDB(options.Input_MSA, options.output)
             elif os.path.exists(settings.path2pfamseq):
                 sca.AnnotPfam(options.Input_MSA, options.output)
+            else:
+                sys.exit("No Pfam file found. Exiting.")
     elif options.annot == 'ncbi':
         # Annotate using GI numbers/NCBI entrez
         if options.email is None:
