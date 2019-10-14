@@ -36,7 +36,6 @@ from scipy.stats import scoreatpercentile
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import matplotlib.cm as cm
-#  from mpl_toolkits.mplot3d import Axes3D
 from Bio.PDB import PDBParser
 from Bio import pairwise2
 from Bio import SeqIO
@@ -44,7 +43,7 @@ from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from Bio import Entrez
 
-import settings
+from pysca import settings
 
 ##########################################################################
 # CLASSES

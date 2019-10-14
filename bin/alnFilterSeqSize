@@ -27,7 +27,7 @@ please see the file LICENSE for details.
 
 import argparse
 import numpy as np
-import scaTools as sca
+from pysca import scaTools as sca
 
 if __name__ == '__main__':
     # Parse inputs

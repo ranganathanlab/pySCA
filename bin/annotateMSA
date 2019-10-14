@@ -56,9 +56,9 @@ import sys
 import argparse
 import os
 from Bio import Entrez
-import scaTools as sca
+from pysca import scaTools as sca
 
-import settings
+from pysca import settings
 
 Entrez.email = settings.entrezemail  # PLEASE use your email! (see settings.py)
 

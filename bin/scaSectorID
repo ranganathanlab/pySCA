@@ -46,9 +46,9 @@ import pickle
 import argparse
 import numpy as np
 from scipy.io import savemat
-import scaTools as sca
+from pysca import scaTools as sca
 
-import settings
+from pysca import settings
 
 if __name__ == '__main__':
     # parse inputs

@@ -57,9 +57,9 @@ import os
 import pickle
 import argparse
 from scipy.io import savemat
-import scaTools as sca
+from pysca import scaTools as sca
 
-import settings
+from pysca import settings
 
 
 if __name__ == '__main__':
