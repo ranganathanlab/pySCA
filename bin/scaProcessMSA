@@ -45,11 +45,10 @@ tool pickle:
     5)  Calculate sequence weights and write out the final alignment and other
         variables
 
-**Arguments**
-     Input_MSA.fasta (the alignment to be processed, typically the headers
-     contain taxonomic information for the sequences).
-
 **Key Arguments**
+     --alignment, -a   Input_MSA.fasta (the alignment to be processed,
+                       typically the headers contain taxonomic information for
+                       the sequences).
      --pdb, -s         PDB identifier (ex: 1RX2)
      --chainID, -c     chain ID in the PDB for the reference sequence
      --species, -f     species of the reference sequence
@@ -71,7 +70,7 @@ tool pickle:
                        PDB, default: False
      --matlab, -m      write out the results of this script to a matlab
                        workspace for further analysis
-     --output          specify a name for the outputfile
+     --dest, -d        destination for output files
 
 **Example**::
 
@@ -94,14 +93,18 @@ import argparse
 import numpy as np
 from scipy.io import savemat
 from pysca import scaTools as sca
-
 from pysca import settings
 
 if __name__ == '__main__':
     # Parse inputs
     parser = argparse.ArgumentParser()
-    parser.add_argument("alignment", help='Input Sequence Alignment')
+    parser.add_argument("-a", "--alignment", dest="alignment", required=True,
+                        help='Input Sequence Alignment')
+    parser.add_argument("-d", "--dest", dest="destination", default=None,
+                        help="specify an outputfile name")
     parser.add_argument("-s", "--pdb", dest="pdbid",
+                        help="PDB identifier (ex: 1RX2)")
+    parser.add_argument("-b", "--pdbdir", dest="pdbdir", default=None,
                         help="PDB identifier (ex: 1RX2)")
     parser.add_argument("-c", "--chainID", dest="chainID", default='A',
                         help="chain ID in the PDB for the reference sequence")
@@ -136,8 +139,6 @@ if __name__ == '__main__':
                         default=False,
                         help="write out the results of this script to a matlab"
                              " workspace for further analysis")
-    parser.add_argument("--output", dest="outputfile", default=None,
-                        help="specify an outputfile name")
     options = parser.parse_args()
 
     # A little bit of error checking/feedback for the user.
@@ -159,6 +160,24 @@ if __name__ == '__main__':
                 options.pdbid = None
     else:
         i_ref = options.i_ref
+
+    # Pick an output directory.
+    if options.destination is None:
+        if settings.path2output is None:
+            destination = os.getcwd()
+        else:
+            destination = os.path.abspath(settings.path2output)
+    else:
+        destination = os.path.abspath(options.destination)
+
+    if not os.path.exists(destination):
+        os.makedirs(destination)
+
+    # Set the directory where PDB files are stored.
+    if options.pdbdir is None:
+        pdbdir = settings.path2structures
+    else:
+        pdbdir = options.pdbdir
 
     # Read in initial alignment
     headers_full, sequences_full = sca.readAlg(options.alignment)
@@ -202,13 +221,14 @@ if __name__ == '__main__':
     # identifying the reference sequence in the MSA without use of external
     # packages for fast pairwise alignments.
 
-    print(settings.path2structures)
+    print("Looking for PDBs in %s" % pdbdir)
 
     if options.i_ref is None:
         if options.pdbid is not None:
             try:
                 seq_pdb, ats_pdb, dist_pdb = sca.pdbSeq(options.pdbid,
-                                                        options.chainID)
+                                                        options.chainID,
+                                                        pdbdir)
                 if options.species is not None:
                     try:
                         print("Finding reference sequence using species-based"
@@ -381,10 +401,9 @@ if __name__ == '__main__':
     # [MSAname]_sequence.db.  But we will also write out the final processed
     # alignment to a fasta file.
 
-    path_list = options.alignment.split(os.sep)
-    fn = path_list[-1]
-    fn_noext = fn.split(".")[0]
-    f = open(settings.path2output + fn_noext + "processed" + ".fasta", "w")
+    filename = os.path.basename(options.alignment)
+    filename_noext = os.path.splitext(filename)[0]
+    f = open(os.path.join(destination, filename_noext) + "_processed" + ".fasta", "w")
     for i in range(len(alg)):
         #  f.write(">" + hd[i] + "\n")
         f.write(">%s\n" % (hd[i]))
@@ -415,14 +434,13 @@ if __name__ == '__main__':
     D['trim_parameters'] = options.parameters
     D['truncate_flag'] = options.truncate
 
-    if options.outputfile is not None:
-        fn_noext = options.outputfile
-    print("Opening database file " + settings.path2output + fn_noext)
+    db_filename = os.path.join(destination, filename_noext)
+    print("Opening database file " + db_filename)
     db = {}
     db['sequence'] = D
 
     if options.matfile:
-        savemat(settings.path2output + fn_noext, db, appendmat=True,
+        savemat(db_filename, db, appendmat=True,
                 oned_as='column')
 
-    pickle.dump(db, open(settings.path2output + fn_noext + ".db", "wb"))
+    pickle.dump(db, open(db_filename + ".db", "wb"))
