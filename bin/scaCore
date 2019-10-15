@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 """
 The scaCore script runs the core calculations for SCA, and stores the output
-using the python tool pickle. These calculations can be divided into two parts:
+using the Python tool pickle. These calculations can be divided into two parts:
 
     1) Sequence correlations:
 
@@ -25,21 +25,21 @@ using the python tool pickle. These calculations can be divided into two parts:
            and eigenvalues associated with each
 
 **Arguments**
-     \*.db (the database produced by running scaProcessMSA.py).
 
 **Keyword Arguments**
+    -i               \*.db (the database produced by running scaProcessMSA)
     -n               norm type for dimension-reducing the sca matrix. Options
                      are: 'spec' (the spectral norm) or 'frob' (frobenius
                      norm). Default: frob
     -l               lambda parameter for pseudo-counting the alignment.
                      Default: 0.03
     --Ntrials, -t    number of randomization trials
-    --matlab, -m     write out the results of these calculations to a matlab
+    --matlab, -m     write out the results of these calculations to a MATLAB
                      workspace for further analysis
 
 **Example**::
 
-./scaCore.py ../data/PF00071_full.db
+  scaCore PF00071_full.db
 
 :By: Rama Ranganathan, Kim Reynolds
 :On: 8.5.2014
@@ -59,14 +59,14 @@ import argparse
 from scipy.io import savemat
 from pysca import scaTools as sca
 
-from pysca import settings
-
-
 if __name__ == '__main__':
 
     # Parse inputs
     parser = argparse.ArgumentParser()
-    parser.add_argument("database", help='database from running scaProcessMSA')
+    parser.add_argument("-i" "--input", dest="inputdb", required=True,
+                        help='database from running scaProcessMSA')
+    parser.add_argument("-o" "--output", dest="outputdb", default=None,
+                        help='output file for core calculations')
     parser.add_argument("-n", dest="norm", default='frob',
                         help="norm type for dimension-reducing the sca matrix."
                              "Options are: 'spec' (the spectral norm) or "
@@ -79,15 +79,15 @@ if __name__ == '__main__':
     parser.add_argument("-m", "--matlab", dest="matfile", action="store_true",
                         default=False,
                         help="write out the results of these calculations to "
-                             "a matlab workspace for further analysis.")
+                             "a MATLAB workspace for further analysis.")
     options = parser.parse_args()
 
     if (options.norm != 'frob') & (options.norm != 'spec'):
-        sys.exit("The option -n must be set to 'frob' or 'spec' - other"
-                 " keywords are not allowed.")
+        sys.exit("The option -n must be set to 'frob' or 'spec' - other "
+                 "keywords are not allowed.")
 
     # extract the necessary stuff from the database...
-    db_in = pickle.load(open(options.database, "rb"))
+    db_in = pickle.load(open(options.inputdb, "rb"))
     D_in = db_in['sequence']
 
     msa_num = D_in['msa_num']
@@ -117,9 +117,13 @@ if __name__ == '__main__':
           % (options.Ntrials, (end - start) / 60))
 
     # saving...
-    path_list = options.database.split(os.sep)
-    fn = path_list[-1]
-    fn_noext = fn.split(".")[0]
+    if options.outputdb is None:
+        fn = os.path.basename(options.inputdb)
+        output_path = os.path.abspath(os.path.dirname(options.inputdb))
+    else:
+        fn = os.path.basename(options.outputdb)
+        output_path = os.path.abspath(os.path.dirname(options.outputdb))
+    fn_noext = os.path.splitext(fn)[0]
 
     D = {}
     D['Useq'] = Useq
@@ -141,10 +145,9 @@ if __name__ == '__main__':
     db['sca'] = D
 
     print("Calculations complete, writing to database file " +
-          settings.path2output + fn_noext)
+          os.path.join(output_path, fn_noext))
     if options.matfile:
-        savemat(settings.path2output + fn_noext, db, appendmat=True,
+        savemat(os.path.join(output_path, fn_noext) + ".mat", db, appendmat=True,
                 oned_as='column')
-    time.sleep(10)
 
-    pickle.dump(db, open(settings.path2output + fn_noext + ".db", "wb"))
+    pickle.dump(db, open(os.path.join(output_path, fn_noext) + ".db", "wb"))
