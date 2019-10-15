@@ -1,12 +1,15 @@
-image: debian:buster-slim
+image: debian:bullseye-slim
 
 pages:
   script:
     - apt-get update
-    - apt-get install -y python3-dev python3-numpy python3-scipy python3-biopython python3-pip python3-matplotlib
+    - apt-get upgrade -y
+    - apt-get install -y python3 python3-numpy python3-scipy python3-biopython python3-pip python3-matplotlib python3-sphinx python3-sphinx-rtd-theme
     - apt-get install -y make
-    - pip3 install sphinx
-    - pip3 install sphinx_rtd_theme
+    - pip3 install .
+    - mkdir -p docs/modules
+    - for file in bin/*; do cp "${file}" "docs/modules/`basename $file`.py"; done
+    - cp pysca/scaTools.py docs/modules
     - make -C docs dirhtml
     - mv docs/build/dirhtml public/ 
   artifacts:

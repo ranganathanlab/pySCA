@@ -12,7 +12,6 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../../pysca'))
 sys.path.insert(0, os.path.abspath('../modules'))
 
 
@@ -22,8 +21,11 @@ project = 'pySCA'
 copyright = '2019, Olivier Rivoire, Rama Ranganathan, Kimberly Reynolds, Ansel George'
 author = 'Olivier Rivoire, Rama Ranganathan, Kimberly Reynolds, Ansel George'
 
+# The short X.Y version.
+version = '6.1'
+
 # The full version, including alpha/beta/rc tags
-release = '6.0'
+release = '6.1-rc1'
 
 
 # -- General configuration ---------------------------------------------------
@@ -31,9 +33,10 @@ release = '6.0'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-#  extensions = [
-#  ]
-extensions = ['sphinx.ext.todo', 'sphinx.ext.viewcode', 'sphinx.ext.autodoc'
+extensions = [
+    'sphinx.ext.todo',
+    'sphinx.ext.viewcode',
+    'sphinx.ext.autodoc'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -47,6 +50,9 @@ master_doc = 'index'
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = []
 
+# The name of the Pygments (syntax highlighting) style to use.
+pygments_style = 'friendly'
+
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -54,7 +60,6 @@ exclude_patterns = []
 # a list of builtin themes.
 #
 html_theme = 'sphinx_rtd_theme'
-#  html_theme = 'nature'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -66,5 +71,6 @@ html_static_path = ['_static']
 html_logo = '_static/logo.png'
 html_favicon = '_static/favicon.ico'
 
-html_theme_options = {'logo_only': True
+html_theme_options = {
+    'logo_only': True
 }

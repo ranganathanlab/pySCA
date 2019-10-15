@@ -39,7 +39,7 @@ using the Python tool pickle. These calculations can be divided into two parts:
 
 **Example**::
 
-  scaCore PF00071_full.db
+  scaCore -i PF00071_full.db
 
 :By: Rama Ranganathan, Kim Reynolds
 :On: 8.5.2014

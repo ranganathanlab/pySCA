@@ -1,6 +1,5 @@
-
-SCA6.0 - The Beta-lactamase enzyme family
------------------------------------------
+SCA 6.1 - The Beta-lactamase Enzyme Family
+==========================================
 
 This script describes the basic flow of the analytical steps in SCA6.0,
 using the :math:`\beta`-lactamase enzyme family as an example (PFAM
@@ -13,10 +12,10 @@ scripts should be run as follows:
 
 ::
 
-   >> ./annotate_pfMSA.py ../data/PF13354_full.txt ../data/PF13354_full.an
-   >> ./scaProcessMSA.py ../data/PF13354_full.an -s 1FQG -c A -f 'Escherichia coli'-t -n
-   >> ./scaCore.py ../output/PF13354_full.db
-   >> ./scaSectorID.py ../output/PF13354_full.db
+   >> annotateMSA -i ../data/PF13354_full.txt -o ../data/PF13354_full.an -a 'pfam'
+   >> scaProcessMSA -a ../data/PF13354_full.an -s 1FQG -c A -f 'Escherichia coli'-t -n
+   >> scaCore -i ../output/PF13354_full.db
+   >> scaSectorID -i ../output/PF13354_full.db
 
 Note that we supply annotated alignments for all tutorial scripts *(the
 annotate_pfMSA step is slow, and should only be run once)*.
@@ -25,11 +24,6 @@ annotate_pfMSA step is slow, and should only be run once)*.
 
 .. code:: python3
 
-    from __future__ import division
-    
-    import sys
-    sys.path.append('../pysca')
-    
     import os
     import time
     import matplotlib.pyplot as plt
@@ -38,9 +32,9 @@ annotate_pfMSA step is slow, and should only be run once)*.
     import copy
     import scipy.cluster.hierarchy as sch
     from scipy.stats import scoreatpercentile 
-    import scaTools as sca
+    from pysca import scaTools as sca
     import colorsys
-    #import mpld3
+    # import mpld3
     import pickle as pickle
     from optparse import OptionParser
     
@@ -106,7 +100,7 @@ families.
 
 .. parsed-literal::
 
-    <matplotlib.colorbar.Colorbar at 0x6d17a98b6fd0>
+    <matplotlib.colorbar.Colorbar at 0x6c13380e4450>
 
 
 

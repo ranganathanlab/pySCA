@@ -1,6 +1,5 @@
-
-SCA6.0 - The G protein family
------------------------------
+SCA 6.1 - The G Protein Family
+==============================
 
 **Summary:** This script describes the basic flow of analytical steps in
 SCA6.0, using the G-protein (small GTPase, Ras-like) family as an
@@ -54,9 +53,9 @@ executed from the command line as follows:
 
 ::
 
-   >> ./scaProcessMSA.py ../data/PF00071_rd2.an -s 5P21 -c A -f 'Homo sapiens' -t -n
-   >> ./scaCore.py ../output/PF00071_rd2.db
-   >> ./scaSectorID.py ../output/PF00071_rd2.db
+   >> scaProcessMSA -a ../data/PF00071_rd2.an -s 5P21 -c A -f 'Homo sapiens' -t -n
+   >> scaCore -i ../output/PF00071_rd2.db
+   >> scaSectorID -i ../output/PF00071_rd2.db
 
 Note that we supply pre-annotated alignments for all tutorial scripts
 *(the annotate_pfMSA step is slow, and should only be run once)*.
@@ -65,11 +64,6 @@ Note that we supply pre-annotated alignments for all tutorial scripts
 
 .. code:: python3
 
-    from __future__ import division
-    
-    import sys
-    sys.path.append('../pysca')
-    
     import os
     import time
     import matplotlib.pyplot as plt
@@ -83,8 +77,8 @@ Note that we supply pre-annotated alignments for all tutorial scripts
     from Bio.Seq import Seq
     from Bio import motifs
     import colorsys
-    import scaTools as sca
-    #import mpld3
+    from pysca import scaTools as sca
+    # import mpld3
     import pickle as pickle
     from optparse import OptionParser
     
@@ -323,7 +317,7 @@ according to Equations 4+5
 
 .. parsed-literal::
 
-    <matplotlib.image.AxesImage at 0x6dd33328cef0>
+    <matplotlib.image.AxesImage at 0x6601d0b01150>
 
 
 
@@ -554,7 +548,7 @@ one.
 
 
 Print the sector positions, in a format suitable for pyMol, and create a
-pyMol session (in the Outputs directory) with the sectors (and
+pyMol session (in the output directory) with the sectors (and
 decomposition into independent components) as seperate objects.
 
 .. code:: python3
@@ -657,6 +651,8 @@ plots. The *top row* reflects phylogenetic classifications and the
             forhist.append([Dsect['Upica'][i,k] for i in group.items])
         plt.subplot(2,Dsect['kpos'],k+1)
         plt.hist(forhist, histtype='barstacked',color=col)
+    
+    plt.tight_layout()
 
 
 

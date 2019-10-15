@@ -11,7 +11,7 @@
 > please see the file LICENSE for details.
 
 The current version of the Statistical Coupling Analysis (SCA) analysis is
-implemented in python. This directory contains the necessary code for running
+implemented in Python. This directory contains the necessary code for running
 the SCA calculations, as well examples/tutorials for the dihydrofolate
 reductase (DHFR) enzyme family, the S1A serine proteases, the small G-protein
 family and the Beta-lactamase enzyme family. The tutorials are distributed as
@@ -23,9 +23,8 @@ refer to the website:
 
 [https://ranganathanlab.gitlab.io/pySCA](https://ranganathanlab.gitlab.io/pySCA)
 
-or open the html files included with the pySCA distribution in a browser:
-
-[docs/index.html](docs/index.html)
+or look through the [RST files](docs/source) included with the pySCA
+distribution.
 
 ## Contents of `/`
 

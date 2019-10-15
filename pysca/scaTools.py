@@ -9,7 +9,7 @@ pySCA - A SCA toolbox in Python
 | Rama Ranganathan (rama.ranganathan@utsouthwestern.edu)
 
 :On:  August 2014
-:version: 6.1 beta
+:version: 6.1
 
 Copyright (C) 2015 Olivier Rivoire, Rama Ranganathan, Kimberly Reynolds
 

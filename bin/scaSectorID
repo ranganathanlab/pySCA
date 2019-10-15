@@ -26,7 +26,7 @@ stores the outputs using the python tool pickle:
 
 **Example**::
 
-  scaSectorID PF00071_full.db
+  scaSectorID -i PF00071_full.db
 
 :By: Kim Reynolds
 :On: 8.19.2014

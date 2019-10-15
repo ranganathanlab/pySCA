@@ -1,6 +1,5 @@
-
-SCA6.0 - The DHFR (dihydrofolate reductase) family
---------------------------------------------------
+SCA 6.1 - The DHFR (dihydrofolate reductase) family
+===================================================
 
 **Summary** This script describes the basic flow of the analytical steps
 in SCA6.0, using the DHFR family as an example. Here we compare results
@@ -17,14 +16,15 @@ command line as follows:
 
 ::
 
-   >> ./annotateMSA.py ../data/PF00186_full.txt -o Outputs/PF00186_full.an -a 'pfam'
-   >> ./scaProcessMSA.py ../data/PF00186_full.an -s 1RX2 -c A -f 'Escherichia coli' -t -n
-   >> ./scaCore.py ../output/PF00186_full.db
-   >> ./scaSectorID.py ../output/PF00186_full.db
-   >> ./annotateMSA.py ../data/DHFR_PEPM3.fasta -o ../output DHFR_PEPM3.an -a 'ncbi' -g ../data/DHFR_PEPM3.gis
-   >> ./scaProcessMSA.py ../data/DHFR_PEPM3.an -s 1RX2 -c A -t -n
-   >> ./scaCore.py ../output/DHFR_PEPM3.db
-   >> ./scaSectorID.py ../output/DHFR_PEPM3.db
+   >> annotateMSA -i ../data/PF00186_full.txt -o ../outputs/PF00186_full.an -a 'pfam'
+   >> scaProcessMSA -a ../data/PF00186_full.an -s 1RX2 -c A -f 'Escherichia coli' -t -n
+   >> scaCore -i ../output/PF00186_full.db
+   >> scaSectorID -i ../output/PF00186_full.db
+
+   >> annotateMSA -i ../data/DHFR_PEPM3.fasta -o ../output DHFR_PEPM3.an -a 'ncbi' -g ../data/DHFR_PEPM3.gis
+   >> scaProcessMSA -a ../data/DHFR_PEPM3.an -s 1RX2 -c A -t -n
+   >> scaCore -i ../output/DHFR_PEPM3.db
+   >> scaSectorID -i ../output/DHFR_PEPM3.db
 
 Note that we supply annotated alignments for all tutorial scripts *(the
 annotate_pfMSA step is slow, and should only be run once)*.
@@ -33,11 +33,6 @@ annotate_pfMSA step is slow, and should only be run once)*.
 
 .. code:: python3
 
-    from __future__ import division
-    
-    import sys
-    sys.path.append('../pysca')
-    
     import os
     import time
     import matplotlib.pyplot as plt
@@ -49,8 +44,8 @@ annotate_pfMSA step is slow, and should only be run once)*.
     from IPython.display import Image
     import scipy.cluster.hierarchy as sch
     from scipy.stats import scoreatpercentile 
-    import scaTools as sca
-    #import mpld3
+    from pysca import scaTools as sca
+    # import mpld3
     import pickle as pickle
     from optparse import OptionParser
     
@@ -118,6 +113,7 @@ distribution of sequence identities with a mean value of about 35%.
         plt.subplot(2,2,ix)
         ix += 1
         plt.imshow(Dsca[k]['simMat'][np.ix_(ind,ind)], vmin=0, vmax=1); plt.colorbar();   
+        plt.tight_layout()
 
 
 
@@ -278,7 +274,7 @@ alignment, and 7 for the manual alignment.
         plt.tick_params(labelsize=11)
         plt.xlabel('Eigenvalues', fontsize=18); plt.ylabel('Numbers', fontsize=18);
         print('Number of eigenmodes to keep is %i' %(Dsect[a]['kpos']))
-    
+    plt.tight_layout()
     #mpld3.display()
 
 
@@ -377,7 +373,7 @@ their contribution to :math:`V_1^p` to better see this.
     sectors = list()
     ix = 1
     for a in range(N_alg):
-        #plot the SCA positional correlation matrix, ordered by contribution 
+        # plot the SCA positional correlation matrix, ordered by contribution 
         #to the top ICs
         plt.rcParams['figure.figsize'] = 9, 9 
         plt.subplot(2,2,ix); ix +=1;
@@ -396,7 +392,7 @@ their contribution to :math:`V_1^p` to better see this.
                      'w', linewidth = 2)
             line_index += Dsect[a]['icsize'][i] 
     
-        #combine all the ICs into a single sector and re-sort
+        # combine all the ICs into a single sector and re-sort
         sec_groups = ([k for k in range(Dsect[a]['kpos'])])
         sectors_alg = list()
         s = sca.Unit()
@@ -412,7 +408,7 @@ their contribution to :math:`V_1^p` to better see this.
         sectors_alg.append(s)
         sectors.append(sectors_alg)
         
-        #plot the re-ordered matrix
+        # plot the re-ordered matrix
         sortpos = list()
         for s in sectors[a]:
             sortpos.extend(s.items)

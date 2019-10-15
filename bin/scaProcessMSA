@@ -74,7 +74,7 @@ tool pickle:
 
 **Example**::
 
-  scaProcessMSA PF00071_full.an -s 5P21 -c A -f 'Homo sapiens'
+  scaProcessMSA -a PF00071_full.an -s 5P21 -c A -f 'Homo sapiens'
 
 :By: Rama Ranganathan
 :On: 8.5.2014

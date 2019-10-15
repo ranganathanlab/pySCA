@@ -1,6 +1,5 @@
-
-SCA6.0 - The S1A Serine Proteases
----------------------------------
+SCA 6.1 - The S1A Serine Proteases
+==================================
 
 **Summary:** This script repeats the analysis of the S1A serine protease
 family, an example of a single protein containing at least three
@@ -30,9 +29,9 @@ executed from the command line as follows:
 
 ::
 
-   >> ./scaProcessMSA.py ../data/s1Ahalabi_1470_nosnakes.an -s 3TGI -c E -t -n
-   >> ./scaCore.py ../output/s1Ahalabi_1470_nosnakes.db
-   >> ./scaSectorID.py ../output/s1Ahalabi_1470_nosnakes.db
+   >> scaProcessMSA -a ../data/s1Ahalabi_1470_nosnakes.an -s 3TGI -c E -t -n
+   >> scaCore -i ../output/s1Ahalabi_1470_nosnakes.db
+   >> scaSectorID -i ../output/s1Ahalabi_1470_nosnakes.db
 
 Note that we supply pre-annotated alignments for all tutorial scripts
 *(the annotate_pfMSA step is slow, and should only be run once)*.
@@ -41,11 +40,6 @@ Note that we supply pre-annotated alignments for all tutorial scripts
 
 .. code:: python3
 
-    from __future__ import division
-    
-    import sys
-    sys.path.append('../pysca')
-    
     import os
     import time
     import matplotlib.pyplot as plt
@@ -59,7 +53,7 @@ Note that we supply pre-annotated alignments for all tutorial scripts
     from Bio.Seq import Seq
     from Bio import motifs
     import colorsys
-    import scaTools as sca
+    from pysca import scaTools as sca
     #import mpld3
     import pickle as pickle
     from optparse import OptionParser
@@ -370,7 +364,7 @@ according to Equations 4 + 5 of Rivoire et al.
 
 .. parsed-literal::
 
-    <matplotlib.image.AxesImage at 0x67e12783f048>
+    <matplotlib.image.AxesImage at 0x64e43fcec190>
 
 
 
@@ -468,7 +462,8 @@ cut and paste into PyMol.
         plt.plot([Dsect['cutoff'][k],Dsect['cutoff'][k]], [0,60], 'k--',linewidth = 1)
         plt.xlabel(r'$V^p_{%i}$'%(k+1), fontsize=14)
         plt.ylabel('Number', fontsize=14)
-        
+    plt.tight_layout()
+    
     for n,ipos in enumerate(Dsect['ics']):
         sort_ipos = sorted(ipos.items)
         ats_ipos = ([Dseq['ats'][s] for s in sort_ipos])
@@ -571,7 +566,7 @@ suggest that ICs 1-7 are indeed relatively independent.
 
 
 Print the sector positions, in a format suitable for pyMol, and create a
-pyMol session (in the Outputs directory) with the sectors (and
+pyMol session (in the output directory) with the sectors (and
 decomposition into independent components) as seperate objects.
 
 .. code:: python3
@@ -717,8 +712,7 @@ the above distributions of sequences as stacked bar plots.
             forhist.append([Dsect['Upica'][i,k] for i in group.items])
         plt.subplot(4,Dsect['kpos'],k+2*(Dsect['kpos'])+1)
         plt.hist(forhist, histtype='barstacked',color=col)
-        
-        
+    
     col = list()
     for k in phylo:
         col = col + [colorsys.hsv_to_rgb(k.col,1,1)]
@@ -727,7 +721,10 @@ the above distributions of sequences as stacked bar plots.
         for group in phylo:
             forhist.append([Dsect['Upica'][i,k] for i in group.items])
         plt.subplot(4,Dsect['kpos'],k+(3*Dsect['kpos'])+1)
+        plt.xlabel(r'$U^p_{%i}$' % (k+1), fontsize=16)
         plt.hist(forhist, histtype='barstacked',color=col)
+    
+    plt.tight_layout()
 
 
 
