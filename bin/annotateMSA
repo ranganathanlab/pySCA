@@ -53,7 +53,6 @@ please see the file LICENSE for details.
 import sys
 import argparse
 import os
-from Bio import Entrez
 from pysca import scaTools as sca
 from pysca import settings
 
@@ -95,7 +94,7 @@ if __name__ == '__main__':
 
     if options.annot == 'ncbi':
         if ((options.idList is None) and (options.giList is None)):
-            sys.exit("To use NCBI entrez annotation, you must specify a file "
+            sys.exit("To use NCBI Entrez annotation, you must specify a file "
                      "containing a list of GI numbers (see the --idList "
                      "argument).")
 
@@ -115,7 +114,7 @@ if __name__ == '__main__':
             else:
                 sys.exit("No Pfam file found. Exiting.")
     elif options.annot == 'ncbi':
-        # Annotate using GI numbers/NCBI entrez
+        # Annotate using GI numbers/NCBI Entrez
         if options.email is None:
             sca.AnnotNCBI(options.Input_MSA, options.output, options.idList)
         else:
