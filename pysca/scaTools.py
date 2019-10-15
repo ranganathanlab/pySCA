@@ -17,7 +17,6 @@ This program is free software distributed under the BSD 3-clause license,
 please see the file LICENSE for details.
 """
 
-from __future__ import division
 import os
 import subprocess
 import copy
