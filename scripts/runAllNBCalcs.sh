@@ -33,14 +33,14 @@ elif [ -x "$(command -v wget)" ]; then
   fi
   mkdir -p ${datadir}
   mv -v pySCA-data-${version}/* ${datadir}/
-  rmdir pySCA-data-${version}
+  rm -rvf pySCA-data-${version}
 elif [ -x "$(command -v curl)" ]; then
   echo "git not installed --- trying curl"
   if [ -x "$(command -v tar)" ]; then
-    curl -L -O -C ${datarepo}/archive/v${version}.tar.gz
+    curl -L -O -C - ${datarepo}/archive/v${version}.tar.gz
     tar xf v${version}.tar.gz
   elif [ -x "$(command -v unzip)" ]; then
-    curl -L -O -C ${datarepo}/archive/v${version}.zip
+    curl -L -O -C - ${datarepo}/archive/v${version}.zip
     unzip v${version}.zip
   else
     echo "'unzip' or 'tar' (with gzip) is required for decompressing data."
@@ -48,7 +48,7 @@ elif [ -x "$(command -v curl)" ]; then
   fi
   mkdir -p ${datadir}
   mv -v pySCA-data-${version}/* ${datadir}/
-  rmdir pySCA-data-${version}
+  rm -rvf pySCA-data-${version}
 fi
 
 # Generate the output files
