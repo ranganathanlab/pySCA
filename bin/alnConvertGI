@@ -24,7 +24,6 @@ import argparse
 import sys
 from Bio import Entrez
 from pysca import scaTools as sca
-
 from pysca import settings
 
 if __name__ == '__main__':

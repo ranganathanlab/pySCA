@@ -24,8 +24,8 @@ license, please see the file LICENSE for details.
 """
 
 import argparse
-from pysca import scaTools as sca
 import sys
+from pysca import scaTools as sca
 
 if __name__ == '__main__':
     # Parse inputs
