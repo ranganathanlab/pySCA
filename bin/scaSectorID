@@ -15,10 +15,8 @@ stores the outputs using the python tool pickle:
     4) Assign positions into groups based on the independent component with
        which it has the greatest degree of co-evolution.
 
-**Arguments**
-    \*.db (the database produced by running scaCore.py).
-
 **Key Arguments**
+    --input, -i      \*.db (the database produced by running scaCore)
     --kpos, -k       number of significant eigenmodes for analysis (the default
                      is to automatically choose using the eigenspectrum)
     --cutoff, -p     empirically chosen cutoff for selecting AA positions with
@@ -28,7 +26,7 @@ stores the outputs using the python tool pickle:
 
 **Example**::
 
-./scaSectorID.py ../data/PF00071_full.db
+  scaSectorID PF00071_full.db
 
 :By: Kim Reynolds
 :On: 8.19.2014
@@ -40,7 +38,6 @@ please see the file LICENSE for details.
 """
 
 from __future__ import division
-import time
 import os
 import pickle
 import argparse
@@ -48,12 +45,13 @@ import numpy as np
 from scipy.io import savemat
 from pysca import scaTools as sca
 
-from pysca import settings
-
 if __name__ == '__main__':
     # parse inputs
     parser = argparse.ArgumentParser()
-    parser.add_argument("database", help="database from running scaCore")
+    parser.add_argument("-i", "--input", dest="inputdb", required=True,
+                        help="database from running scaCore")
+    parser.add_argument("-o" "--output", dest="outputdb", default=None,
+                        help='output file for sector calculations')
     parser.add_argument("-k", "--kpos", dest="kpos", type=int, default=0,
                         help="number of significant eigenmodes for analysis "
                              "(the default is to automatically choose using "
@@ -70,7 +68,7 @@ if __name__ == '__main__':
     options = parser.parse_args()
 
     # extract the necessary stuff from the database...
-    db_in = pickle.load(open(options.database, "rb"))
+    db_in = pickle.load(open(options.inputdb, "rb"))
     D_seq = db_in['sequence']
     D_sca = db_in['sca']
 
@@ -100,9 +98,13 @@ if __name__ == '__main__':
     Usica, Wsica = sca.rotICA(Usca, kmax=kpos)
 
     # saving...
-    path_list = options.database.split(os.sep)
-    fn = path_list[-1]
-    fn_noext = fn.split(".")[0]
+    if options.outputdb is None:
+        fn = os.path.basename(options.inputdb)
+        output_path = os.path.abspath(os.path.dirname(options.inputdb))
+    else:
+        fn = os.path.basename(options.outputdb)
+        output_path = os.path.abspath(os.path.dirname(options.outputdb))
+    fn_noext = os.path.splitext(fn)[0]
 
     D = {}
     D['Vsca'] = Vsca
@@ -126,10 +128,10 @@ if __name__ == '__main__':
     db['sca'] = D_sca
     db['sector'] = D
 
-    print("Calculations complete. Writing to database file " +
-          settings.path2output + fn_noext)
+    print("Calculations complete, writing to database file " +
+          os.path.join(output_path, fn_noext))
     if options.matfile:
-        savemat(settings.path2output + fn_noext, db, appendmat=True,
+        savemat(os.path.join(output_path, fn_noext) + ".mat", db, appendmat=True,
                 oned_as='column')
-    time.sleep(1)
-    pickle.dump(db, open(settings.path2output + fn_noext + ".db", "wb"))
+
+    pickle.dump(db, open(os.path.join(output_path, fn_noext) + ".db", "wb"))
