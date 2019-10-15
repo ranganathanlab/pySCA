@@ -74,7 +74,7 @@ tool pickle:
 
 **Example**::
 
-./scaProcessMSA.py ../data/PF00071_full.an -s 5P21 -c A -f 'Homo sapiens'
+  scaProcessMSA PF00071_full.an -s 5P21 -c A -f 'Homo sapiens'
 
 :By: Rama Ranganathan
 :On: 8.5.2014
@@ -101,7 +101,7 @@ if __name__ == '__main__':
     parser.add_argument("-a", "--alignment", dest="alignment", required=True,
                         help='Input Sequence Alignment')
     parser.add_argument("-d", "--dest", dest="destination", default=None,
-                        help="specify an outputfile name")
+                        help="specify an output directory")
     parser.add_argument("-s", "--pdb", dest="pdbid",
                         help="PDB identifier (ex: 1RX2)")
     parser.add_argument("-b", "--pdbdir", dest="pdbdir", default=None,
