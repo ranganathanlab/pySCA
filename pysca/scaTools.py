@@ -1905,7 +1905,7 @@ def pdbSeq(pdbid, chain='A', path2pdb=settings.path2structures, calcDist=1):
 
     **Example**::
 
-      sequence, labels, dist = pdbSeq(pdbid, chain='A', path2pdb=settings.path2structures)
+      sequence, labels, dist = pdbSeq(pdbid, chain='A', path2pdb)
     '''
 
     # Table of 3-letter to 1-letter code for amino acids
@@ -1933,7 +1933,7 @@ def pdbSeq(pdbid, chain='A', path2pdb=settings.path2structures, calcDist=1):
 
     # Read PDB structure:
     P = PDBParser(PERMISSIVE=1)
-    structure = P.get_structure(pdbid, path2pdb + pdbid + '.pdb')
+    structure = P.get_structure(pdbid, os.path.join(path2pdb, pdbid) + '.pdb')
 
     # Fill up sequence and label information
     sequence = ''
