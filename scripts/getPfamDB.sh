@@ -22,7 +22,7 @@ pfamheaders="pfamseq.sql"
 pfamdata="pfamseq.txt"
 pfamdb="pfamseq.db"
 
-gzip=pigz  # replace this value with whatever gzip compression tool you use
+gzip=gzip  # replace this value with whatever gzip compression tool you use
 
 
 #
@@ -40,7 +40,13 @@ echo "Got 'em."
 
 echo "Decompress the gzipped files."
 echo "This will take a while."
-${gzip} -d "${pfamheaders}.gz"
+if test `command -v ${gzip}`; then
+  ${gzip} -vd "${pfamheaders}.gz"
+  ${gzip} -vd "${pfamdata}.gz"
+else
+  echo "${pigz} not found. Exiting."
+  exit 3
+fi
 echo "Done!"
 
 
