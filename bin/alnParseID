@@ -21,33 +21,50 @@ license, please see the file LICENSE for details.
 """
 
 import argparse
+import os
 import sys
 from pysca import scaTools as sca
 
 if __name__ == '__main__':
     # Parse inputs
     parser = argparse.ArgumentParser()
-    parser.add_argument("alignment", help='input sequence alignment')
+    parser.add_argument("-i", "--input", dest="alignment", required=True, help='input sequence alignment')
     parser.add_argument("-o", "--output", dest="outputfile",
-                        default='input.acc',
+                        default=None,
                         help="specify an outputfile name")
     parser.add_argument("-d", "--delim", dest="delim", default="_",
                         help="specify the field delimiter in the header")
+    parser.add_argument("-t", "--type", dest="type", default="gi", required=True,
+                        help="type of identifier to parse out of the header "
+                             "('gi' or 'acc')")
     options = parser.parse_args()
 
     # Read in the MSA.
     headers, seqs = sca.readAlg(options.alignment)
 
     # Get index of accession number in the header fields.
+    if options.type == "gi":
+        separator = "gi"
+    elif options.type == "acc" or options.type == "ref":
+        separator = "ref"
+    else:
+        sys.exit("ID type %s not known" % options.type)
+
     try:
-        acc_idx = (headers[0].split(options.delim)).index('res') + 1
+        #  acc_idx = (headers[0].split(options.delim)).index('res') + 1
+        acc_idx = (headers[0].split(options.delim)).index(separator) + 1
     except BaseException as e:
         print("ERROR: %s" % e)
         sys.exit("Accession field not found in %s." % options.alignment)
 
     acc_ids = [h.split(options.delim)[acc_idx] for h in headers]
 
-    f = open(options.outputfile, 'w')
+    if options.outputfile:
+        outputfile = options.outputfile
+    else:
+        outputfile = os.path.splitext(options.alignment)[0] + "." + options.type
+
+    f = open(outputfile, 'w')
     for acc_id in acc_ids:
         f.write('%s\n' % acc_id)
     f.close()

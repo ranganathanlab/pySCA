@@ -15,8 +15,7 @@ setup(
     download_url="https://github.com/ranganathanlab/pySCA",
     long_description=open("README.md", "r").read(),
     install_requires=["biopython", "numpy", "scipy", "argparse"],
-    scripts=["bin/alnChangeDelim", "bin/alnFilterSeqSize", "bin/alnParseGI",
+    scripts=["bin/alnChangeDelim", "bin/alnFilterSeqSize", "bin/alnParseID",
              "bin/annotateMSA", "bin/scaProcessMSA", "bin/alnConvertGI",
-             "bin/alnParseAcc", "bin/alnReplaceHeaders", "bin/scaCore",
-             "bin/scaSectorID"]
+             "bin/alnReplaceHeaders", "bin/scaCore", "bin/scaSectorID"]
 )
