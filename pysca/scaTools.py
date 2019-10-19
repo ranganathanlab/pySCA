@@ -279,32 +279,32 @@ def AnnotNCBI(alg_in, alg_out, id_list, email=settings.entrezemail):
     id_blocks = [seq_ids[x:x + id_blocksize]
                  for x in range(0, len(seq_ids), id_blocksize)]
 
-    taxonIDs = list()
+    taxIDs = list()
     start = time.time()
     for i, id_block in enumerate(id_blocks):
         handle = Entrez.esummary(db="protein", id=','.join(id_block))
-        time.sleep(1)
+        time.sleep(.33)
         taxonList = Entrez.read(handle)
         handle.close()
         for j, taxon in enumerate(taxonList):
             if taxon["TaxId"]:
-                taxonIDs.append(str(taxon["TaxId"]))
+                taxIDs.append(str(taxon["TaxId"]))
             else:
                 print("TaxId not found for %s" % id_block[j])
-                taxonIDs.append("1")
+                taxIDs.append("1")
     end = time.time()
 
     # Add back taxID of 1 (the root of the taxonomic tree) for sequences
     # without an ID.
     for idx in zeros_idx:
-        taxonIDs.insert(idx, '1')
+        taxIDs.insert(idx, '1')
 
     print("Look up for Tax IDs complete. Time: %f" % (end - start))
 
     # Group taxIDs into blocks and submit each block as a query to the web API.
     taxid_blocksize = 200
-    taxid_blocks = [taxonIDs[x:x + taxid_blocksize]
-                    for x in range(0, len(taxonIDs), taxid_blocksize)]
+    taxid_blocks = [taxIDs[x:x + taxid_blocksize]
+                    for x in range(0, len(taxIDs), taxid_blocksize)]
 
     # Collect records with lineage information
     print("Collecting taxonomy information...")
