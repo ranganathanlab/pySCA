@@ -18,10 +18,6 @@ path2pfamseqdb = 'data/pfamseq.db'
 # the location of your PDB structures
 path2structures = 'data/'
 
-# paths to pymol and needle (EMBOSS) applictaions
-path2pymol = '/usr/bin/pymol'
-path2needle = '/usr/bin/'
-
 # Also assumes that a folder named 'output/' is in the path
 path2output = 'output/'
 

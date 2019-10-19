@@ -367,7 +367,7 @@ def clean_al(alg, code='ACDEFGHIKLMNPQRSTVWY', gap='-'):
     return alg_clean
 
 
-def MSAsearch(hd, algn, seq, species=None, path2_algprog=settings.path2needle):
+def MSAsearch(hd, algn, seq, species=None):
     '''
     Identify the sequence in the alignment that most closely corresponds to the
     species of the reference sequence, and return its index.
@@ -382,7 +382,6 @@ def MSAsearch(hd, algn, seq, species=None, path2_algprog=settings.path2needle):
 
       :species: species of the reference sequence (Used to speed up alignment
                 searching when possible)
-      :path2_algprog: path to an alignment program
 
     **Example**::
 
@@ -456,7 +455,7 @@ def MSAsearch(hd, algn, seq, species=None, path2_algprog=settings.path2needle):
             output_handle.close()
             needle_tmp, needle_tmpname = tempfile.mkstemp()
             needle_cline = NeedleCommandline(
-                path2_algprog + "needle",
+                "needle",
                 asequence=pdb_tmpname,
                 bsequence=algn_tmpname,
                 gapopen=10,
