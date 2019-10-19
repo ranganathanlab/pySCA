@@ -53,7 +53,7 @@ executed from the command line as follows:
 
 ::
 
-   >> scaProcessMSA -a ../data/PF00071_rd2.an -s 5P21 -c A -f 'Homo sapiens' -t -n
+   >> scaProcessMSA -a ../data/PF00071_rd2.an -b ../data/ -s 5P21 -c A -f 'Homo sapiens' -t -n
    >> scaCore -i ../output/PF00071_rd2.db
    >> scaSectorID -i ../output/PF00071_rd2.db
 
@@ -317,7 +317,7 @@ according to Equations 4+5
 
 .. parsed-literal::
 
-    <matplotlib.image.AxesImage at 0x6601d0b01150>
+    <matplotlib.image.AxesImage at 0x695a1e755c90>
 
 
 

@@ -12,8 +12,8 @@ scripts should be run as follows:
 
 ::
 
-   >> annotateMSA -i ../data/PF13354_full.txt -o ../data/PF13354_full.an -a 'pfam'
-   >> scaProcessMSA -a ../data/PF13354_full.an -s 1FQG -c A -f 'Escherichia coli'-t -n
+   >> annotateMSA -i ../data/PF13354_full.txt -o ../data/PF13354_full.an -a 'pfam' -p ../data/pfamseq.txt
+   >> scaProcessMSA -a ../data/PF13354_full.an -b ../data/ -s 1FQG -c A -f 'Escherichia coli' -t -n
    >> scaCore -i ../output/PF13354_full.db
    >> scaSectorID -i ../output/PF13354_full.db
 
@@ -100,7 +100,7 @@ families.
 
 .. parsed-literal::
 
-    <matplotlib.colorbar.Colorbar at 0x6c13380e4450>
+    <matplotlib.colorbar.Colorbar at 0x6c85f14fdf90>
 
 
 
@@ -423,8 +423,8 @@ the idea that sector 2/IC4 might be associated with sector 1/ICs1+3+5+6
         ic_pymol = ('+'.join(ats_ipos))
         print('Sector %i is composed of %i positions:' % (i+1,len(ats_ipos)))
         print(ic_pymol + "\n")
-    sca.writePymol('1FQG', sectors, Dsect['ics'], Dseq['ats'], \
-                   '../output/PF13354.pml','A', '../data/', 0)  
+    sca.writePymol('../data/1FQG.pdb', sectors, Dsect['ics'], Dseq['ats'], \
+                   '../output/PF13354.pml', 'A', '../data/', 0)  
 
 
 .. parsed-literal::

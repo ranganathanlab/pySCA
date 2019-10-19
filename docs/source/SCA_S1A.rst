@@ -29,7 +29,7 @@ executed from the command line as follows:
 
 ::
 
-   >> scaProcessMSA -a ../data/s1Ahalabi_1470_nosnakes.an -s 3TGI -c E -t -n
+   >> scaProcessMSA -a ../data/s1Ahalabi_1470_nosnakes.an -b ../data/ -s 3TGI -c E -t -n
    >> scaCore -i ../output/s1Ahalabi_1470_nosnakes.db
    >> scaSectorID -i ../output/s1Ahalabi_1470_nosnakes.db
 
@@ -364,7 +364,7 @@ according to Equations 4 + 5 of Rivoire et al.
 
 .. parsed-literal::
 
-    <matplotlib.image.AxesImage at 0x64e43fcec190>
+    <matplotlib.image.AxesImage at 0x6cfac49cd590>
 
 
 
@@ -394,7 +394,7 @@ significant eigenmodes (:math:`k^* = 7`).
 
 .. parsed-literal::
 
-    Number of eigenmodes to keep is 6
+    Number of eigenmodes to keep is 7
 
 
 
@@ -481,17 +481,20 @@ cut and paste into PyMol.
     IC 2 is composed of 19 positions:
     29+138+160+161+172+176+177+180+183+184+189+192+213+215+216+221+226+227+228
     
-    IC 3 is composed of 14 positions:
-    26+46+52+69+71+81+104+105+108+118+123+124+136+201
+    IC 3 is composed of 19 positions:
+    25+26+27+46+52+68+69+71+81+104+108+114+118+123+124+136+201+210+229
     
-    IC 4 is composed of 11 positions:
-    17+27+30+31+32+40+45+51+139+152+156
+    IC 4 is composed of 10 positions:
+    30+31+32+34+40+51+139+152+156+200
     
-    IC 5 is composed of 7 positions:
-    85+89+91+92+94+95+231
+    IC 5 is composed of 8 positions:
+    18+85+89+91+92+94+95+101
     
-    IC 6 is composed of 6 positions:
-    47+53+101+103+229+234
+    IC 6 is composed of 5 positions:
+    47+53+103+105+234
+    
+    IC 7 is composed of 0 positions:
+    
     
 
 
@@ -589,17 +592,17 @@ decomposition into independent components) as seperate objects.
     Sector 2 is composed of 19 positions:
     29+138+160+161+172+176+177+180+183+184+189+192+213+215+216+221+226+227+228
     
-    Sector 3 is composed of 14 positions:
-    26+46+52+69+71+81+104+105+108+118+123+124+136+201
+    Sector 3 is composed of 19 positions:
+    25+26+27+46+52+68+69+71+81+104+108+114+118+123+124+136+201+210+229
     
-    Sector 4 is composed of 11 positions:
-    17+27+30+31+32+40+45+51+139+152+156
+    Sector 4 is composed of 10 positions:
+    30+31+32+34+40+51+139+152+156+200
     
-    Sector 5 is composed of 7 positions:
-    85+89+91+92+94+95+231
+    Sector 5 is composed of 8 positions:
+    18+85+89+91+92+94+95+101
     
-    Sector 6 is composed of 6 positions:
-    47+53+101+103+229+234
+    Sector 6 is composed of 5 positions:
+    47+53+103+105+234
     
 
 

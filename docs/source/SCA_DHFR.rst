@@ -16,13 +16,13 @@ command line as follows:
 
 ::
 
-   >> annotateMSA -i ../data/PF00186_full.txt -o ../outputs/PF00186_full.an -a 'pfam'
-   >> scaProcessMSA -a ../data/PF00186_full.an -s 1RX2 -c A -f 'Escherichia coli' -t -n
+   >> annotateMSA -i ../data/PF00186_full.txt -o ../outputs/PF00186_full.an -a 'pfam' -p ../data/pfamseq.txt
+   >> scaProcessMSA -a ../data/PF00186_full.an -b ../data/ -s 1RX2 -c A -f 'Escherichia coli' -t -n
    >> scaCore -i ../output/PF00186_full.db
    >> scaSectorID -i ../output/PF00186_full.db
 
    >> annotateMSA -i ../data/DHFR_PEPM3.fasta -o ../output DHFR_PEPM3.an -a 'ncbi' -g ../data/DHFR_PEPM3.gis
-   >> scaProcessMSA -a ../data/DHFR_PEPM3.an -s 1RX2 -c A -t -n
+   >> scaProcessMSA -a ../data/DHFR_PEPM3.an -b ../data/ -s 1RX2 -c A -t -n
    >> scaCore -i ../output/DHFR_PEPM3.db
    >> scaSectorID -i ../output/DHFR_PEPM3.db
 
@@ -198,8 +198,9 @@ see a complete color-coding legend, use:
     fam_names = ['Eukaryota', 'Bacteroidetes', 'Firmicutes', \
                  'Actinobacteria', 'Proteobacteria']
     col = (0, 0.18, 0.38, 0.6, 0.8) 
-    #Eukaryota = red, Bacteriodetes = yellow, Firmicutes = green, 
-    #Actinobacteria = blue, Proteobacteria = purple
+    
+    # Legend: Eukaryota = red, Bacteriodetes = yellow, Firmicutes = green,
+    # Actinobacteria = blue, Proteobacteria = purple
     for a in range(N_alg):
         phylo_alg = list()
         for i,k in enumerate(fam_names):
@@ -547,7 +548,8 @@ corresponding sequence space divergence.
         plt.subplot(2,Dsect[0]['kpos'],k+1)
         plt.hist(forhist, histtype='barstacked',color=col)
         plt.axis([axis_lims[k][0],axis_lims[k][1],0,600])
-        plt.xlabel(r'$U^p_{%i}$' % (k+1), fontsize=16) 
+        plt.xlabel(r'$U^p_{%i}$' % (k+1), fontsize=16)
+    plt.tight_layout()
 
 
 
