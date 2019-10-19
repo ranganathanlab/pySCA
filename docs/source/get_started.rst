@@ -11,10 +11,10 @@ Running a complete SCA analysis consists of five steps:
   5) Interpretation of the results
 
 The core SCA calculations (steps 2,3, and 4) are each associated with a
-particular Python analysis script (`scaProcessMSA.py`, `scaCore.py`, and
-`scaSectorID.py`, respectively). Sequential execution of each Python analysis
-script stores the results in a pickle database. This means the core SCA
-calculations can be run from the command line, or multiple proteins can be
+particular Python analysis script (:code:`scaProcessMSA`, :code:`scaCore`, and
+:code:`scaSectorID`, respectively). Sequential execution of each Python
+analysis script stores the results in a pickle database. This means the core
+SCA calculations can be run from the command line, or multiple proteins can be
 analyzed using a shell script (for an example, see `runAllNBCalcs.sh`).
 Following execution of the scripts, the pickle database can be loaded in an
 Jupyter notebook for visualizing the results and interpreting the data.
@@ -31,6 +31,9 @@ The pySCA repository contains the following files and directories:
 Base Directory
 --------------
 
+bin/
+  Contains the analysis scripts that use functions defined in the `scaTools.py`
+  module.
 data/
   Git submodule that contains the input sequence alignments (\*.fasta, \*.an)
   and structures (\*.pdb) for the analysis. The \*.an files correspond to
@@ -59,6 +62,25 @@ notebooks/
 pysca/
   Contains the Python source code for the SCA implementation.
 
+`bin` Directory
+-----------------
+
+alnFilterSeqSize, alnParseID, alnReplaceHeaders, alnChangeDelim, alnConvertGI
+  These aren't essential to the main SCA utilities/package, but are little
+  scripts that we often find useful in alignment construction.
+annotateMSA
+  A script for adding taxonomic annotations to fasta-formatted sequence
+  alignments
+scaProcessMSA
+  The script that conducts alignment pre-processing and conditioning. This
+  constitutes trimming the alignment for gaps, and removing low identity
+  sequences.
+scaCore
+  The script that computes SCA conservation and co-evolution values.
+scaSectorID
+  The script that defines positions that show a statistically significant
+  correlation.
+
 `scripts` Directory
 -------------------
 
@@ -83,24 +105,12 @@ SCA_S1A.ipynb
 `pysca` Directory
 -----------------
 
-alnFilterSeqSize.py, alnParseGI.py, alnReplaceHeaders.py
-  These aren't essential to the main SCA utilities/package, but are little
-  scripts that we often find useful in alignment construction.
-annotateMSA.py
-  A script for adding taxonomic annotations to fasta-formatted sequence
-  alignments
-scaProcessMSA.py
-  The script that conducts alignment pre-processing and conditioning. This
-  constitutes trimming the alignment for gaps, and removing low identity
-  sequences.
-scaCore.py
-  The script that computes SCA conservation and co-evolution values.
-scaSectorID.py
-  The script that defines positions that show a statistically significant
-  correlation.
 scaTools.py
   Contains the pySCA library - the functions that implement all of the SCA
   calculations.
+settings.py
+  Optional configuration file useful for specifying paths instead of having to
+  so do on the command line.
 
 
 1. Constructing and annotating a multiple sequence alignment
