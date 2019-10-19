@@ -25,17 +25,29 @@ import sys
 import statistics as stat
 from pysca import scaTools as sca
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Parse inputs
     parser = argparse.ArgumentParser()
-    parser.add_argument("alignment", help='Input Sequence Alignment')
-    parser.add_argument("-o", "--output", dest="outputfile",
-                        default='output.acc',
-                        help="specify an outputfile name")
-    parser.add_argument("-d", "--old-delim", dest="old_delim",
-                        help="specify the field delimiter in the header")
-    parser.add_argument("-n", "--new-delim", dest="new_delim",
-                        help="specify the field delimiter in the header")
+    parser.add_argument("alignment", help="Input Sequence Alignment")
+    parser.add_argument(
+        "-o",
+        "--output",
+        dest="outputfile",
+        default="output.acc",
+        help="specify an outputfile name",
+    )
+    parser.add_argument(
+        "-d",
+        "--old-delim",
+        dest="old_delim",
+        help="specify the field delimiter in the header",
+    )
+    parser.add_argument(
+        "-n",
+        "--new-delim",
+        dest="new_delim",
+        help="specify the field delimiter in the header",
+    )
 
     options = parser.parse_args()
 
@@ -67,16 +79,19 @@ if __name__ == '__main__':
             print("WARNING: sequence %s has %s fields" % (header, counts[i]))
             #  arewegood = False
         if checks[i] > 0:
-            print("ERROR: delimiter '%s' incompatible with %s" % (options.new_delim, header))
+            print(
+                "ERROR: delimiter '%s' incompatible with %s"
+                % (options.new_delim, header)
+            )
             arewegood = False
 
     if not arewegood:
         sys.exit("Errors found. Output not written.")
 
     # Write the file if no serious errors are found.
-    f = open(options.outputfile, 'w')
+    f = open(options.outputfile, "w")
     for i, header in enumerate(headers):
         fields = header.split(options.old_delim)
-        f.write('>%s\n' % (options.new_delim).join(fields))
-        f.write('%s\n' % seqs[i])
+        f.write(">%s\n" % (options.new_delim).join(fields))
+        f.write("%s\n" % seqs[i])
     print("Done. Output written to %s." % options.outputfile)

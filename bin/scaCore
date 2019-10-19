@@ -58,43 +58,73 @@ import argparse
 from scipy.io import savemat
 from pysca import scaTools as sca
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     # Parse inputs
     parser = argparse.ArgumentParser()
-    parser.add_argument("-i" "--input", dest="inputdb", required=True,
-                        help='database from running scaProcessMSA')
-    parser.add_argument("-o" "--output", dest="outputdb", default=None,
-                        help='output file for core calculations')
-    parser.add_argument("-n", dest="norm", default='frob',
-                        help="norm type for dimension-reducing the sca matrix."
-                             "Options are: 'spec' (the spectral norm) or "
-                             "'frob' (frobenius norm). Default: frob")
-    parser.add_argument("-t", "--Ntrials", dest="Ntrials", default=10,
-                        type=int, help="number of randomization trials")
-    parser.add_argument("-l", dest="lbda", default=0.03, type=float,
-                        help="lambda parameter for pseudo-counting the "
-                             "alignment. Default: 0.03")
-    parser.add_argument("-m", "--matlab", dest="matfile", action="store_true",
-                        default=False,
-                        help="write out the results of these calculations to "
-                             "a MATLAB workspace for further analysis.")
+    parser.add_argument(
+        "-i" "--input",
+        dest="inputdb",
+        required=True,
+        help="database from running scaProcessMSA",
+    )
+    parser.add_argument(
+        "-o" "--output",
+        dest="outputdb",
+        default=None,
+        help="output file for core calculations",
+    )
+    parser.add_argument(
+        "-n",
+        dest="norm",
+        default="frob",
+        help="norm type for dimension-reducing the sca matrix."
+        "Options are: 'spec' (the spectral norm) or "
+        "'frob' (frobenius norm). Default: frob",
+    )
+    parser.add_argument(
+        "-t",
+        "--Ntrials",
+        dest="Ntrials",
+        default=10,
+        type=int,
+        help="number of randomization trials",
+    )
+    parser.add_argument(
+        "-l",
+        dest="lbda",
+        default=0.03,
+        type=float,
+        help="lambda parameter for pseudo-counting the "
+        "alignment. Default: 0.03",
+    )
+    parser.add_argument(
+        "-m",
+        "--matlab",
+        dest="matfile",
+        action="store_true",
+        default=False,
+        help="write out the results of these calculations to "
+        "a MATLAB workspace for further analysis.",
+    )
     options = parser.parse_args()
 
-    if (options.norm != 'frob') & (options.norm != 'spec'):
-        sys.exit("The option -n must be set to 'frob' or 'spec' - other "
-                 "keywords are not allowed.")
+    if (options.norm != "frob") & (options.norm != "spec"):
+        sys.exit(
+            "The option -n must be set to 'frob' or 'spec' - other "
+            "keywords are not allowed."
+        )
 
     # extract the necessary stuff from the database...
     db_in = pickle.load(open(options.inputdb, "rb"))
-    D_in = db_in['sequence']
+    D_in = db_in["sequence"]
 
-    msa_num = D_in['msa_num']
-    seqw = D_in['seqw']
-    Nseq = D_in['Nseq']
-    Npos = D_in['Npos']
-    ats = D_in['ats']
-    hd = D_in['hd']
+    msa_num = D_in["msa_num"]
+    seqw = D_in["seqw"]
+    Nseq = D_in["Nseq"]
+    Npos = D_in["Npos"]
+    ats = D_in["ats"]
+    hd = D_in["hd"]
 
     # sequence analysis
     print("Computing the sequence projections.")
@@ -109,11 +139,14 @@ if __name__ == '__main__':
     # Matrix randomizations
     print("Computing matrix randomizations...")
     start = time.time()
-    Vrand, Lrand, Crand = sca.randomize(msa_num, options.Ntrials, seqw,
-                                        options.lbda)
+    Vrand, Lrand, Crand = sca.randomize(
+        msa_num, options.Ntrials, seqw, options.lbda
+    )
     end = time.time()
-    print("Randomizations complete, %i trials, time: %.1f minutes"
-          % (options.Ntrials, (end - start) / 60))
+    print(
+        "Randomizations complete, %i trials, time: %.1f minutes"
+        % (options.Ntrials, (end - start) / 60)
+    )
 
     # saving...
     if options.outputdb is None:
@@ -125,28 +158,34 @@ if __name__ == '__main__':
     fn_noext = os.path.splitext(fn)[0]
 
     D = {}
-    D['Useq'] = Useq
-    D['Uica'] = Uica
-    D['simMat'] = simMat
-    D['lbda'] = options.lbda
-    D['Dia'] = Dia
-    D['Di'] = Di
-    D['Csca'] = Csca
-    D['tX'] = tX
-    D['Proj'] = Proj
-    D['Ntrials'] = options.Ntrials
-    D['Vrand'] = Vrand
-    D['Lrand'] = Lrand
-    D['Crand'] = Crand
+    D["Useq"] = Useq
+    D["Uica"] = Uica
+    D["simMat"] = simMat
+    D["lbda"] = options.lbda
+    D["Dia"] = Dia
+    D["Di"] = Di
+    D["Csca"] = Csca
+    D["tX"] = tX
+    D["Proj"] = Proj
+    D["Ntrials"] = options.Ntrials
+    D["Vrand"] = Vrand
+    D["Lrand"] = Lrand
+    D["Crand"] = Crand
 
     db = {}
-    db['sequence'] = D_in
-    db['sca'] = D
+    db["sequence"] = D_in
+    db["sca"] = D
 
-    print("Calculations complete, writing to database file " +
-          os.path.join(output_path, fn_noext))
+    print(
+        "Calculations complete, writing to database file "
+        + os.path.join(output_path, fn_noext)
+    )
     if options.matfile:
-        savemat(os.path.join(output_path, fn_noext) + ".mat", db, appendmat=True,
-                oned_as='column')
+        savemat(
+            os.path.join(output_path, fn_noext) + ".mat",
+            db,
+            appendmat=True,
+            oned_as="column",
+        )
 
     pickle.dump(db, open(os.path.join(output_path, fn_noext) + ".db", "wb"))

@@ -27,16 +27,28 @@ import argparse
 import sys
 from pysca import scaTools as sca
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Parse inputs
     parser = argparse.ArgumentParser()
-    parser.add_argument("-r", "--headers", dest="alg_headers",
-                        help='alignment providing the headers')
-    parser.add_argument("-s", "--sequences", dest="alg_seqs",
-                        help='alignment providing the sequences')
-    parser.add_argument("-o", "--output", dest="outputfile",
-                        default='FixedHeaders.fa',
-                        help="specify an outputfile name")
+    parser.add_argument(
+        "-r",
+        "--headers",
+        dest="alg_headers",
+        help="alignment providing the headers",
+    )
+    parser.add_argument(
+        "-s",
+        "--sequences",
+        dest="alg_seqs",
+        help="alignment providing the sequences",
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        dest="outputfile",
+        default="FixedHeaders.fa",
+        help="specify an outputfile name",
+    )
     options = parser.parse_args()
 
     print("WARNING: This script assumes that the headers of the two input")
@@ -49,11 +61,11 @@ if __name__ == '__main__':
     headers1, seqs1 = sca.readAlg(options.alg_headers)
     headers2, seqs2 = sca.readAlg(options.alg_seqs)
 
-    if (len(seqs2) != len(headers1)):
+    if len(seqs2) != len(headers1):
         sys.exit("ERROR: The length of the two alignments does not match.")
 
-    f = open(options.outputfile, 'w')
+    f = open(options.outputfile, "w")
     for i, k in enumerate(headers1):
-        f.write('>%s\n' % k)
-        f.write('%s\n' % seqs2[i])
+        f.write(">%s\n" % k)
+        f.write("%s\n" % seqs2[i])
     f.close()

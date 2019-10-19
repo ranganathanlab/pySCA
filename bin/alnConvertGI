@@ -26,17 +26,31 @@ from Bio import Entrez
 from pysca import scaTools as sca
 from pysca import settings
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Parse inputs
     parser = argparse.ArgumentParser()
-    parser.add_argument("alignment", help='Input Sequence Alignment')
-    parser.add_argument("-o", "--output", dest="outputfile",
-                        default='output.acc',
-                        help="specify an outputfile name")
-    parser.add_argument("-d", "--delim", dest="delim", default="_",
-                        help="specify the field delimiter in the header")
-    parser.add_argument("-e", "--entrez_email", dest="email", default=None,
-                        help="email address for querying Entrez web API")
+    parser.add_argument("alignment", help="Input Sequence Alignment")
+    parser.add_argument(
+        "-o",
+        "--output",
+        dest="outputfile",
+        default="output.acc",
+        help="specify an outputfile name",
+    )
+    parser.add_argument(
+        "-d",
+        "--delim",
+        dest="delim",
+        default="_",
+        help="specify the field delimiter in the header",
+    )
+    parser.add_argument(
+        "-e",
+        "--entrez_email",
+        dest="email",
+        default=None,
+        help="email address for querying Entrez web API",
+    )
 
     options = parser.parse_args()
 
@@ -52,11 +66,12 @@ if __name__ == '__main__':
     for i, gi in enumerate(gis):
         if not gi.isdigit():
             print("Invalid GI '%s' at line %s. Omitting." % (gi, i))
-            gis[i] = '0'  # Needs to be a character, not an int.
+            gis[i] = "0"  # Needs to be a character, not an int.
 
     gi_blocksize = 200  # more GIs need to be submitted as a POST request
-    gi_blocks = [gis[x:x + gi_blocksize]
-                 for x in range(0, len(gis), gi_blocksize)]
+    gi_blocks = [
+        gis[x : x + gi_blocksize] for x in range(0, len(gis), gi_blocksize)
+    ]
 
     # Query the Entrez web API with GI numbers and store the retured accession
     # numbers in an array.
@@ -66,7 +81,7 @@ if __name__ == '__main__':
         res = handle.read().splitlines()
         handle.close()
         if len(res) == len(gi_block):
-            acc_ids.extend([acc_id if acc_id else '0' for acc_id in res])
+            acc_ids.extend([acc_id if acc_id else "0" for acc_id in res])
         else:
             sys.exit("ERROR: Different number of accession IDs returned.")
 
@@ -74,21 +89,23 @@ if __name__ == '__main__':
     # are often in the form XX_XXXXX.1, meaning the number will be split. If
     # the supplied (or defaulted) delimited is '_', convert the delimiter to
     # something else.
-    if options.delim == '_':
-        print("WARNING: '_' is not a good delimiter for accession "
-              "numbers (e.g. YP_969813.1).")
+    if options.delim == "_":
+        print(
+            "WARNING: '_' is not a good delimiter for accession "
+            "numbers (e.g. YP_969813.1)."
+        )
         print("The output will use '___' as a delimiter instead.")
-        newdelim = '___'
+        newdelim = "___"
     else:
         newdelim = options.delim
 
     # Replace GI field with accession numbers in the headers and write the
     # updated alignment to disk.
-    f = open(options.outputfile, 'w')
+    f = open(options.outputfile, "w")
     for i, header in enumerate(headers):
         fields = header.split(options.delim)
-        fields[0] = 'ref'
+        fields[0] = "ref"
         fields[1] = acc_ids[i]
-        f.write('>%s\n' % (newdelim).join(fields))
-        f.write('%s\n' % seqs[i])
+        f.write(">%s\n" % (newdelim).join(fields))
+        f.write("%s\n" % seqs[i])
     print("Done. Output written to %s." % options.outputfile)

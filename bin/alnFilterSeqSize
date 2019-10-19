@@ -29,17 +29,26 @@ import argparse
 import numpy as np
 from pysca import scaTools as sca
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Parse inputs
     parser = argparse.ArgumentParser()
-    parser.add_argument("alignment", help='Input Sequence Alignment')
-    parser.add_argument("-t", "--tolerance", dest="tol", type=int, default=50,
-                        help="allowable sequence length variation in number of"
-                             " amino acids (alignment will be trimmed to mean"
-                             " +/-tolerance, default = 50)")
-    parser.add_argument("--output", dest="outputfile",
-                        default='FilteredAln.fa',
-                        help="specify an outputfile name")
+    parser.add_argument("alignment", help="Input Sequence Alignment")
+    parser.add_argument(
+        "-t",
+        "--tolerance",
+        dest="tol",
+        type=int,
+        default=50,
+        help="allowable sequence length variation in number of"
+        " amino acids (alignment will be trimmed to mean"
+        " +/-tolerance, default = 50)",
+    )
+    parser.add_argument(
+        "--output",
+        dest="outputfile",
+        default="FilteredAln.fa",
+        help="specify an outputfile name",
+    )
 
     options = parser.parse_args()
 
@@ -63,8 +72,8 @@ if __name__ == '__main__':
 
     print("Keeping %i of %i total sequences" % (len(keepSeqs), len(seqLen)))
 
-    f = open(options.outputfile, 'w')
+    f = open(options.outputfile, "w")
     for i, k in enumerate(keepSeqs):
-        f.write('>%s\n' % keepHeaders[i])
-        f.write('%s\n' % keepSeqs[i])
+        f.write(">%s\n" % keepHeaders[i])
+        f.write("%s\n" % keepSeqs[i])
     f.close()

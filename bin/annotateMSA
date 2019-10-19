@@ -56,49 +56,93 @@ import os
 from pysca import scaTools as sca
 from pysca import settings
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     # parse inputs
     parser = argparse.ArgumentParser()
-    parser.add_argument("-i", "--input", required=True, dest="Input_MSA",
-                        help='input sequence alignment')
-    parser.add_argument("-o", "--output", dest="output", default='Output.an',
-                        help="Outputfile name. Default: Output.an")
-    parser.add_argument("-a", "--annot", dest="annot", default='pfam',
-                        help="Annotation method. Options are 'pfam' or 'ncbi'."
-                             " Default: 'pfam'")
-    parser.add_argument("-l", "--idList", dest="idList", default=None,
-                        help="This argument is necessary for the 'ncbi' "
-                             "method. Specifies a file containing a list of "
-                             "GI or accession numbers corresponding to the "
-                             "sequence order in the alignment; a number of 0 "
-                             "indicates that one wasn't assigned for a "
-                             "particular sequence.")
-    parser.add_argument("-g", "--giList", dest="idList", default=None,
-                        help="Command kept for compatibility with previous "
-                             "versions. Use '-l' or '--idList' instead.")
-    parser.add_argument("-p", "--pfam_seq", dest="pfamseq", default=None,
-                        help="Location of the pfamseq.txt file. Defaults to "
-                             "path2pfamseq (specified in settings.py)")
-    parser.add_argument("-d", "--pfam_db", dest="pfamdb", default=None,
-                        help="Location of the pfamseq.db file. Priority over "
-                             "pfamseq.txt file. Defaults to path2pfamseqdb "
-                             "(specified in settings.py)")
-    parser.add_argument("-e", "--entrez_email", dest="email", default=None,
-                        help="email address for querying Entrez web API")
+    parser.add_argument(
+        "-i",
+        "--input",
+        required=True,
+        dest="Input_MSA",
+        help="input sequence alignment",
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        dest="output",
+        default="Output.an",
+        help="Outputfile name. Default: Output.an",
+    )
+    parser.add_argument(
+        "-a",
+        "--annot",
+        dest="annot",
+        default="pfam",
+        help="Annotation method. Options are 'pfam' or 'ncbi'."
+        " Default: 'pfam'",
+    )
+    parser.add_argument(
+        "-l",
+        "--idList",
+        dest="idList",
+        default=None,
+        help="This argument is necessary for the 'ncbi' "
+        "method. Specifies a file containing a list of "
+        "GI or accession numbers corresponding to the "
+        "sequence order in the alignment; a number of 0 "
+        "indicates that one wasn't assigned for a "
+        "particular sequence.",
+    )
+    parser.add_argument(
+        "-g",
+        "--giList",
+        dest="idList",
+        default=None,
+        help="Command kept for compatibility with previous "
+        "versions. Use '-l' or '--idList' instead.",
+    )
+    parser.add_argument(
+        "-p",
+        "--pfam_seq",
+        dest="pfamseq",
+        default=None,
+        help="Location of the pfamseq.txt file. Defaults to "
+        "path2pfamseq (specified in settings.py)",
+    )
+    parser.add_argument(
+        "-d",
+        "--pfam_db",
+        dest="pfamdb",
+        default=None,
+        help="Location of the pfamseq.db file. Priority over "
+        "pfamseq.txt file. Defaults to path2pfamseqdb "
+        "(specified in settings.py)",
+    )
+    parser.add_argument(
+        "-e",
+        "--entrez_email",
+        dest="email",
+        default=None,
+        help="email address for querying Entrez web API",
+    )
     options = parser.parse_args()
 
-    if (options.annot != 'pfam') & (options.annot != 'ncbi'):
-        sys.exit("The option -a must be set to 'pfam' or 'ncbi' - other"
-                 " keywords are not allowed.")
+    if (options.annot != "pfam") & (options.annot != "ncbi"):
+        sys.exit(
+            "The option -a must be set to 'pfam' or 'ncbi' - other"
+            " keywords are not allowed."
+        )
 
-    if options.annot == 'ncbi':
-        if ((options.idList is None) and (options.giList is None)):
-            sys.exit("To use NCBI Entrez annotation, you must specify a file "
-                     "containing a list of GI numbers (see the --idList "
-                     "argument).")
+    if options.annot == "ncbi":
+        if (options.idList is None) and (options.giList is None):
+            sys.exit(
+                "To use NCBI Entrez annotation, you must specify a file "
+                "containing a list of GI numbers (see the --idList "
+                "argument)."
+            )
 
-    if options.annot == 'pfam':
+    if options.annot == "pfam":
         # Annotate a Pfam alignment
         if options.pfamdb is not None:  # default to db query over txt search
             sca.AnnotPfamDB(options.Input_MSA, options.output, options.pfamdb)
@@ -113,10 +157,14 @@ if __name__ == '__main__':
                 sca.AnnotPfam(options.Input_MSA, options.output)
             else:
                 sys.exit("No Pfam file found. Exiting.")
-    elif options.annot == 'ncbi':
+    elif options.annot == "ncbi":
         # Annotate using GI numbers/NCBI Entrez
         if options.email is None:
             sca.AnnotNCBI(options.Input_MSA, options.output, options.idList)
         else:
-            sca.AnnotNCBI(options.Input_MSA, options.output, options.idList,
-                          options.email)
+            sca.AnnotNCBI(
+                options.Input_MSA,
+                options.output,
+                options.idList,
+                options.email,
+            )

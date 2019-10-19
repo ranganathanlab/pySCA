@@ -49,7 +49,7 @@ from pysca import settings
 
 
 class Unit:
-    '''
+    """
     A class for units (sectors, sequence families, etc.)
 
     **Attributes**
@@ -60,17 +60,17 @@ class Unit:
       :col:   color code associated to the unit (for plotting)
       :vect:  an additional vector describing the member items (ex: a list
               of sequence weights)
-    '''
+    """
 
     def __init__(self):
-        self.name = ''
+        self.name = ""
         self.items = set()
         self.col = 0
         self.vect = 0
 
 
 class Annot:
-    '''
+    """
     A class for annotating sequences
 
     **Attributes**
@@ -79,45 +79,46 @@ class Annot:
       :species: species string
       :taxo:    taxonomy string
       :seq:     sequence
-    '''
+    """
 
-    def __init__(self, descr, species, taxo, seq=''):
+    def __init__(self, descr, species, taxo, seq=""):
         self.descr = descr
         self.species = species
         self.taxo = taxo
         self.seq = seq
+
 
 ##########################################################################
 # ALIGNMENT PROCESSING
 
 
 def readAlg(filename):
-    '''
+    """
     Read in a multiple sequence alignment in FASTA format, and return the
     headers and sequences.
 
     headers, sequences = readAlg(filename)
-    '''
+    """
 
-    filelines = open(filename, 'r').readlines()
+    filelines = open(filename, "r").readlines()
     headers = list()
     sequences = list()
     notfirst = 0
     for line in filelines:
-        if line[0] == '>':
+        if line[0] == ">":
             if notfirst > 0:
-                sequences.append(seq.replace('\n', '').upper())
-            headers.append(line[1:].replace('\n', ''))
-            seq = ''
+                sequences.append(seq.replace("\n", "").upper())
+            headers.append(line[1:].replace("\n", ""))
+            seq = ""
             notfirst = 1
-        elif line != '\n':
+        elif line != "\n":
             seq += line
-    sequences.append(seq.replace('\n', '').upper())
+    sequences.append(seq.replace("\n", "").upper())
     return headers, sequences
 
 
 def AnnotPfam(pfam_in, pfam_out, pfam_seq=settings.path2pfamseq):
-    '''
+    """
     Phylogenetic annotation of a Pfam alignment (in FASTA format) using
     information from pfamseq.txt. The output is a FASTA file containing
     phylogenetic annotations in the header (to be parsed with '|' as a
@@ -137,35 +138,35 @@ def AnnotPfam(pfam_in, pfam_out, pfam_seq=settings.path2pfamseq):
 
       - `pfam_seq` = path to the file pfamseq.txt
 
-    '''
+    """
 
     start_time = time.time()
-    print('Beginning annotation')
+    print("Beginning annotation")
 
     # Reads the pfam headers and sequences:
     headers, sequences = readAlg(pfam_in)
-    pfamseq_ids = [h.split('/')[0] for h in headers]
+    pfamseq_ids = [h.split("/")[0] for h in headers]
 
     # Reads the sequence information for those sequences:
     seq_info = dict()
     with open(pfam_seq) as fp:
         for line in fp:
-            pf_id = line.split('\t')[1]
+            pf_id = line.split("\t")[1]
             if pf_id in pfamseq_ids:
                 seq_info[pf_id] = line
                 pfamseq_ids.remove(pf_id)
     end_time = time.time()
 
     # Writes in output file:
-    f = open(pfam_out, 'w')
-    pfamseq_ids = [h.split('/')[0] for h in headers]
+    f = open(pfam_out, "w")
+    pfamseq_ids = [h.split("/")[0] for h in headers]
     for i, key in enumerate(pfamseq_ids):
-        print('Current step %i, key %s' % (i, key))
+        print("Current step %i, key %s" % (i, key))
         try:
             info = seq_info[key]
         except BaseException as e:
-            print('Error: ' + str(e))
-            info = '\t'.join(['unknown'] * 10 + ['unknown;unknown'])
+            print("Error: " + str(e))
+            info = "\t".join(["unknown"] * 10 + ["unknown;unknown"])
         # this f.write line works with older pfamseq.txt files (release 4 and
         # before, was used to annotate the tutorial alignments
         # f.write('>%s|%s|%s|%s\n' % (key, info.split('\t')[6],
@@ -173,17 +174,24 @@ def AnnotPfam(pfam_in, pfam_out, pfam_seq=settings.path2pfamseq):
         #         ','.join([name.strip()
         #                   for name in info.split('\t')[10].split(';')])))
         # this f.write line works with the new version of pfamseq.txt
-        f.write('>%s|%s|%s|%s\n' % (key, info.split('\t')[5],
-                info.split('\t')[8],
-                ','.join([name.strip()
-                          for name in info.split('\t')[9].split(';')])))
-        f.write('%s\n' % (sequences[i]))
+        f.write(
+            ">%s|%s|%s|%s\n"
+            % (
+                key,
+                info.split("\t")[5],
+                info.split("\t")[8],
+                ",".join(
+                    [name.strip() for name in info.split("\t")[9].split(";")]
+                ),
+            )
+        )
+        f.write("%s\n" % (sequences[i]))
     f.close()
-    print('Elapsed time: %.1f min' % ((end_time - start_time) / 60))
+    print("Elapsed time: %.1f min" % ((end_time - start_time) / 60))
 
 
 def AnnotPfamDB(pfam_in, pfam_out, pfam_db=settings.path2pfamseqdb):
-    '''
+    """
     Phylogenetic annotation of a Pfam alignment (in FASTA format) using
     information from pfamseq.txt. The output is a FASTA file containing
     phylogenetic annotations in the header (to be parsed with '|' as a
@@ -203,43 +211,50 @@ def AnnotPfamDB(pfam_in, pfam_out, pfam_db=settings.path2pfamseqdb):
 
       - `pfam_db` = path to the file pfamseq.db
 
-    '''
+    """
 
     start_time = time.time()
-    print('Beginning annotation')
+    print("Beginning annotation")
 
     # Reads the pfam headers and sequences:
     headers, sequences = readAlg(pfam_in)
-    pfamseq_ids = [h.split('/')[0] for h in headers]
+    pfamseq_ids = [h.split("/")[0] for h in headers]
 
     # Reads the sequence information for those sequences:
     seq_info = []
     with sqlite3.connect(pfam_db) as conn:
         c = conn.cursor()
         for pfamseq_id in pfamseq_ids:
-            c.execute("SELECT pfamseq_id,description,species,taxonomy "
-                      "FROM pfamseq WHERE pfamseq_id = '%s'" % pfamseq_id)
+            c.execute(
+                "SELECT pfamseq_id,description,species,taxonomy "
+                "FROM pfamseq WHERE pfamseq_id = '%s'" % pfamseq_id
+            )
             res = c.fetchall()
             if res:
                 row = [field for match in res for field in match]
             else:
-                row = [pfamseq_id, 'unknown', 'unknown', 'unknown']
+                row = [pfamseq_id, "unknown", "unknown", "unknown"]
             seq_info.append(row)
     end_time = time.time()
 
     # Write to output file:
-    with open(pfam_out, 'w') as f:
+    with open(pfam_out, "w") as f:
         for i, row in enumerate(seq_info):
-            f.write('>%s|%s|%s|%s\n' %
-                    (row[0], row[1], row[2],
-                     ','.join([taxon.strip() for
-                               taxon in row[3].split(';')])))
-            f.write('%s\n' % sequences[i])
-    print('Elapsed time: %.1f min' % ((end_time - start_time) / 60))
+            f.write(
+                ">%s|%s|%s|%s\n"
+                % (
+                    row[0],
+                    row[1],
+                    row[2],
+                    ",".join([taxon.strip() for taxon in row[3].split(";")]),
+                )
+            )
+            f.write("%s\n" % sequences[i])
+    print("Elapsed time: %.1f min" % ((end_time - start_time) / 60))
 
 
 def AnnotNCBI(alg_in, alg_out, id_list, email=settings.entrezemail):
-    '''
+    """
     Phylogenetic annotation of a NCBI alignment (in FASTA format). Uses GI
     numbers or accession numbers embedded in the headers of the multiple
     sequences alignment. Requires that all the fields are consistent for all
@@ -257,33 +272,35 @@ def AnnotNCBI(alg_in, alg_out, id_list, email=settings.entrezemail):
 
       - `alg_in` = path to the input alignment file
 
-    '''
+    """
 
-    print('Beginning annotation')
+    print("Beginning annotation")
     Entrez.email = email  # PLEASE use your email! (see settings.py)
 
     # Annotate using GI or accession numbers.
-    seq_ids = open(id_list, 'r').read().splitlines()
+    seq_ids = open(id_list, "r").read().splitlines()
 
     # esummary will not return blank lines when a 0 ID is used for the query.
     # The result is that returned list will not have the same number of
     # elements as the number of sequences. A workaround is to filter out the
     # unidentified sequences (id = 0), store the indices where they occur, run
     # esummary with the remainder, and then add the indices back to the list.
-    zeros_idx = [key for key, value in enumerate(seq_ids) if value == '0']
-    seq_ids = list(filter(lambda x: x != '0', seq_ids))
+    zeros_idx = [key for key, value in enumerate(seq_ids) if value == "0"]
+    seq_ids = list(filter(lambda x: x != "0", seq_ids))
 
     # Group ID numbers into blocks, and submit each block as a query to the web
     # API.
     id_blocksize = 10
-    id_blocks = [seq_ids[x:x + id_blocksize]
-                 for x in range(0, len(seq_ids), id_blocksize)]
+    id_blocks = [
+        seq_ids[x : x + id_blocksize]
+        for x in range(0, len(seq_ids), id_blocksize)
+    ]
 
     taxIDs = list()
     start = time.time()
     for i, id_block in enumerate(id_blocks):
-        handle = Entrez.esummary(db="protein", id=','.join(id_block))
-        time.sleep(.33)
+        handle = Entrez.esummary(db="protein", id=",".join(id_block))
+        time.sleep(0.33)
         taxonList = Entrez.read(handle)
         handle.close()
         for j, taxon in enumerate(taxonList):
@@ -297,14 +314,16 @@ def AnnotNCBI(alg_in, alg_out, id_list, email=settings.entrezemail):
     # Add back taxID of 1 (the root of the taxonomic tree) for sequences
     # without an ID.
     for idx in zeros_idx:
-        taxIDs.insert(idx, '1')
+        taxIDs.insert(idx, "1")
 
     print("Look up for Tax IDs complete. Time: %f" % (end - start))
 
     # Group taxIDs into blocks and submit each block as a query to the web API.
     taxid_blocksize = 200
-    taxid_blocks = [taxIDs[x:x + taxid_blocksize]
-                    for x in range(0, len(taxIDs), taxid_blocksize)]
+    taxid_blocks = [
+        taxIDs[x : x + taxid_blocksize]
+        for x in range(0, len(taxIDs), taxid_blocksize)
+    ]
 
     # Collect records with lineage information
     print("Collecting taxonomy information...")
@@ -319,32 +338,40 @@ def AnnotNCBI(alg_in, alg_out, id_list, email=settings.entrezemail):
                 records.append(record)
             else:
                 taxon = {}
-                taxon['Lineage'] = 'unknown'
-                taxon['ScientificName'] = 'unknown'
+                taxon["Lineage"] = "unknown"
+                taxon["ScientificName"] = "unknown"
                 records.append(taxon)
     end = time.time()
-    print("Look up for taxonomy information complete. Time: %f"
-          % (end - start))
+    print(
+        "Look up for taxonomy information complete. Time: %f" % (end - start)
+    )
 
     [hd, seqs] = readAlg(alg_in)
     if len(records) != len(seqs):
-        sys.exit("ERROR: number of records found do not match the number of "
-                 "aligned sequences.")
+        sys.exit(
+            "ERROR: number of records found do not match the number of "
+            "aligned sequences."
+        )
 
     # Write to the output FASTA file.
-    f = open(alg_out, 'w')
+    f = open(alg_out, "w")
     for i, seq in enumerate(seqs):
-        hdnew = hd[i] + '|' + records[i]['ScientificName'] + '|' + \
-                ','.join(records[i]['Lineage'].split(';'))
-        if records[i]['Lineage'] == 'unknown':
+        hdnew = (
+            hd[i]
+            + "|"
+            + records[i]["ScientificName"]
+            + "|"
+            + ",".join(records[i]["Lineage"].split(";"))
+        )
+        if records[i]["Lineage"] == "unknown":
             print("Unable to add taxonomy information for seq: %s" % hd[i])
-        f.write('>%s\n' % hdnew)
-        f.write('%s\n' % seq)
+        f.write(">%s\n" % hdnew)
+        f.write("%s\n" % seq)
     f.close()
 
 
-def clean_al(alg, code='ACDEFGHIKLMNPQRSTVWY', gap='-'):
-    '''
+def clean_al(alg, code="ACDEFGHIKLMNPQRSTVWY", gap="-"):
+    """
     Replaces any character that is not a valid amino acid by a gap.
 
     **Arguments** amino acid sequence alignment
@@ -353,11 +380,11 @@ def clean_al(alg, code='ACDEFGHIKLMNPQRSTVWY', gap='-'):
 
       :code: list of valid amino acid characters (case sensitive)
       :gap:  gap character for replacement
-    '''
+    """
 
     alg_clean = list()
     for seq in alg:
-        seq_clean = ''
+        seq_clean = ""
         for aa in seq:
             if code.find(aa) != -1:
                 seq_clean += aa
@@ -368,7 +395,7 @@ def clean_al(alg, code='ACDEFGHIKLMNPQRSTVWY', gap='-'):
 
 
 def MSAsearch(hd, algn, seq, species=None):
-    '''
+    """
     Identify the sequence in the alignment that most closely corresponds to the
     species of the reference sequence, and return its index.
 
@@ -386,7 +413,7 @@ def MSAsearch(hd, algn, seq, species=None):
     **Example**::
 
       strseqnum = MSASearch(hd, alg0, pdbseq, 'Homo sapiens')
-    '''
+    """
 
     if species is not None:
         species = species.lower()
@@ -400,13 +427,10 @@ def MSAsearch(hd, algn, seq, species=None):
     try:
         print("Trying MSASearch with ggsearch")
         pdb_tmp, pdb_tmpname = tempfile.mkstemp()
-        output_handle = open(pdb_tmp, 'w')
+        output_handle = open(pdb_tmp, "w")
         SeqIO.write(
-            SeqRecord(
-                Seq(seq),
-                id='PDB sequence'),
-            output_handle,
-            "fasta")
+            SeqRecord(Seq(seq), id="PDB sequence"), output_handle, "fasta"
+        )
         output_handle.close()
         algn_tmp, algn_tmpname = tempfile.mkstemp()
         f = open(algn_tmp, "w")
@@ -414,16 +438,21 @@ def MSAsearch(hd, algn, seq, species=None):
             f.write(">" + hd[i] + "\n")
             f.write(algn_i + "\n")
         f.close()
-        args = ['ggsearch36',
-                '-M 1-' + str(len(algn[0])),
-                '-b',
-                '1',
-                '-m 8',
-                pdb_tmpname,
-                algn_tmpname]
+        args = [
+            "ggsearch36",
+            "-M 1-" + str(len(algn[0])),
+            "-b",
+            "1",
+            "-m 8",
+            pdb_tmpname,
+            algn_tmpname,
+        ]
         output = subprocess.check_output(args)
-        i_0 = [i for i in range(len(hd)) if
-               output.decode('ASCII').split('\t')[1] in hd[i]]
+        i_0 = [
+            i
+            for i in range(len(hd))
+            if output.decode("ASCII").split("\t")[1] in hd[i]
+        ]
         if species is not None:
             strseqnum = key_list[i_0[0]]
         else:
@@ -432,25 +461,24 @@ def MSAsearch(hd, algn, seq, species=None):
         os.remove(algn_tmpname)
         return strseqnum
     except BaseException as e:
-        print('Error: ' + str(e))
+        print("Error: " + str(e))
         try:
             from Bio.Emboss.Applications import NeedleCommandline
+
             print("Trying MSASearch with EMBOSS")
             pdb_tmp, pdb_tmpname = tempfile.mkstemp()
-            output_handle = open(pdb_tmp, 'w')
+            output_handle = open(pdb_tmp, "w")
             SeqIO.write(
-                SeqRecord(
-                    Seq(seq),
-                    id='PDB sequence'),
-                output_handle,
-                "fasta")
+                SeqRecord(Seq(seq), id="PDB sequence"), output_handle, "fasta"
+            )
             output_handle.close()
             algn_tmp, algn_tmpname = tempfile.mkstemp()
             output_handle = open(algn_tmp, "w")
             s_records = list()
             for k, algn_k in enumerate(algn):
                 s_records.append(
-                    SeqRecord(Seq(algn_k), id=str(k), description=hd[k]))
+                    SeqRecord(Seq(algn_k), id=str(k), description=hd[k])
+                )
             SeqIO.write(s_records, output_handle, "fasta")
             output_handle.close()
             needle_tmp, needle_tmpname = tempfile.mkstemp()
@@ -460,14 +488,15 @@ def MSAsearch(hd, algn, seq, species=None):
                 bsequence=algn_tmpname,
                 gapopen=10,
                 gapextend=0.5,
-                outfile=needle_tmpname)
+                outfile=needle_tmpname,
+            )
             stdout, stderr = needle_cline()
             print(stdout + stderr)
-            algres = open(needle_tmp, 'r').readlines()
+            algres = open(needle_tmp, "r").readlines()
             score = list()
             for k in algres:
-                if k.find('Identity: ') > 0:
-                    score.append(int(k.split()[2].split('/')[0]))
+                if k.find("Identity: ") > 0:
+                    score.append(int(k.split()[2].split("/")[0]))
             i_0 = score.index(max(score))
             if species is not None:
                 strseqnum = key_list[i_0]
@@ -478,16 +507,15 @@ def MSAsearch(hd, algn, seq, species=None):
             os.remove(needle_tmpname)
             return strseqnum
         except BaseException as e:
-            print('Error: ' + str(e))
+            print("Error: " + str(e))
             print("Trying MSASearch with BioPython")
             score = list()
             for k, s in enumerate(algn):
                 score.append(
                     pairwise2.align.globalxx(
-                        algn,
-                        s,
-                        one_alignment_only=1,
-                        score_only=1))
+                        algn, s, one_alignment_only=1, score_only=1
+                    )
+                )
             i_0 = score.index(max(score))
             if species is not None:
                 strseqnum = key_list[i_0]
@@ -498,7 +526,7 @@ def MSAsearch(hd, algn, seq, species=None):
 
 
 def chooseRefSeq(alg):
-    '''
+    """
     This function chooses a default reference sequence if none is given by
     taking the sequence which has the mean pairwise sequence identity closest
     to that of the entire alignment.
@@ -506,7 +534,7 @@ def chooseRefSeq(alg):
     **Example**::
 
       i_ref = chooseRefSeq(msa_num)
-    '''
+    """
 
     if len(alg) > 1000:
         seqw = seqWeights(alg)
@@ -516,8 +544,11 @@ def chooseRefSeq(alg):
     algNew = [alg[k] for k in keep_seq]
     numAlgNew = lett2num(algNew)
     simMat = seqSim(numAlgNew)
-    listS = [simMat[i, j] for i in range(
-        simMat.shape[0]) for j in range(i + 1, simMat.shape[1])]
+    listS = [
+        simMat[i, j]
+        for i in range(simMat.shape[0])
+        for j in range(i + 1, simMat.shape[1])
+    ]
     meanSID = list()
     for k in range(len(simMat)):
         meanSID.append(simMat[k].mean())
@@ -527,7 +558,7 @@ def chooseRefSeq(alg):
 
 
 def makeATS(sequences, refpos, refseq, iref=0, truncate=False):
-    '''
+    """
     If specified, truncate the alignment to the structure (assumes MSAsearch
     has already been run to identify the reference sequence (iref)) and produce
     a mapping (ats) between alignment positions and the positions in the
@@ -551,68 +582,79 @@ def makeATS(sequences, refpos, refseq, iref=0, truncate=False):
     **Example**::
 
       sequences_trun, ats_new = sca.makeATS(sequences_full, ats_pdb, seq_pdb, i_ref)
-    '''
+    """
 
     if truncate:
         print("truncating to reference sequence...")
+
         # Removing gaps:
-        pos_ref = [i for i, a in enumerate(refseq) if a != '-']
-        seq_ref = ''.join([refseq[i] for i in pos_ref])
+        pos_ref = [i for i, a in enumerate(refseq) if a != "-"]
+        seq_ref = "".join([refseq[i] for i in pos_ref])
         ats_ref = [refpos[i] for i in pos_ref]
-        pos_alg = [i for i, a in enumerate(sequences[iref]) if a != '-']
-        seq_tr = [''.join([sq[i] for i in pos_alg]) for sq in sequences]
+        pos_alg = [i for i, a in enumerate(sequences[iref]) if a != "-"]
+        seq_tr = ["".join([sq[i] for i in pos_alg]) for sq in sequences]
+
         # Positions to keep in the alignment and pbd sequences
         # (no gap in any of them after co-alignment):
         seqal_ref, seqal_alg, _, _, _ = pairwise2.align.globalms(
-            seq_ref, seq_tr[iref], 2, -1, -.5, -.1)[0]
+            seq_ref, seq_tr[iref], 2, -1, -0.5, -0.1
+        )[0]
         keep_ref, keep_alg = list(), list()
         j_ref, j_alg = 0, 0
         for i, seqal_ref_i in enumerate(seqal_ref):
-            if seqal_ref_i != '-' and seqal_alg[i] != '-':
+            if seqal_ref_i != "-" and seqal_alg[i] != "-":
                 keep_ref.append(j_ref)
                 keep_alg.append(j_alg)
-            if seqal_ref_i != '-':
+            if seqal_ref_i != "-":
                 j_ref += 1
-            if seqal_alg[i] != '-':
+            if seqal_alg[i] != "-":
                 j_alg += 1
-        sequences_out = [''.join([sq[i] for i in keep_alg]) for sq in seq_tr]
+        sequences_out = ["".join([sq[i] for i in keep_alg]) for sq in seq_tr]
         ats_out = [ats_ref[i] for i in keep_ref]
     else:
-        tmp = sequences[iref].replace('-', '.')
-        refseq = refseq.replace('-', '')
+        tmp = sequences[iref].replace("-", ".")
+        refseq = refseq.replace("-", "")
         seqal_ref, seqal_alg, _, _, _ = pairwise2.align.globalms(
-            refseq, tmp, 2, -1, -.5, -.1)[0]
-        print('Len refseq %i, len refpos %i, Len alg seq %i, len pairalg %i,len gloalg %i' %
-              (len(refseq), len(refpos), len(tmp), len(seqal_alg), len(sequences[0])))
-        # print seqal_ref
-        # print seqal_alg
+            refseq, tmp, 2, -1, -0.5, -0.1
+        )[0]
+        print(
+            "Len refseq %i, len refpos %i, Len alg seq %i, "
+            "len pairalg %i,len gloalg %i"
+            % (
+                len(refseq),
+                len(refpos),
+                len(tmp),
+                len(seqal_alg),
+                len(sequences[0]),
+            )
+        )
         ats_out = list()
         j_ref = 0
         j_pdb = 0
         for i, seqal_alg_i in enumerate(seqal_alg):
-            if seqal_alg_i == '.' and seqal_ref[i] == '-':
-                ats_out.insert(j_ref, '-')
+            if seqal_alg_i == "." and seqal_ref[i] == "-":
+                ats_out.insert(j_ref, "-")
                 j_ref += 1
-            elif seqal_alg_i != '.' and seqal_alg_i != '-':
-                if seqal_ref[i] != '-':
+            elif seqal_alg_i != "." and seqal_alg_i != "-":
+                if seqal_ref[i] != "-":
                     ats_out.insert(j_ref, refpos[j_pdb])
                     j_ref += 1
                     j_pdb += 1
                 else:
-                    ats_out.insert(j_ref, '-')
+                    ats_out.insert(j_ref, "-")
                     j_ref += 1
-            elif seqal_alg_i == '.' and seqal_ref[i] != '-':
+            elif seqal_alg_i == "." and seqal_ref[i] != "-":
                 ats_out.insert(j_ref, refpos[j_pdb])
                 j_ref += 1
                 j_pdb += 1
-            elif seqal_alg_i == '-':
+            elif seqal_alg_i == "-":
                 j_pdb += 1
         sequences_out = sequences
     return sequences_out, ats_out
 
 
-def lett2num(msa_lett, code='ACDEFGHIKLMNPQRSTVWY'):
-    '''
+def lett2num(msa_lett, code="ACDEFGHIKLMNPQRSTVWY"):
+    """
     Translate an alignment from a representation where the 20 natural amino
     acids are represented by letters to a representation where they are
     represented by the numbers 1,...,20, with any symbol not corresponding to
@@ -621,7 +663,7 @@ def lett2num(msa_lett, code='ACDEFGHIKLMNPQRSTVWY'):
     **Example**::
 
        msa_num = lett2num(msa_lett, code='ACDEFGHIKLMNPQRSTVWY')
-    '''
+    """
 
     lett2index = {aa: i + 1 for i, aa in enumerate(code)}
     [Nseq, Npos] = [len(msa_lett), len(msa_lett[0])]
@@ -634,7 +676,7 @@ def lett2num(msa_lett, code='ACDEFGHIKLMNPQRSTVWY'):
 
 
 def alg2bin(alg, N_aa=20):
-    '''
+    """
     Translate an alignment of matrix of size M sequences by L positions where
     the amino acids are represented by numbers between 0 and N_aa (obtained
     using lett2num) to a sparse binary array of size M x (N_aa x L).
@@ -642,18 +684,18 @@ def alg2bin(alg, N_aa=20):
     **Example**::
 
       Abin = alg2bin(alg, N_aa=20)
-    '''
+    """
 
     [N_seq, N_pos] = alg.shape
     Abin_tensor = np.zeros((N_aa, N_pos, N_seq))
     for ia in range(N_aa):
         Abin_tensor[ia, :, :] = (alg == ia + 1).T
-    Abin = sparsify(Abin_tensor.reshape(N_aa * N_pos, N_seq, order='F').T)
+    Abin = sparsify(Abin_tensor.reshape(N_aa * N_pos, N_seq, order="F").T)
     return Abin
 
 
-def seqWeights(alg, max_seqid=.8, gaps=1):
-    '''
+def seqWeights(alg, max_seqid=0.8, gaps=1):
+    """
     Compute sequence weights for an alignment (format: list of sequences) where
     the weight of a sequence is the inverse of the number of sequences in its
     neighborhood, defined as the sequences with sequence similarity below
@@ -672,11 +714,11 @@ def seqWeights(alg, max_seqid=.8, gaps=1):
     **Example**::
 
       seqw = seqWeights(alg)
-    '''
+    """
 
-    codeaa = 'ACDEFGHIKLMNPQRSTVWY'
+    codeaa = "ACDEFGHIKLMNPQRSTVWY"
     if gaps == 1:
-        codeaa += '-'
+        codeaa += "-"
     msa_num = lett2num(alg, code=codeaa)
     X2d = alg2bin(msa_num, N_aa=len(codeaa))
     simMat = (X2d.dot(X2d.T)).todense() / msa_num.shape[1]
@@ -684,8 +726,8 @@ def seqWeights(alg, max_seqid=.8, gaps=1):
     return seqw
 
 
-def filterSeq(alg0, sref=0.5, max_fracgaps=.2, min_seqid=.2, max_seqid=.8):
-    '''
+def filterSeq(alg0, sref=0.5, max_fracgaps=0.2, min_seqid=0.2, max_seqid=0.8):
+    """
     Take in an alignment (alg0, assumed to be filtered to remove highly gapped
     positions), a reference sequence, the maximum fraction of gaps allowed per
     sequence (max_fracgaps), the minimum and maximum sequence identities to the
@@ -702,23 +744,30 @@ def filterSeq(alg0, sref=0.5, max_fracgaps=.2, min_seqid=.2, max_seqid=.8):
     **Example:**
 
         alg, seqw, seqkeep = filterSeq(alg0, iref, max_fracgaps=.2, min_seqid=.2, max_seqid=.8)
-    '''
+    """
 
-    if (sref == 0.5):
+    if sref == 0.5:
         sref = chooseRefSeq(alg0)
     Nseq, Npos = len(alg0), len(alg0[0])
     # Elimination of sequences with too many gaps:
     seqkeep0 = [
-        s for s in range(Nseq) if alg0[s].count('-') /
-        Npos < max_fracgaps]
+        s for s in range(Nseq) if alg0[s].count("-") / Npos < max_fracgaps
+    ]
     print(
-        "Keeping %i sequences of %i sequences (after filtering for gaps)" %
-        (len(seqkeep0), Nseq))
+        "Keeping %i sequences of %i sequences (after filtering for gaps)"
+        % (len(seqkeep0), Nseq)
+    )
     # Elimination of sequences too dissimilar to the reference (trimming):
-    seqkeep = [s for s in seqkeep0 if sum(
-        [alg0[s][i] == alg0[sref][i] for i in range(Npos)]) / Npos > min_seqid]
-    print("Keeping %i sequences of %i sequences (after filtering for seq similarity)" %
-          (len(seqkeep), len(seqkeep0)))
+    seqkeep = [
+        s
+        for s in seqkeep0
+        if sum([alg0[s][i] == alg0[sref][i] for i in range(Npos)]) / Npos
+        > min_seqid
+    ]
+    print(
+        "Keeping %i sequences of %i sequences "
+        "(after filtering for seq similarity)" % (len(seqkeep), len(seqkeep0))
+    )
     alg = [alg0[s] for s in seqkeep]
     # Sequence weights (smoothing, here effectively treats gaps as a 21st amino
     # acid):
@@ -726,8 +775,8 @@ def filterSeq(alg0, sref=0.5, max_fracgaps=.2, min_seqid=.2, max_seqid=.8):
     return alg, seqw, seqkeep
 
 
-def filterPos(alg, seqw=[1], max_fracgaps=.2):
-    '''
+def filterPos(alg, seqw=[1], max_fracgaps=0.2):
+    """
     Truncate the positions of an input alignment to reduce gaps, taking into
     account sequence weights.
 
@@ -747,15 +796,16 @@ def filterPos(alg, seqw=[1], max_fracgaps=.2):
     **Example**::
 
        alg_tr, selpos = filterPos(alg, seqw, max_fracgaps=.2)
-    '''
+    """
 
     Nseq, Npos = len(alg), len(alg[0])
     if len(seqw) == 1:
         seqw = np.tile(1, (1, Nseq))
 
     # Fraction of gaps, taking into account sequence weights:
-    gapsMat = np.array([[int(alg[s][i] == '-')
-                         for i in range(Npos)] for s in range(Nseq)])
+    gapsMat = np.array(
+        [[int(alg[s][i] == "-") for i in range(Npos)] for s in range(Nseq)]
+    )
     seqwn = seqw / seqw.sum()
     gapsperpos = seqwn.dot(gapsMat)[0]
 
@@ -763,12 +813,12 @@ def filterPos(alg, seqw=[1], max_fracgaps=.2):
     selpos = [i for i in range(Npos) if gapsperpos[i] < max_fracgaps]
 
     # Truncation:
-    alg_tr = [''.join([alg[s][i] for i in selpos]) for s in range(Nseq)]
+    alg_tr = ["".join([alg[s][i] for i in selpos]) for s in range(Nseq)]
     return alg_tr, selpos
 
 
 def randSel(seqw, Mtot, keepSeq=[]):
-    '''
+    """
     Random selection of Mtot sequences, drawn with weights and without
     replacement. The seed for the random number generator is fixed to ensure
     reproducibility.
@@ -784,14 +834,14 @@ def randSel(seqw, Mtot, keepSeq=[]):
 
     **Example**::
       selection = randSel(seqw, Mtot, [iref])
-    '''
+    """
 
     rand.seed(0)  # sets the RNG from the 'random' module, not 'numpy.random'
     return weighted_rand_list(seqw[0], Mtot, keepSeq)
 
 
 def weighted_rand_list(weights, Nmax, keepList):
-    '''
+    """
     Generate a random list of at most Nmax elements with weights (numpy array)
     but without replacement. Called by randSel_.
 
@@ -800,7 +850,7 @@ def weighted_rand_list(weights, Nmax, keepList):
     **Example**::
 
       selection = weighted_rand_list(weights, Nmax, [iref])
-    '''
+    """
 
     Ntot = min((weights > 0).sum(), Nmax)
     wlist = [w for w in weights]
@@ -817,7 +867,7 @@ def weighted_rand_list(weights, Nmax, keepList):
 
 
 def weighted_rand_sel(weights):
-    '''
+    """
     Generate a random index with probability given by input weights. Called by
     weighted_rand_list_.
 
@@ -826,7 +876,7 @@ def weighted_rand_sel(weights):
     **Example**::
 
       index = weighted_rand_sel(weights)
-    '''
+    """
 
     rnd = rand.random() * sum(weights)
     for i, w in enumerate(weights):
@@ -834,12 +884,13 @@ def weighted_rand_sel(weights):
         if rnd < 0:
             return i
 
+
 ###############################################################################
 # BASIC STATISTICAL FUNCTIONS
 
 
 def freq(alg, seqw=1, Naa=20, lbda=0, freq0=np.ones(20) / 21):
-    '''
+    """
     Compute amino acid frequencies for a given alignment.
 
     **Arguments**
@@ -866,7 +917,7 @@ def freq(alg, seqw=1, Naa=20, lbda=0, freq0=np.ones(20) / 21):
     **Example**::
 
       freq1, freq2, freq0 = freq(alg, seqw, lbda=lbda)
-    '''
+    """
 
     Nseq, Npos = alg.shape
     if isinstance(seqw, int) and seqw == 1:
@@ -875,15 +926,13 @@ def freq(alg, seqw=1, Naa=20, lbda=0, freq0=np.ones(20) / 21):
     al2d = alg2bin(alg, Naa)
     freq1 = seqwn.dot(np.array(al2d.todense()))[0]
     freq2 = np.array(
-        al2d.T.dot(
-            scipy.sparse.diags(
-                seqwn[0],
-                0)).dot(al2d).todense())
+        al2d.T.dot(scipy.sparse.diags(seqwn[0], 0)).dot(al2d).todense()
+    )
     # Background:
     block = np.outer(freq0, freq0)
     freq2_bkg = np.zeros((Npos * Naa, Npos * Naa))
     for i in range(Npos):
-        freq2_bkg[Naa * i:Naa * (i + 1), Naa * i:Naa * (i + 1)] = block
+        freq2_bkg[Naa * i : Naa * (i + 1), Naa * i : Naa * (i + 1)] = block
     # Regularizations:
     freq1_reg = (1 - lbda) * freq1 + lbda * np.tile(freq0, Npos)
     freq2_reg = (1 - lbda) * freq2 + lbda * freq2_bkg
@@ -892,7 +941,7 @@ def freq(alg, seqw=1, Naa=20, lbda=0, freq0=np.ones(20) / 21):
 
 
 def eigenVect(M):
-    '''
+    """
     Return the eigenvectors and eigenvalues, ordered by decreasing values of
     the eigenvalues, for a real symmetric matrix M. The sign of the
     eigenvectors is fixed so that the mean of its components is non-negative.
@@ -900,7 +949,7 @@ def eigenVect(M):
     **Example**::
 
        eigenVectors, eigenValues = eigenVect(M)
-    '''
+    """
 
     eigenValues, eigenVectors = np.linalg.eigh(M)
     idx = (-eigenValues).argsort()
@@ -908,13 +957,14 @@ def eigenVect(M):
     eigenVectors = eigenVectors[:, idx]
     for k in range(eigenVectors.shape[1]):
         if np.sign(np.mean(eigenVectors[:, k])) != 0:
-            eigenVectors[:, k] = np.sign(
-                np.mean(eigenVectors[:, k])) * eigenVectors[:, k]
+            eigenVectors[:, k] = (
+                np.sign(np.mean(eigenVectors[:, k])) * eigenVectors[:, k]
+            )
     return eigenVectors, eigenValues
 
 
 def svdss(X, k=6):
-    '''
+    """
     Singular value decomposition for sparse matrices (top k components). The
     singular values are ordered by decreasing values, the sign of the singular
     vectors is fixed, and the convention is that X = u.dot(s).dot(v.T):
@@ -922,7 +972,7 @@ def svdss(X, k=6):
     **Example**::
 
       u, s ,v = svdss(X, k=6)
-    '''
+    """
 
     u, s, vt = scipy.sparse.linalg.svds(X, k)
     idx = (-s).argsort()
@@ -936,7 +986,7 @@ def svdss(X, k=6):
 
 
 def basicICA(x, r, Niter):
-    '''
+    """
     Basic ICA algorithm, based on work by Bell & Sejnowski (infomax). The input
     data should preferentially be sphered, i.e., x.T.dot(x) = 1
 
@@ -957,7 +1007,7 @@ def basicICA(x, r, Niter):
     **Example**::
 
       [w, change] = basicICA(x, r, Niter)
-    '''
+    """
 
     [L, M] = x.shape
     w = np.eye(L)
@@ -965,29 +1015,31 @@ def basicICA(x, r, Niter):
     for _ in range(Niter):
         w_old = np.copy(w)
         u = w.dot(x)
-        w += r * (M * np.eye(L) +
-                  (1 - 2 * (1. / (1 + np.exp(-u)))).dot(u.T)).dot(w)
+        w += r * (
+            M * np.eye(L) + (1 - 2 * (1.0 / (1 + np.exp(-u)))).dot(u.T)
+        ).dot(w)
         delta = (w - w_old).ravel()
         change.append(delta.dot(delta.T))
     return [w, change]
 
 
-def rotICA(V, kmax=6, learnrate=.0001, iterations=10000):
-    '''
+def rotICA(V, kmax=6, learnrate=0.0001, iterations=10000):
+    """
     ICA rotation (using basicICA) with default parameters and normalization of
     outputs.
 
     **Example**::
        Vica, W = rotICA(V, kmax=6, learnrate=.0001, iterations=10000)
-    '''
+    """
 
     V1 = V[:, :kmax].T
     [W, changes_s] = basicICA(V1, learnrate, iterations)
     Vica = (W.dot(V1)).T
     for n in range(kmax):
         imax = abs(Vica[:, n]).argmax()
-        Vica[:, n] = np.sign(Vica[imax, n]) * Vica[:, n] / \
-            np.linalg.norm(Vica[:, n])
+        Vica[:, n] = (
+            np.sign(Vica[imax, n]) * Vica[:, n] / np.linalg.norm(Vica[:, n])
+        )
     return Vica, W
 
 
@@ -996,13 +1048,13 @@ def rotICA(V, kmax=6, learnrate=.0001, iterations=10000):
 
 
 def seqSim(alg):
-    ''' Take an MxL alignment (converted to numeric representation using lett2num_)
+    """ Take an MxL alignment (converted to numeric representation using lett2num_)
     and compute a MxM matrix of sequence similarities.
 
     **Example**::
       simMat = seqSim(alg)
 
-    '''
+    """
     # Get the number of sequences and number of positions:
     [Nseq, Npos] = alg.shape
     # Convert into a M*(20L) (sparse) binary array:
@@ -1013,12 +1065,38 @@ def seqSim(alg):
     return simMat
 
 
-def posWeights(alg, seqw=1, lbda=0, N_aa=20,
-               freq0=np.array([.073, .025, .050, .061, .042, .072, .023, .053,
-                               .064, .089, .023, .043, .052, .040, .052, .073,
-                               .056, .063, .013, .033]),
-               tolerance=1e-12):
-    '''
+def posWeights(
+    alg,
+    seqw=1,
+    lbda=0,
+    N_aa=20,
+    freq0=np.array(
+        [
+            0.073,
+            0.025,
+            0.050,
+            0.061,
+            0.042,
+            0.072,
+            0.023,
+            0.053,
+            0.064,
+            0.089,
+            0.023,
+            0.043,
+            0.052,
+            0.040,
+            0.052,
+            0.073,
+            0.056,
+            0.063,
+            0.013,
+            0.033,
+        ]
+    ),
+    tolerance=1e-12,
+):
+    """
     Compute single-site measures of conservation, and the sca position weights,
     :math:`\\frac {\partial {D_i^a}}{\partial {f_i^a}}`
 
@@ -1038,7 +1116,7 @@ def posWeights(alg, seqw=1, lbda=0, N_aa=20,
 
     **Example**::
        Wia, Dia, Di = posWeights(alg, seqw=1,freq0)
-    '''
+    """
 
     N_seq, N_pos = alg.shape
     if isinstance(seqw, int) and seqw == 1:
@@ -1054,16 +1132,20 @@ def posWeights(alg, seqw=1, lbda=0, N_aa=20,
     iok = [i for i in range(N_pos * N_aa) if (freq1[i] > 0 and freq1[i] < 1)]
     # Derivatives of relative entropy per position and amino acid:
     Wia = np.zeros(N_pos * N_aa)
-    Wia[iok] = abs(np.log((freq1[iok] * (1 - freq0v[iok])) /
-                          ((1 - freq1[iok]) * freq0v[iok])))
+    Wia[iok] = abs(
+        np.log(
+            (freq1[iok] * (1 - freq0v[iok])) / ((1 - freq1[iok]) * freq0v[iok])
+        )
+    )
     # Relative entropies per position and amino acid:
     Dia = np.zeros(N_pos * N_aa)
-    Dia[iok] = freq1[iok] * np.log(freq1[iok] / freq0v[iok]) \
-        + (1 - freq1[iok]) * np.log((1 - freq1[iok]) / (1 - freq0v[iok]))
+    Dia[iok] = freq1[iok] * np.log(freq1[iok] / freq0v[iok]) + (
+        1 - freq1[iok]
+    ) * np.log((1 - freq1[iok]) / (1 - freq0v[iok]))
     # Overall relative entropies per positions (taking gaps into account):
     Di = np.zeros(N_pos)
     for i in range(N_pos):
-        freq1i = freq1[N_aa * i: N_aa * (i + 1)]
+        freq1i = freq1[N_aa * i : N_aa * (i + 1)]
         aok = [a for a in range(N_aa) if freq1i[a] > 0]
         flogf = freq1i[aok] * np.log(freq1i[aok] / freqg0[aok])
         Di[i] = flogf.sum()
@@ -1074,7 +1156,7 @@ def posWeights(alg, seqw=1, lbda=0, N_aa=20,
 
 
 def seqProj(msa_num, seqw, kseq=15, kica=6):
-    '''
+    """
     Compute three different projections of the sequences based on eigenvectors
     of the sequence similarity matrix.
 
@@ -1094,7 +1176,7 @@ def seqProj(msa_num, seqw, kseq=15, kica=6):
 
     **Example:**
       Useq, Uica = sca.seqProj(msa_num, seqw, kseq = 30, kica = 15)
-    '''
+    """
 
     posw, Dia, Di = posWeights(msa_num, seqw)
     Useq = list()
@@ -1126,8 +1208,8 @@ def seqProj(msa_num, seqw, kseq=15, kica=6):
     return Useq, Uica
 
 
-def scaMat(alg, seqw=1, norm='frob', lbda=0, freq0=np.ones(20) / 21,):
-    '''
+def scaMat(alg, seqw=1, norm="frob", lbda=0, freq0=np.ones(20) / 21):
+    """
     Computes the SCA matrix.
 
      **Arguments**
@@ -1155,14 +1237,15 @@ def scaMat(alg, seqw=1, norm='frob', lbda=0, freq0=np.ones(20) / 21,):
      **Example**::
 
        Csca, tX, projMat = scaMat(alg, seqw, norm='frob', lbda=0.03)
-    '''
+    """
 
     N_seq, N_pos = alg.shape
     N_aa = 20
     if isinstance(seqw, int) and seqw == 1:
         seqw = np.ones((1, N_seq))
     freq1, freq2, freq0 = freq(
-        alg, Naa=N_aa, seqw=seqw, lbda=lbda, freq0=freq0)
+        alg, Naa=N_aa, seqw=seqw, lbda=lbda, freq0=freq0
+    )
     W_pos = posWeights(alg, seqw, lbda)[0]
     tildeC = np.outer(W_pos, W_pos) * (freq2 - np.outer(freq1, freq1))
 
@@ -1173,9 +1256,10 @@ def scaMat(alg, seqw=1, norm='frob', lbda=0, freq0=np.ones(20) / 21,):
     for i in range(N_pos):
         for j in range(i, N_pos):
             u, s, vt = np.linalg.svd(
-                tildeC[N_aa * i:N_aa * (i + 1), N_aa * j:N_aa * (j + 1)])
+                tildeC[N_aa * i : N_aa * (i + 1), N_aa * j : N_aa * (j + 1)]
+            )
             Cspec[i, j] = s[0]
-            Cfrob[i, j] = np.sqrt(sum(s**2))
+            Cfrob[i, j] = np.sqrt(sum(s ** 2))
             P[i, j, :] = np.sign(np.mean(u[:, 0])) * u[:, 0]
             P[j, i, :] = np.sign(np.mean(u[:, 0])) * vt[0, :].T
     Cspec += np.triu(Cspec, 1).T
@@ -1187,21 +1271,22 @@ def scaMat(alg, seqw=1, norm='frob', lbda=0, freq0=np.ones(20) / 21,):
     Proj = W_pos * freq1
     ProjMat = np.zeros((N_pos, N_aa))
     for i in range(N_pos):
-        Projati = Proj[N_aa * i:N_aa * (i + 1)]
-        if sum(Projati**2) > 0:
-            Projati /= np.sqrt(sum(Projati**2))
+        Projati = Proj[N_aa * i : N_aa * (i + 1)]
+        if sum(Projati ** 2) > 0:
+            Projati /= np.sqrt(sum(Projati ** 2))
         ProjMat[i, :] = Projati
-        tX[:, i] = al2d[:, N_aa * i:N_aa * (i + 1)].dot(Projati.T)
-    if norm == 'frob':
+        tX[:, i] = al2d[:, N_aa * i : N_aa * (i + 1)].dot(Projati.T)
+    if norm == "frob":
         Cspec = Cfrob
     return Cspec, tX, Proj
+
 
 ##########################################################################
 # PROJECTIONS OF ANNOATED SEQUENCES
 
 
 def projUica(msa_ann, msa_num, seqw, kica=6):
-    '''
+    """
     Compute the projection of an alignment (msa_ann) on the kpos ICA components
     of the sequence space of another (msa_num, seqw).This is useful to compare
     the sequence space of one alignment to another.
@@ -1209,7 +1294,7 @@ def projUica(msa_ann, msa_num, seqw, kica=6):
     **Example**::
 
       Uica_ann, Uica = projUpica(msa_ann, msa_num_ seqw, kica=6)
-    '''
+    """
 
     X2d = alg2bin(msa_num)
     posw, Dia, Di = posWeights(msa_num, seqw)
@@ -1228,15 +1313,17 @@ def projUica(msa_ann, msa_num, seqw, kica=6):
     Ui1 = (W.dot(U1[:, :kica].T)).T
     for n in range(kica):
         imax = abs(Ui0[:, n]).argmax()
-        Ui1[:, n] = np.sign(Ui0[imax, n]) * Ui1[:, n] / \
-            np.linalg.norm(Ui0[:, n])
-        Ui0[:, n] = np.sign(Ui0[imax, n]) * Ui0[:, n] / \
-            np.linalg.norm(Ui0[:, n])
+        Ui1[:, n] = (
+            np.sign(Ui0[imax, n]) * Ui1[:, n] / np.linalg.norm(Ui0[:, n])
+        )
+        Ui0[:, n] = (
+            np.sign(Ui0[imax, n]) * Ui0[:, n] / np.linalg.norm(Ui0[:, n])
+        )
     return Ui1, Ui0
 
 
 def projAlg(alg, Proj):
-    '''
+    """
     Projection of an alignment (alg) based on a projector (Proj). The input
     alignment should already be converted to numeric representation using
     lett2num_.
@@ -1244,7 +1331,7 @@ def projAlg(alg, Proj):
     **Example**::
 
       tX = projAlg(msa_num, Proj)
-    '''
+    """
 
     N_seq, N_pos = alg.shape
     N_aa = 20
@@ -1252,16 +1339,16 @@ def projAlg(alg, Proj):
     tX = np.zeros((N_seq, N_pos))
     ProjMat = np.zeros((N_pos, N_aa))
     for i in range(N_pos):
-        Projati = Proj[N_aa * i:N_aa * (i + 1)]
-        if sum(Projati**2) > 0:
-            Projati /= np.sqrt(sum(Projati**2))
+        Projati = Proj[N_aa * i : N_aa * (i + 1)]
+        if sum(Projati ** 2) > 0:
+            Projati /= np.sqrt(sum(Projati ** 2))
         ProjMat[i, :] = Projati
-        tX[:, i] = al2d[:, N_aa * i:N_aa * (i + 1)].dot(Projati.T)
+        tX[:, i] = al2d[:, N_aa * i : N_aa * (i + 1)].dot(Projati.T)
     return tX
 
 
 def projUpica(msa_ann, msa_num, seqw, kpos):
-    '''
+    """
     Compute the projection of an alignment (msa_ann) on the kpos ICA components
     of the SCA matrix of another (msa_num, seqw). This is useful to compare the
     sequence space (as projected by the positional correlations) of one
@@ -1270,7 +1357,7 @@ def projUpica(msa_ann, msa_num, seqw, kpos):
     **Example**::
 
       Upica_ann, Upica = projUpica(msa_ann, msa_num_ seqw, kpos)
-    '''
+    """
 
     Csca, tX, Proj = scaMat(msa_num, seqw)
     Vsca, Lsca = eigenVect(Csca)
@@ -1278,7 +1365,8 @@ def projUpica(msa_ann, msa_num, seqw, kpos):
     Usca = tX.dot(Vsca[:, :kpos]).dot(np.diag(1 / np.sqrt(Lsca[:kpos])))
     tX_ann = projAlg(msa_ann, Proj)
     Usca_ann = tX_ann.dot(Vsca[:, :kpos]).dot(
-        np.diag(1 / np.sqrt(Lsca[:kpos])))
+        np.diag(1 / np.sqrt(Lsca[:kpos]))
+    )
     Upica = Wpica.dot(Usca.T).T
     Upica_ann = Wpica.dot(Usca_ann.T).T
     for k in range(Upica.shape[1]):
@@ -1290,8 +1378,9 @@ def projUpica(msa_ann, msa_num, seqw, kpos):
 ##########################################################################
 # SECTOR ANALYSIS
 
+
 def sizeLargestCompo(adjMat):
-    '''
+    """
     Compute the size of the largest component of a graph given its adjacency
     matrix. Called by numConnected_ (Done by actually listing all the
     components)
@@ -1301,7 +1390,7 @@ def sizeLargestCompo(adjMat):
     **Example**::
       s = sizeLargestCompo(adjMat)
 
-    '''
+    """
     Nnodes = adjMat.shape[0]
     found = list()
     components = list()
@@ -1314,8 +1403,14 @@ def sizeLargestCompo(adjMat):
             i = 0
             # Recursively listing the neighboors:
             while i < len(newcomponent):
-                newneighbors = [j for j in range(Nnodes) if (
-                    adjMat[newcomponent[i], j] == 1 and j not in newcomponent)]
+                newneighbors = [
+                    j
+                    for j in range(Nnodes)
+                    if (
+                        adjMat[newcomponent[i], j] == 1
+                        and j not in newcomponent
+                    )
+                ]
                 newcomponent += newneighbors
                 found += newneighbors
                 i += 1
@@ -1325,8 +1420,10 @@ def sizeLargestCompo(adjMat):
     return max([len(compo) for compo in components])
 
 
-def numConnected(Vp, k, distmat, eps_list=np.arange(.5, 0, -.01), dcontact=5):
-    '''
+def numConnected(
+    Vp, k, distmat, eps_list=np.arange(0.5, 0, -0.01), dcontact=5
+):
+    """
     Calculates the number of positions in the largest connected component for
     groups of positions i with :math:`V_p[i,k] > eps` and :math:`V_p[i,k] >
     V_p[i,kk]`, for :math:`kk != k` and eps in eps_list. Useful for looking
@@ -1346,7 +1443,7 @@ def numConnected(Vp, k, distmat, eps_list=np.arange(.5, 0, -.01), dcontact=5):
     **Example**::
 
        eps_range, num_co, num_tot = numConnected(Vp, k, distmat, eps_list = np.arange(.5,0,-.01), dcontact=8)
-    '''
+    """
 
     Npos = distmat.shape[0]
     eps_range = list()
@@ -1358,8 +1455,11 @@ def numConnected(Vp, k, distmat, eps_list=np.arange(.5, 0, -.01), dcontact=5):
         for kk in range(kmax):
             if kk != k:
                 Vothers = [max(Vothers[i], Vp[i, kk]) for i in range(Npos)]
-        group = [i for i in range(Npos) if (
-            Vp[i, k] > eps and Vp[i, k] > Vothers[i])]
+        group = [
+            i
+            for i in range(Npos)
+            if (Vp[i, k] > eps and Vp[i, k] > Vothers[i])
+        ]
         eps_range.append(eps)
         num_tot.append(len(group))
         if len(group) > 0:
@@ -1371,17 +1471,17 @@ def numConnected(Vp, k, distmat, eps_list=np.arange(.5, 0, -.01), dcontact=5):
 
 
 def chooseKpos(Lsca, Lrand):
-    '''
+    """
     Given the eigenvalues of the sca matrix (Lsca), and the eigenvalues for the
     set of randomized matrices (Lrand), return the number of significant
     eigenmodes.
-    '''
+    """
 
     return Lsca[Lsca > (Lrand[:, 1].mean() + (3 * Lrand[:, 1].std()))].shape[0]
 
 
 def icList(Vpica, kpos, Csca, p_cut=0.95):
-    '''
+    """
     Produces a list of positions contributing to each independent component
     (IC) above a defined statistical cutoff (p_cut, the cutoff on the CDF of
     the t-distribution fit to the histogram of each IC). Any position above the
@@ -1393,7 +1493,7 @@ def icList(Vpica, kpos, Csca, p_cut=0.95):
     **Example**::
 
       icList, icsize, sortedpos, cutoff, pd = icList(Vsca,Lsca,Lrand)
-    '''
+    """
 
     # do the PDF/CDF fit, and assign cutoffs
     Npos = len(Vpica)
@@ -1403,9 +1503,10 @@ def icList(Vpica, kpos, Csca, p_cut=0.95):
     for k in range(kpos):
         pd = t.fit(Vpica[:, k])
         all_fits.append(pd)
-        iqr = scoreatpercentile(Vpica[:, k], 75) - \
-            scoreatpercentile(Vpica[:, k], 25)
-        binwidth = 2 * iqr * (len(Vpica[:, k])**(-0.33))
+        iqr = scoreatpercentile(Vpica[:, k], 75) - scoreatpercentile(
+            Vpica[:, k], 25
+        )
+        binwidth = 2 * iqr * (len(Vpica[:, k]) ** (-0.33))
         nbins = round((max(Vpica[:, k]) - min(Vpica[:, k])) / binwidth)
         h_params = np.histogram(Vpica[:, k], int(nbins))
         x_dist = np.linspace(min(h_params[1]), max(h_params[1]), num=100)
@@ -1414,7 +1515,7 @@ def icList(Vpica, kpos, Csca, p_cut=0.95):
         cd = t.cdf(x_dist, pd[0], pd[1], pd[2])
         tmp = scaled_pdf[k].argmax()
         if abs(max(Vpica[:, k])) > abs(min(Vpica[:, k])):
-            tail = cd[tmp:len(cd)]
+            tail = cd[tmp : len(cd)]
         else:
             cd = 1 - cd
             tail = cd[0:tmp]
@@ -1440,8 +1541,9 @@ def icList(Vpica, kpos, Csca, p_cut=0.95):
         for kprime in [kp for kp in range(kpos) if kp != k]:
             tmp = [v for v in icpos_tmp if v in ic_init[kprime]]
             for i in tmp:
-                remsec = np.linalg.norm(Csca_nodiag[i, ic_init[k]]) \
-                    < np.linalg.norm(Csca_nodiag[i, ic_init[kprime]])
+                remsec = np.linalg.norm(
+                    Csca_nodiag[i, ic_init[k]]
+                ) < np.linalg.norm(Csca_nodiag[i, ic_init[kprime]])
                 if remsec:
                     icpos_tmp.remove(i)
         sortedpos += sorted(icpos_tmp, key=lambda i: -Vpica[i, k])
@@ -1454,8 +1556,8 @@ def icList(Vpica, kpos, Csca, p_cut=0.95):
     return ics, icsize, sortedpos, cutoff, scaled_pdf, all_fits
 
 
-def singleBar(x, loc, cols, width=.5):
-    '''
+def singleBar(x, loc, cols, width=0.5):
+    """
     Single bar diagram, called by MultiBar_.
 
     .. _MultiBar: scaTools.html#scaTools.MultiBar
@@ -1463,7 +1565,7 @@ def singleBar(x, loc, cols, width=.5):
     **Example**::
 
       singleBar(x, loc, cols, width=.5)
-    '''
+    """
 
     s = 0
     y = list()
@@ -1474,8 +1576,8 @@ def singleBar(x, loc, cols, width=.5):
         plt.bar(loc, y[len(x) - i - 1], width, color=cols[len(x) - i - 1])
 
 
-def MultiBar(x, colors='wbrgymc', width=.5):
-    '''
+def MultiBar(x, colors="wbrgymc", width=0.5):
+    """
     Multiple bar diagram (plots contributions to each bar from different
     elements in x as different colors). This can be useful if you'd like to
     inspect how sector positions are distributed among independent
@@ -1488,19 +1590,23 @@ def MultiBar(x, colors='wbrgymc', width=.5):
 
       x = [[99, 1, 1], [6, 13, 2], [0, 0, 13], [1, 7, 5]]
       sca.MultiBar(x)
-'''
+"""
     for i, v in enumerate(x):
         singleBar(v, i, cols=colors)
-    plt.xticks(np.arange(len(x)) + width / 2.,
-               ['S%i' % i for i in range(len(x))], fontsize=14)
+    plt.xticks(
+        np.arange(len(x)) + width / 2.0,
+        ["S%i" % i for i in range(len(x))],
+        fontsize=14,
+    )
     plt.axis([-width / 2, len(x) - width / 2, 0, max([sum(v) for v in x]) + 5])
+
 
 ##########################################################################
 # DIRECT COUPLING ANALYSIS (DCA)
 
 
 class Pair:
-    '''
+    """
     A class for a pair of positions.
 
     **Attributes**
@@ -1508,7 +1614,7 @@ class Pair:
       :pos:  a pair of amino acid positions (ex: [1,3], supplied as argument p)
       :DI:   the direct information between the two positions (argument x)
       :dist: the physical distance between the positions (argument d)
-    '''
+    """
 
     def __init__(self, p, x, d):
         self.pos = p
@@ -1516,8 +1622,8 @@ class Pair:
         self.dist = d
 
 
-def directInfo(freq1, freq2, lbda=.5, freq0=np.ones(20) / 21, Naa=20):
-    '''
+def directInfo(freq1, freq2, lbda=0.5, freq0=np.ones(20) / 21, Naa=20):
+    """
     Calculate direct information as in the Direct Coupling Analysis (DCA)
     method proposed by M. Weigt et collaborators (Ref: Marcos et al, PNAS 2011,
     108: E1293-E1301).
@@ -1525,7 +1631,7 @@ def directInfo(freq1, freq2, lbda=.5, freq0=np.ones(20) / 21, Naa=20):
     **Example**::
 
       DI = directInfo(freq1, freq2, lbda=.5, freq0=np.ones(20)/21, Naa=20)
-    '''
+    """
     Npos = int(len(freq1) / Naa)
     Cmat_dat = freq2 - np.outer(freq1, freq1)
 
@@ -1533,7 +1639,7 @@ def directInfo(freq1, freq2, lbda=.5, freq0=np.ones(20) / 21, Naa=20):
     block = np.diag(freq0) - np.outer(freq0, freq0)
     Cmat_bkg = np.zeros((Npos * Naa, Npos * Naa))
     for i in range(Npos):
-        Cmat_bkg[Naa * i:Naa * (i + 1), Naa * i:Naa * (i + 1)] = block
+        Cmat_bkg[Naa * i : Naa * (i + 1), Naa * i : Naa * (i + 1)] = block
 
     # Regularizations:
     Cmat = (1 - lbda) * Cmat_dat + lbda * Cmat_bkg
@@ -1550,7 +1656,7 @@ def directInfo(freq1, freq2, lbda=.5, freq0=np.ones(20) / 21, Naa=20):
 
 
 def dirInfoFromJ(i, j, Jmat, frq, Naa=20, epsilon=1e-4):
-    '''
+    """
     Direct information from the matrix of couplings :math:`J_{ij}` (called by
     directInfo_). Ref: Marcos et al, PNAS 2011, 108: E1293-E1301
 
@@ -1567,20 +1673,22 @@ def dirInfoFromJ(i, j, Jmat, frq, Naa=20, epsilon=1e-4):
     **Example**::
 
       DI = dirInfoFromJ(i, j, Jmat, frq, Naa=20, epsilon=1e-4)
-   '''
+   """
 
     W = np.ones((Naa + 1, Naa + 1))
-    W[:Naa, :Naa] = np.exp(Jmat[Naa * i:Naa * (i + 1), Naa * j:Naa * (j + 1)])
+    W[:Naa, :Naa] = np.exp(
+        Jmat[Naa * i : Naa * (i + 1), Naa * j : Naa * (j + 1)]
+    )
     mui = np.ones(Naa + 1) / (Naa + 1)
     muj = np.ones(Naa + 1) / (Naa + 1)
     pi = np.zeros(Naa + 1)
-    pi[:Naa] = frq[Naa * i:Naa * (i + 1)]
+    pi[:Naa] = frq[Naa * i : Naa * (i + 1)]
     pi[Naa] = 1 - sum(pi)
     pj = np.zeros(Naa + 1)
-    pj[:Naa] = frq[Naa * j:Naa * (j + 1)]
+    pj[:Naa] = frq[Naa * j : Naa * (j + 1)]
     pj[Naa] = 1 - sum(pj)
     diff = epsilon + 1
-    while (diff > epsilon):
+    while diff > epsilon:
         scrai = muj.dot(W.T)
         scraj = mui.dot(W)
         newi = pi / scrai
@@ -1598,14 +1706,14 @@ def dirInfoFromJ(i, j, Jmat, frq, Naa=20, epsilon=1e-4):
 
 
 def truncDiag(M, dmax):
-    '''
+    """
     Set to 0 the elements of a matrix M up to a distance dmax from the
     diagonal.
 
     **Example**::
 
       Mtr = truncDiag(M, dmax)
-    '''
+    """
 
     Mtr = copy.copy(M)
     for i in range(M.shape[0]):
@@ -1616,47 +1724,48 @@ def truncDiag(M, dmax):
 
 
 class Secton:
-    '''
+    """
     A class for sectons.
 
     **Attributes**
 
       :pos: a list of positions
       :num: number of positions in the secton
-    '''
+    """
 
     def __init__(self, positions):
         self.pos = positions
         self.num = len(positions)
 
     def dist(self, distmat):
-        ''' returns the distance between the position pair'''
+        """ returns the distance between the position pair"""
         return distmat[np.ix_(self.pos, self.pos)]
 
     def connected(self, distmat, threshold):
-        ''' Check the structural connectivity based on the principle that if
+        """ Check the structural connectivity based on the principle that if
         :math:`M_{ij}` is the adjacency matrix of a graph, :math:`M^n_{ij}` is
         the number of paths of length :math:`n` between i and j, which must be
         > 0 for :math:`n` = number of nodes when i and j are in the same
-        connected component. '''
+        connected component. """
         return (
-            np.linalg.matrix_power(
-                self.dist(distmat) < threshold,
-                self.num) > 0) .sum() / self.num**2 == 1
+            np.linalg.matrix_power(self.dist(distmat) < threshold, self.num)
+            > 0
+        ).sum() / self.num ** 2 == 1
+
 
 ##########################################################################
 # RANDOMIZATION
 
 
 def randAlg(frq, Mseq):
-    '''
+    """
     Generate a random alignment with Mseq sequences based on the frequencies
     frq[i,a] of amino acids with a = 0,1,...,Naa (0 for gaps).
 
     **Example**::
 
       msa_rand = randAlg(frq, Mseq)
-    '''
+    """
 
     Npos = frq.shape[0]
     msa_rand = np.zeros((Mseq, Npos), dtype=int)
@@ -1670,9 +1779,17 @@ def randAlg(frq, Mseq):
     return msa_rand
 
 
-def randomize(msa_num, Ntrials, seqw=1, norm='frob', lbda=0, Naa=20, kmax=6,
-              tolerance=1e-15):
-    '''
+def randomize(
+    msa_num,
+    Ntrials,
+    seqw=1,
+    norm="frob",
+    lbda=0,
+    Naa=20,
+    kmax=6,
+    tolerance=1e-15,
+):
+    """
     Randomize the alignment while preserving the frequencies of amino acids at
     each position and compute the resulting spectrum of the SCA matrix.
 
@@ -1700,7 +1817,7 @@ def randomize(msa_num, Ntrials, seqw=1, norm='frob', lbda=0, Naa=20, kmax=6,
     **Example**::
 
       Vrand, Lrand, Crand = randomize(msa_num, 10, seqw, Naa=20, kmax=6)
-    '''
+    """
 
     if isinstance(seqw, int) and seqw == 1:
         seqw = np.ones((1, Nseq))
@@ -1709,11 +1826,14 @@ def randomize(msa_num, Ntrials, seqw=1, norm='frob', lbda=0, Naa=20, kmax=6,
     Crnd = np.zeros((Npos, Npos))
 
     # Weighted frequencies, including gaps:
-    f1, f2, f0 = freq(msa_num, Naa=20, seqw=seqw,
-                      lbda=lbda, freq0=np.ones(20) / 21)
+    f1, f2, f0 = freq(
+        msa_num, Naa=20, seqw=seqw, lbda=lbda, freq0=np.ones(20) / 21
+    )
     fr1 = np.reshape(f1, (Npos, Naa))
     fr0 = (1.0 - fr1.sum(axis=1)).reshape(Npos, 1)
-    fr0[fr0 < tolerance] = 0  # workaround for roundoff errors giving negative fr0
+    fr0[
+        fr0 < tolerance
+    ] = 0  # workaround for roundoff errors giving negative fr0
     fr01 = np.concatenate((fr0, fr1), axis=1)
 
     # Multiple randomizations:
@@ -1729,29 +1849,35 @@ def randomize(msa_num, Ntrials, seqw=1, norm='frob', lbda=0, Naa=20, kmax=6,
     Crnd = Crnd / Ntrials
     return Vrand, Lrand, Crnd
 
+
 ##########################################################################
 # DISPLAY
 
 
 def figWeights(U1, U2, weight):
-    '''
+    """
     A 2d scatter plot with color indicating weight.
 
    **Example**::
 
      figWeights(U1, U2, weight)
-    '''
+    """
 
     seqcol = -np.log(weight)
     seqcol = (seqcol - min(seqcol) + 1) / (max(seqcol) - min(seqcol) + 1)
     seqorder = sorted(range(len(seqcol)), key=lambda s: seqcol[s])
     for s in seqorder:
-        plt.plot(U1[s], U2[s], 'o', color=cm.jet(seqcol[s], 1),
-                 markeredgecolor='none')
+        plt.plot(
+            U1[s],
+            U2[s],
+            "o",
+            color=cm.jet(seqcol[s], 1),
+            markeredgecolor="none",
+        )
 
 
 def figColors():
-    '''
+    """
     Color code for figUnits_.
 
     .. _figUnits: scaTools.html#scaTools.figUnits
@@ -1759,35 +1885,28 @@ def figColors():
     **Example**::
 
       figColors()
-    '''
+    """
 
-    plt.rcParams['figure.figsize'] = 6, 6
-    for s in np.arange(0, 1, .05):
-        for a in np.arange(0, 1, .01):
+    plt.rcParams["figure.figsize"] = 6, 6
+    for s in np.arange(0, 1, 0.05):
+        for a in np.arange(0, 1, 0.01):
             bgr = colorsys.hsv_to_rgb(a, s, 1)
             plt.plot(
-                s *
-                np.cos(
-                    2 *
-                    np.pi *
-                    a),
-                s *
-                np.sin(
-                    2 *
-                    np.pi *
-                    a),
-                'o',
+                s * np.cos(2 * np.pi * a),
+                s * np.sin(2 * np.pi * a),
+                "o",
                 markersize=8,
                 markerfacecolor=bgr,
-                markeredgecolor=bgr)
+                markeredgecolor=bgr,
+            )
     plt.title(
-        r'Color at angle $\alpha$ encoded with $\alpha/(2\pi)$.',
-        fontsize=16)
+        r"Color at angle $\alpha$ encoded with $\alpha/(2\pi)$.", fontsize=16
+    )
     plt.axis([-1.1, 1.1, -1.1, 1.1])
 
 
-def figUnits(v1, v2, units, marker='o', dotsize=9, notinunits=1):
-    '''
+def figUnits(v1, v2, units, marker="o", dotsize=9, notinunits=1):
+    """
     2d scatter plot specified by 'units', which must be a list of elements in
     the class Unit_. See figColors_ for the color code. Admissible color codes
     are in [0 1] (light/dark gray can also be obtained by using -1/+1).  For
@@ -1815,31 +1934,48 @@ def figUnits(v1, v2, units, marker='o', dotsize=9, notinunits=1):
     **Example**::
 
       figUnits(v1, v2, units, marker='o', gradcol=0, dotsize=9, notinunits=1)
-    '''
+    """
 
-    Ntot = len(v1)
     # Plot all items in white:
     if notinunits == 1:
-        plt.plot(v1, v2, marker, markersize=dotsize, markerfacecolor='w',
-                 markeredgecolor='k')
+        plt.plot(
+            v1,
+            v2,
+            marker,
+            markersize=dotsize,
+            markerfacecolor="w",
+            markeredgecolor="k",
+        )
     elif len(notinunits) == 2:
-        plt.plot(notinunits[0], notinunits[1], marker, markersize=dotsize,
-                 markerfacecolor='w', markeredgecolor='k')
+        plt.plot(
+            notinunits[0],
+            notinunits[1],
+            marker,
+            markersize=dotsize,
+            markerfacecolor="w",
+            markeredgecolor="k",
+        )
     # Plot items in the units with colors:
     for u in units:
         items_list = list(u.items)
         if u.col >= 0 and u.col < 1:
             bgr = colorsys.hsv_to_rgb(u.col, 1, 1)
         if u.col == 1:
-            bgr = [.3, .3, .3]
+            bgr = [0.3, 0.3, 0.3]
         if u.col < 0:
-            bgr = [.7, .7, .7]
-        plt.plot(v1[np.ix_(items_list)], v2[np.ix_(items_list)], marker,
-                 markersize=dotsize, markerfacecolor=bgr, markeredgecolor='k')
+            bgr = [0.7, 0.7, 0.7]
+        plt.plot(
+            v1[np.ix_(items_list)],
+            v2[np.ix_(items_list)],
+            marker,
+            markersize=dotsize,
+            markerfacecolor=bgr,
+            markeredgecolor="k",
+        )
 
 
 def figMapping(Csca, tX, kpos, sectors, subfam):
-    '''
+    """
     Function that automates finding the top :math:`k_{pos}` independent
     components, projection, and plotting.
 
@@ -1861,7 +1997,7 @@ def figMapping(Csca, tX, kpos, sectors, subfam):
     **Example**::
 
       Vpica = figMapping(Csca, tX, kpos, sectors, subfam)
-    '''
+    """
 
     Vsca, Lsca = eigenVect(Csca)
     Vpica, Wpica = rotICA(Vsca, kmax=kpos)
@@ -1871,27 +2007,28 @@ def figMapping(Csca, tX, kpos, sectors, subfam):
         Upica[:, k] /= np.sqrt(Upica[:, k].T.dot(Upica[:, k]))
     Usica, Wsica = rotICA(Usca, kmax=kpos)
     pairs = [[i, i + 1] for i in [j for j in range(kpos - 1) if (j % 2 == 0)]]
-    if (kpos % 2 == 1):
+    if kpos % 2 == 1:
         pairs.append([kpos - 1, 0])
-    plt.rcParams['figure.figsize'] = (4 * len(pairs)) + 1, 8
+    plt.rcParams["figure.figsize"] = (4 * len(pairs)) + 1, 8
     for n, [k1, k2] in enumerate(pairs):
         plt.subplot(2, len(pairs), n + 1)
         figUnits(Vpica[:, k1], Vpica[:, k2], sectors)
-        plt.xlabel(r'$V^p_{%i}$' % (k1 + 1), fontsize=16)
-        plt.ylabel(r'$V^p_{%i}$' % (k2 + 1), fontsize=16)
+        plt.xlabel(r"$V^p_{%i}$" % (k1 + 1), fontsize=16)
+        plt.ylabel(r"$V^p_{%i}$" % (k2 + 1), fontsize=16)
         plt.subplot(2, len(pairs), n + len(pairs) + 1)
-        figUnits(Upica[:, k1], Upica[:, k2], subfam, marker='D')
-        plt.xlabel(r'$U^p_{%i}$' % (k1 + 1), fontsize=16)
-        plt.ylabel(r'$U^p_{%i}$' % (k2 + 1), fontsize=16)
+        figUnits(Upica[:, k1], Upica[:, k2], subfam, marker="D")
+        plt.xlabel(r"$U^p_{%i}$" % (k1 + 1), fontsize=16)
+        plt.ylabel(r"$U^p_{%i}$" % (k2 + 1), fontsize=16)
     plt.tight_layout()
     return Vpica
+
 
 ##########################################################################
 # PDB PROCESSING
 
 
-def pdbSeq(pdbid, chain='A', path2pdb=settings.path2structures, calcDist=1):
-    '''
+def pdbSeq(pdbid, chain="A", path2pdb=settings.path2structures, calcDist=1):
+    """
     Extract sequence, position labels and matrix of distances from a PDB file.
 
     **Arguments**
@@ -1904,46 +2041,47 @@ def pdbSeq(pdbid, chain='A', path2pdb=settings.path2structures, calcDist=1):
     **Example**::
 
       sequence, labels, dist = pdbSeq(pdbid, chain='A', path2pdb)
-    '''
+    """
 
     # Table of 3-letter to 1-letter code for amino acids
     aatable = {
-        'ALA': 'A',
-        'ARG': 'R',
-        'ASN': 'N',
-        'ASP': 'D',
-        'CYS': 'C',
-        'GLN': 'Q',
-        'GLU': 'E',
-        'GLY': 'G',
-        'HIS': 'H',
-        'ILE': 'I',
-        'LEU': 'L',
-        'LYS': 'K',
-        'MET': 'M',
-        'PHE': 'F',
-        'PRO': 'P',
-        'SER': 'S',
-        'THR': 'T',
-        'TRP': 'W',
-        'TYR': 'Y',
-        'VAL': 'V'}
+        "ALA": "A",
+        "ARG": "R",
+        "ASN": "N",
+        "ASP": "D",
+        "CYS": "C",
+        "GLN": "Q",
+        "GLU": "E",
+        "GLY": "G",
+        "HIS": "H",
+        "ILE": "I",
+        "LEU": "L",
+        "LYS": "K",
+        "MET": "M",
+        "PHE": "F",
+        "PRO": "P",
+        "SER": "S",
+        "THR": "T",
+        "TRP": "W",
+        "TYR": "Y",
+        "VAL": "V",
+    }
 
     # Read PDB structure:
     P = PDBParser(PERMISSIVE=1)
-    structure = P.get_structure(pdbid, os.path.join(path2pdb, pdbid) + '.pdb')
+    structure = P.get_structure(pdbid, os.path.join(path2pdb, pdbid) + ".pdb")
 
     # Fill up sequence and label information
-    sequence = ''
+    sequence = ""
     labels = list()
-    residues = [res for res in structure[0][chain] if res.get_id()[0] == ' ']
+    residues = [res for res in structure[0][chain] if res.get_id()[0] == " "]
     for res in residues:
         labels.append(str(res.get_id()[1]) + str(res.get_id()[2]).strip())
         try:
             sequence += aatable[res.get_resname()]
         except BaseException as e:
-            print('Error: ' + str(e))
-            sequence += 'X'
+            print("Error: " + str(e))
+            sequence += "X"
 
     # Distances between residues (minimal distance between atoms, in angstrom):
     dist = np.zeros((len(residues), len(residues)))
@@ -1951,66 +2089,79 @@ def pdbSeq(pdbid, chain='A', path2pdb=settings.path2structures, calcDist=1):
         for n0, res0 in enumerate(residues):
             for n1, res1 in enumerate(residues):
                 dist[n0, n1] = min(
-                    [atom0 - atom1 for atom0 in res0 for atom1 in res1])
+                    [atom0 - atom1 for atom0 in res0 for atom1 in res1]
+                )
         return sequence, labels, dist
     else:
         return sequence, labels
 
 
 def writePymol(
-        pdb,
-        sectors,
-        ics,
-        ats,
-        outfilename,
-        chain='A',
-        inpath=settings.path2structures,
-        quit=1):
-    '''
+    pdb,
+    sectors,
+    ics,
+    ats,
+    outfilename,
+    chain="A",
+    inpath=settings.path2structures,
+    quit=1,
+):
+    """
     Write basic a pymol script for displaying sectors and exporting an image.
 
     **Example**::
 
       writePymol(pdb, sectors, ics, ats, outfilename, chain='A',inpath=settings.path2structures, quit=1)
-    '''
+    """
 
-    f = open(outfilename, 'w')
-    f.write('delete all\n')
-    f.write('load %s%s.pdb, main\n' % (inpath, pdb))
-    f.write('hide all\n')
-    f.write('bg_color white\n')
-    f.write('show cartoon, (chain %s)\n' % chain)
-    f.write('color white\n\n')
+    f = open(outfilename, "w")
+    f.write("delete all\n")
+    f.write("load %s%s.pdb, main\n" % (inpath, pdb))
+    f.write("hide all\n")
+    f.write("bg_color white\n")
+    f.write("show cartoon, (chain %s)\n" % chain)
+    f.write("color white\n\n")
     for k, sec in enumerate(sectors):
         b, g, r = colorsys.hsv_to_rgb(sec.col, 1, 1)
-        f.write('set_color color%i, [%.3f,%.3f,%.3f]\n' % (k + 1, b, g, r))
-        f.write('create sector%i, (resi %s) & (chain %s)\n'
-                % (k + 1, ','.join([ats[s] for s in sec.items]), chain))
-        f.write('color color%i, sector%i\n' % (k + 1, k + 1))
-        f.write('show spheres, sector%i\n' % (k + 1))
-        f.write('show surface, sector%i\n\n' % (k + 1))
+        f.write("set_color color%i, [%.3f,%.3f,%.3f]\n" % (k + 1, b, g, r))
+        f.write(
+            "create sector%i, (resi %s) & (chain %s)\n"
+            % (k + 1, ",".join([ats[s] for s in sec.items]), chain)
+        )
+        f.write("color color%i, sector%i\n" % (k + 1, k + 1))
+        f.write("show spheres, sector%i\n" % (k + 1))
+        f.write("show surface, sector%i\n\n" % (k + 1))
     for k, sec in enumerate(ics):
         b, g, r = colorsys.hsv_to_rgb(sec.col, 1, 1)
-        f.write('set_color color_ic%i, [%.3f,%.3f,%.3f]\n' % (k + 1, b, g, r))
-        f.write('create ic_%i, (resi %s) & (chain %s)\n'
-                % (k + 1, ','.join([ats[s] for s in sec.items]), chain))
-        f.write('color color_ic%i, ic_%i\n' % (k + 1, k + 1))
-        f.write('show spheres, ic_%i\n' % (k + 1))
-        f.write('show surface, ic_%i\n\n' % (k + 1))
-    f.write('zoom\n')
-    f.write('set transparency, 0.4\n')
-    f.write('ray\n')
+        f.write("set_color color_ic%i, [%.3f,%.3f,%.3f]\n" % (k + 1, b, g, r))
+        f.write(
+            "create ic_%i, (resi %s) & (chain %s)\n"
+            % (k + 1, ",".join([ats[s] for s in sec.items]), chain)
+        )
+        f.write("color color_ic%i, ic_%i\n" % (k + 1, k + 1))
+        f.write("show spheres, ic_%i\n" % (k + 1))
+        f.write("show surface, ic_%i\n\n" % (k + 1))
+    f.write("zoom\n")
+    f.write("set transparency, 0.4\n")
+    f.write("ray\n")
     path_list = outfilename.split(os.sep)
     fn = path_list[-1]
-    f.write('png %s\n' % fn.replace('.pml', ''))
+    f.write("png %s\n" % fn.replace(".pml", ""))
     if quit == 1:
-        f.write('quit')
+        f.write("quit")
     f.close()
 
 
-def figStruct(pdbid, sectors, ics, ats, chainid='A',
-              outfile=settings.path2output+'sectors.pml', quit=1):
-    '''
+def figStruct(
+    pdbid,
+    sectors,
+    ics,
+    ats,
+    chainid="A",
+    outfile=settings.path2output + "sectors.pml",
+    quit=1,
+):
+    """
     Make and display an image of the sectors (within a python notebook). By
     default quit PyMol after running it, unless the option 'quit=0' is given.
     The default name and location of the output can also be changed.
@@ -2018,21 +2169,23 @@ def figStruct(pdbid, sectors, ics, ats, chainid='A',
     **Example**::
 
       figStruct(pdbid, sectors, ats, chainid='A', outfile = settings.path2output+'sectors.pml', quit=1)
-    '''
+    """
 
-    writePymol(pdbid, sectors, ics, ats, outfilename=outfile,
-               chain=chainid, quit=1)
-    os.system("pymol" + ' ' + outfile)
-    img = mpimg.imread(outfile.replace('.pml', '.png'))
+    writePymol(
+        pdbid, sectors, ics, ats, outfilename=outfile, chain=chainid, quit=1
+    )
+    os.system("pymol" + " " + outfile)
+    img = mpimg.imread(outfile.replace(".pml", ".png"))
     plt.imshow(img)
-    plt.axis('off')
+    plt.axis("off")
+
 
 ##########################################################################
 # CYTOSCAPE OUTPUT
 
 
 def cytoscapeOut(ats, cutoff, Csca, Di, sectors, Vp, outfilename):
-    '''
+    """
     Output tab-delimited text that can be read in by cytoscape. The goal is to
     enable graph representations of the SCA couplings, where residues are
     nodes, and couplings are edges. Within cytoscape, the graph can be
@@ -2041,24 +2194,24 @@ def cytoscapeOut(ats, cutoff, Csca, Di, sectors, Vp, outfilename):
     **Example**::
 
       cytoscapeOut(ats, cutoff, Csca, Di, sectors, Vp, outfilename)
-    '''
+    """
 
-    f = open(outfilename + '.sif', 'w')
+    f = open(outfilename + ".sif", "w")
     for k in range(len(ats)):
         flag = 0
         for j in range(k + 1, len(ats)):
-            if (Csca[k][j] > cutoff):
-                f.write(ats[k] + ' aa ' + ats[j] + '\n')
+            if Csca[k][j] > cutoff:
+                f.write(ats[k] + " aa " + ats[j] + "\n")
                 flag = 1
         if flag == 0:
-            f.write(ats[k] + '\n')
+            f.write(ats[k] + "\n")
     f.close()
 
-    f = open(outfilename + '.eda', 'w')
-    f.write('KEY\tSCA\n')
+    f = open(outfilename + ".eda", "w")
+    f.write("KEY\tSCA\n")
     for k in range(len(ats)):
         for j in range(k + 1, len(ats)):
-            f.write((ats[k] + ' (aa) ' + ats[j] + '\t  %.4f \n') % Csca[k][j])
+            f.write((ats[k] + " (aa) " + ats[j] + "\t  %.4f \n") % Csca[k][j])
     f.close()
 
     s_idx = [0 for k in range(len(ats))]
@@ -2066,9 +2219,11 @@ def cytoscapeOut(ats, cutoff, Csca, Di, sectors, Vp, outfilename):
         for k in j.items:
             s_idx[k] = i + 1
 
-    f = open(outfilename + '.noa', 'w')
-    f.write('KEY\tCONSERVATION\tSector\tVp1\tVp2\tVp3\n')
+    f = open(outfilename + ".noa", "w")
+    f.write("KEY\tCONSERVATION\tSector\tVp1\tVp2\tVp3\n")
     for j, k in enumerate(ats):
-        f.write((k + '\t %.4f \t %i \t %.4f \t %.4f \t %.4f \n') %
-                (Di[j], s_idx[j], Vp[j, 0], Vp[j, 1], Vp[j, 2]))
+        f.write(
+            (k + "\t %.4f \t %i \t %.4f \t %.4f \t %.4f \n")
+            % (Di[j], s_idx[j], Vp[j, 0], Vp[j, 1], Vp[j, 2])
+        )
     f.close()

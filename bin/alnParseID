@@ -25,18 +25,39 @@ import os
 import sys
 from pysca import scaTools as sca
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Parse inputs
     parser = argparse.ArgumentParser()
-    parser.add_argument("-i", "--input", dest="alignment", required=True, help='input sequence alignment')
-    parser.add_argument("-o", "--output", dest="outputfile",
-                        default=None,
-                        help="specify an outputfile name")
-    parser.add_argument("-d", "--delim", dest="delim", default="_",
-                        help="specify the field delimiter in the header")
-    parser.add_argument("-t", "--type", dest="type", default="gi", required=True,
-                        help="type of identifier to parse out of the header "
-                             "('gi' or 'acc')")
+    parser.add_argument(
+        "-i",
+        "--input",
+        dest="alignment",
+        required=True,
+        help="input sequence alignment",
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        dest="outputfile",
+        default=None,
+        help="specify an outputfile name",
+    )
+    parser.add_argument(
+        "-d",
+        "--delim",
+        dest="delim",
+        default="_",
+        help="specify the field delimiter in the header",
+    )
+    parser.add_argument(
+        "-t",
+        "--type",
+        dest="type",
+        default="gi",
+        required=True,
+        help="type of identifier to parse out of the header "
+        "('gi' or 'acc')",
+    )
     options = parser.parse_args()
 
     # Read in the MSA.
@@ -62,9 +83,11 @@ if __name__ == '__main__':
     if options.outputfile:
         outputfile = options.outputfile
     else:
-        outputfile = os.path.splitext(options.alignment)[0] + "." + options.type
+        outputfile = (
+            os.path.splitext(options.alignment)[0] + "." + options.type
+        )
 
-    f = open(outputfile, 'w')
+    f = open(outputfile, "w")
     for acc_id in acc_ids:
-        f.write('%s\n' % acc_id)
+        f.write("%s\n" % acc_id)
     f.close()
