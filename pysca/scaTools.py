@@ -2008,9 +2008,8 @@ def writePymol(
     f.close()
 
 
-def figStruct(pdbid, sectors, ats, chainid='A',
-              outfile=settings.path2output+'sectors.pml', quit=1,
-              pymol=settings.path2pymol):
+def figStruct(pdbid, sectors, ics, ats, chainid='A',
+              outfile=settings.path2output+'sectors.pml', quit=1):
     '''
     Make and display an image of the sectors (within a python notebook). By
     default quit PyMol after running it, unless the option 'quit=0' is given.
@@ -2018,11 +2017,12 @@ def figStruct(pdbid, sectors, ats, chainid='A',
 
     **Example**::
 
-      figStruct(pdbid, sectors, ats, chainid='A', outfile = settings.path2output+'sectors.pml', quit=1, pymol = settings.path2pymol)
+      figStruct(pdbid, sectors, ats, chainid='A', outfile = settings.path2output+'sectors.pml', quit=1)
     '''
 
-    writePymol(pdbid, sectors, ats, outfile, chain=chainid, quit=1)
-    os.system(pymol + ' ' + outfile)
+    writePymol(pdbid, sectors, ics, ats, outfilename=outfile,
+               chain=chainid, quit=1)
+    os.system("pymol" + ' ' + outfile)
     img = mpimg.imread(outfile.replace('.pml', '.png'))
     plt.imshow(img)
     plt.axis('off')
