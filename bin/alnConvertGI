@@ -87,7 +87,7 @@ if __name__ == '__main__':
     f = open(options.outputfile, 'w')
     for i, header in enumerate(headers):
         fields = header.split(options.delim)
-        fields[0] = 'res'
+        fields[0] = 'ref'
         fields[1] = acc_ids[i]
         f.write('>%s\n' % (newdelim).join(fields))
         f.write('%s\n' % seqs[i])
