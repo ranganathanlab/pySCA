@@ -50,6 +50,7 @@ tool pickle:
                        typically the headers contain taxonomic information for
                        the sequences).
      --pdb, -s         PDB identifier (ex: 1RX2)
+     --pdbdir, -b      directory where PDB files are stored
      --chainID, -c     chain ID in the PDB for the reference sequence
      --species, -f     species of the reference sequence
      --refseq, -r      reference sequence, supplied as a fasta file
@@ -119,7 +120,7 @@ if __name__ == "__main__":
         "--pdbdir",
         dest="pdbdir",
         default=None,
-        help="PDB identifier (ex: 1RX2)",
+        help="directory where PDBs are stored",
     )
     parser.add_argument(
         "-c",
