@@ -227,7 +227,7 @@ def AnnotPfamDB(pfam_in, pfam_out, pfam_db=settings.path2pfamseqdb):
         for pfamseq_id in pfamseq_ids:
             c.execute(
                 "SELECT pfamseq_id,description,species,taxonomy "
-                "FROM pfamseq WHERE pfamseq_id = '%s'" % pfamseq_id
+                "FROM pfamseq WHERE pfamseq_id = ?", (pfamseq_id,),
             )
             res = c.fetchall()
             if res:
