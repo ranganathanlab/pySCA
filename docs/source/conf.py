@@ -25,7 +25,7 @@ author = 'Olivier Rivoire, Rama Ranganathan, Kimberly Reynolds, Ansel George'
 version = '6.1'
 
 # The full version, including alpha/beta/rc tags
-release = '6.1-rc2'
+release = '6.1'
 
 
 # -- General configuration ---------------------------------------------------
