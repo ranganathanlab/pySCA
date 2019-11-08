@@ -236,8 +236,11 @@ if __name__ == "__main__":
     # Set the directory where PDB files are stored.
     if options.pdbdir is None:
         pdbdir = settings.path2structures
-    else:
+    elif os.path.exists(options.pdbdir):
         pdbdir = options.pdbdir
+    else:
+        sys.exit("PDB directory '%s/' not found." % options.pdbdir)
+
 
     # Read in initial alignment
     headers_full, sequences_full = sca.readAlg(options.alignment)
