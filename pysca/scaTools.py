@@ -27,6 +27,7 @@ import sqlite3
 import tempfile
 import sys
 import numpy as np
+from pathlib import Path
 import scipy.sparse
 import scipy.sparse.linalg
 from scipy.sparse import csr_matrix as sparsify
@@ -158,35 +159,37 @@ def AnnotPfam(pfam_in, pfam_out, pfam_seq=settings.path2pfamseq):
     end_time = time.time()
 
     # Writes in output file:
-    f = open(pfam_out, "w")
-    pfamseq_ids = [h.split("/")[0] for h in headers]
-    for i, key in enumerate(pfamseq_ids):
-        print("Current step %i, key %s" % (i, key))
-        try:
-            info = seq_info[key]
-        except BaseException as e:
-            print("Error: " + str(e))
-            info = "\t".join(["unknown"] * 10 + ["unknown;unknown"])
-        # this f.write line works with older pfamseq.txt files (release 4 and
-        # before, was used to annotate the tutorial alignments
-        # f.write('>%s|%s|%s|%s\n' % (key, info.split('\t')[6],
-        #         info.split('\t')[9],
-        #         ','.join([name.strip()
-        #                   for name in info.split('\t')[10].split(';')])))
-        # this f.write line works with the new version of pfamseq.txt
-        f.write(
-            ">%s|%s|%s|%s\n"
-            % (
-                key,
-                info.split("\t")[5],
-                info.split("\t")[8],
-                ",".join(
-                    [name.strip() for name in info.split("\t")[9].split(";")]
-                ),
+    if os.path.dirname(pfam_out):
+        Path(os.path.dirname(pfam_out)).mkdir(parents=True, exist_ok=True)
+
+    with open(pfam_out, "w") as f:
+        pfamseq_ids = [h.split("/")[0] for h in headers]
+        for i, key in enumerate(pfamseq_ids):
+            print("Current step %i, key %s" % (i, key))
+            try:
+                info = seq_info[key]
+            except BaseException as e:
+                print("Error: " + str(e))
+                info = "\t".join(["unknown"] * 10 + ["unknown;unknown"])
+            # this f.write line works with older pfamseq.txt files (release 4 and
+            # before, was used to annotate the tutorial alignments
+            # f.write('>%s|%s|%s|%s\n' % (key, info.split('\t')[6],
+            #         info.split('\t')[9],
+            #         ','.join([name.strip()
+            #                   for name in info.split('\t')[10].split(';')])))
+            # this f.write line works with the new version of pfamseq.txt
+            f.write(
+                ">%s|%s|%s|%s\n"
+                % (
+                    key,
+                    info.split("\t")[5],
+                    info.split("\t")[8],
+                    ",".join(
+                        [name.strip() for name in info.split("\t")[9].split(";")]
+                    ),
+                )
             )
-        )
-        f.write("%s\n" % (sequences[i]))
-    f.close()
+            f.write("%s\n" % (sequences[i]))
     print("Elapsed time: %.1f min" % ((end_time - start_time) / 60))
 
 
@@ -238,6 +241,9 @@ def AnnotPfamDB(pfam_in, pfam_out, pfam_db=settings.path2pfamseqdb):
     end_time = time.time()
 
     # Write to output file:
+    if os.path.dirname(pfam_out):
+        Path(os.path.dirname(pfam_out)).mkdir(parents=True, exist_ok=True)
+
     with open(pfam_out, "w") as f:
         for i, row in enumerate(seq_info):
             f.write(
@@ -354,20 +360,22 @@ def AnnotNCBI(alg_in, alg_out, id_list, email=settings.entrezemail):
         )
 
     # Write to the output FASTA file.
-    f = open(alg_out, "w")
-    for i, seq in enumerate(seqs):
-        hdnew = (
-            hd[i]
-            + "|"
-            + records[i]["ScientificName"]
-            + "|"
-            + ",".join(records[i]["Lineage"].split(";"))
-        )
-        if records[i]["Lineage"] == "unknown":
-            print("Unable to add taxonomy information for seq: %s" % hd[i])
-        f.write(">%s\n" % hdnew)
-        f.write("%s\n" % seq)
-    f.close()
+    if os.path.dirname(alg_out):
+        Path(os.path.dirname(alg_out)).mkdir(parents=True, exist_ok=True)
+
+    with open(alg_out, "w") as f:
+        for i, seq in enumerate(seqs):
+            hdnew = (
+                hd[i]
+                + "|"
+                + records[i]["ScientificName"]
+                + "|"
+                + ",".join(records[i]["Lineage"].split(";"))
+            )
+            if records[i]["Lineage"] == "unknown":
+                print("Unable to add taxonomy information for seq: %s" % hd[i])
+            f.write(">%s\n" % hdnew)
+            f.write("%s\n" % seq)
 
 
 def clean_al(alg, code="ACDEFGHIKLMNPQRSTVWY", gap="-"):
