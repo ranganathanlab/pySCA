@@ -319,7 +319,7 @@ def AnnotNCBI(alg_in, alg_out, id_list, email=settings.entrezemail):
     print("Look up for Tax IDs complete. Time: %f" % (end - start))
 
     # Group taxIDs into blocks and submit each block as a query to the web API.
-    taxid_blocksize = 200
+    taxid_blocksize = 20
     taxid_blocks = [
         taxIDs[x : x + taxid_blocksize]
         for x in range(0, len(taxIDs), taxid_blocksize)
