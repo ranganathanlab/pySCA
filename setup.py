@@ -14,7 +14,15 @@ setup(
     url="https://ranganathanlab.gitlab.io/pySCA",
     download_url="https://github.com/ranganathanlab/pySCA",
     long_description=open("README.md", "r").read(),
-    install_requires=["biopython", "numpy", "scipy", "argparse", "wheel", "matplotlib", "jupyterlab"],
+    install_requires=[
+        "biopython",
+        "numpy",
+        "scipy",
+        "argparse",
+        "wheel",
+        "matplotlib",
+        "jupyterlab",
+    ],
     scripts=[
         "bin/alnChangeDelim",
         "bin/alnFilterSeqSize",
