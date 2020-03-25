@@ -68,7 +68,7 @@ if __name__ == "__main__":
             print("Invalid GI '%s' at line %s. Omitting." % (gi, i))
             gis[i] = "0"  # Needs to be a character, not an int.
 
-    gi_blocksize = 200  # more GIs need to be submitted as a POST request
+    gi_blocksize = 50  # more GIs need to be submitted as a POST request
     gi_blocks = [
         gis[x : x + gi_blocksize] for x in range(0, len(gis), gi_blocksize)
     ]
