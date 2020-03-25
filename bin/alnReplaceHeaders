@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """
 A script that replaces the headers of one FASTA file with headers from another.
 It assumes the sequences in the two FASTA files are in identical order. This is

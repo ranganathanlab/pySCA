@@ -1,4 +1,4 @@
-#! /usr/bin/env python3
+#! /usr/bin/env python
 """
 A script to parse accession numbers from the headers of an alignment with
 typical Blast formatting.
