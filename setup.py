@@ -21,7 +21,6 @@ setup(
         "argparse",
         "wheel",
         "matplotlib",
-        "jupyterlab",
     ],
     scripts=[
         "bin/alnChangeDelim",
