@@ -24,7 +24,6 @@ import time
 import random as rand
 import colorsys
 import sqlite3
-import tempfile
 import sys
 import numpy as np
 from pathlib import Path
@@ -434,14 +433,12 @@ def MSAsearch(hd, algn, seq, species=None):
 
     try:
         print("Trying MSASearch with ggsearch")
-        pdb_tmp, pdb_tmpname = tempfile.mkstemp()
-        output_handle = open(pdb_tmp, "w")
+        output_handle = open("tmp_pdb_seq.fasta", "w")
         SeqIO.write(
             SeqRecord(Seq(seq), id="PDB sequence"), output_handle, "fasta"
         )
         output_handle.close()
-        algn_tmp, algn_tmpname = tempfile.mkstemp()
-        f = open(algn_tmp, "w")
+        f = open("tmp_algn_seq.fasta", "w")
         for i, algn_i in enumerate(algn):
             f.write(">" + hd[i] + "\n")
             f.write(algn_i + "\n")
@@ -452,8 +449,8 @@ def MSAsearch(hd, algn, seq, species=None):
             "-b",
             "1",
             "-m 8",
-            pdb_tmpname,
-            algn_tmpname,
+            "tmp_pdb_seq.fasta",
+            "tmp_algn_seq.fasta"
         ]
         output = subprocess.check_output(args)
         i_0 = [
@@ -465,8 +462,8 @@ def MSAsearch(hd, algn, seq, species=None):
             strseqnum = key_list[i_0[0]]
         else:
             strseqnum = i_0[0]
-        os.remove(pdb_tmpname)
-        os.remove(algn_tmpname)
+        os.remove("tmp_pdb_seq.fasta")
+        os.remove("tmp_algn_seq.fasta")
         return strseqnum
     except BaseException as e:
         print("Error: " + str(e))
@@ -474,14 +471,12 @@ def MSAsearch(hd, algn, seq, species=None):
             from Bio.Emboss.Applications import NeedleCommandline
 
             print("Trying MSASearch with EMBOSS")
-            pdb_tmp, pdb_tmpname = tempfile.mkstemp()
-            output_handle = open(pdb_tmp, "w")
+            output_handle = open("tmp_pdb_seq.fasta", "w")
             SeqIO.write(
                 SeqRecord(Seq(seq), id="PDB sequence"), output_handle, "fasta"
             )
             output_handle.close()
-            algn_tmp, algn_tmpname = tempfile.mkstemp()
-            output_handle = open(algn_tmp, "w")
+            output_handle = open("tmp_algn_seq.fasta", "w")
             s_records = list()
             for k, algn_k in enumerate(algn):
                 s_records.append(
@@ -489,18 +484,17 @@ def MSAsearch(hd, algn, seq, species=None):
                 )
             SeqIO.write(s_records, output_handle, "fasta")
             output_handle.close()
-            needle_tmp, needle_tmpname = tempfile.mkstemp()
             needle_cline = NeedleCommandline(
                 "needle",
-                asequence=pdb_tmpname,
-                bsequence=algn_tmpname,
+                asequence="tmp_pdb_seq.fasta",
+                bsequence="tmp_algn_seq.fasta",
                 gapopen=10,
                 gapextend=0.5,
-                outfile=needle_tmpname,
+                outfile="tmp_needle_seq.fasta",
             )
             stdout, stderr = needle_cline()
             print(stdout + stderr)
-            algres = open(needle_tmp, "r").readlines()
+            algres = open("tmp_needle_seq.fasta", "r").readlines()
             score = list()
             for k in algres:
                 if k.find("Identity: ") > 0:
@@ -510,9 +504,9 @@ def MSAsearch(hd, algn, seq, species=None):
                 strseqnum = key_list[i_0]
             else:
                 strseqnum = i_0
-            os.remove(pdb_tmpname)
-            os.remove(algn_tmpname)
-            os.remove(needle_tmpname)
+            os.remove("tmp_pdb_seq.fasta")
+            os.remove("tmp_algn_seq.fasta")
+            os.remove("tmp_neelde_seq.fasta")
             return strseqnum
         except BaseException as e:
             print("Error: " + str(e))
