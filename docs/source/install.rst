@@ -127,10 +127,16 @@ First, download and install:
 3. `Git for Windows <https://gitforwindows.org/>`_.
 
 **IMPORTANT:** When opening Python 3 installer, click the checkbox to make sure
-Python is added to your system PATH.
+Python is added to your system PATH. For the rest of the prompts, use the
+defaults.
+
+Git for Windows creates both a Bash prompt with Git for version control that
+also can access Python 3 installation on the system PATH. Again, it's essential
+that Python 3 added there. If not (or if you don't remember), run the Python 3
+installer again to make sure.
 
 MSYS2 is a program for compiling Windows programs using a POSIX compatibility
-layer and ported versions of GCC, binutils, and other utilities. Essenailly,
+layer and ported versions of GCC, binutils, and other utilities.  Essenailly,
 one can use it to compile Windows exe's as one would on a Unix operating
 system, like macOS or Linux.
 
@@ -147,44 +153,44 @@ re-open it, and once again run::
 Once the upgrade are complete, install the following packages with the package
 manager (:code:`pacman`) by running::
 
-  pacman -S git make gcc
+  pacman -S git vim make gcc
 
 Now, you can download and install FASTA::
 
   git clone https://github.com/wrpearson/fasta36.git
   cd fasta36/src
-  export CC=/usr/bin/gcc
   make CC=/usr/bin/gcc LD=/usr/bin/ld -j2 -f ../make/Makefile.linux all
   cp -r ../bin /usr/local/
   rm /usr/local/bin/README
   cd ../..
 
-Now, :code:`ggsearch36` program, along with the others, are installed in
+Now, the :code:`ggsearch36` program, along with the others, are installed in
 `/usr/local/bin`. The next step is to add this directory into your Windows
 system PATH variable:
 
 1. Type 'env' in the start search bar.
 2. Click 'Edit the system environment variables'.
-3. Click on 'Environment Variables...' toward the bottom of the window that opens.
+3. Click on 'Environment Variables...' toward the bottom of the window that
+   opens.
 4. Select 'Path' in one of the two selection windows (either 'User variables'
    or 'System variables' is fine)
 5. Once 'Path' is highlighted, click 'Edit...'
-6. Click 'New' in the new window.
-7. While the new entry is highlighted, you can either:
+6. Enter the `/usr/local/bin` as a new PATH entry. You can either:
 
-   - Enter the path to `/usr/local/bin` in the MSYS2 installation folder
-     (default: `C:\msys64\usr\local\bin`).
-   - Click the 'Browse...' button and navigate to the 'usr/local/bin'
+   - Click 'New' in the new window and enter the path to `/usr/local/bin` in
+     the MSYS2 installation folder (default: `C:\msys64\usr\local\bin`).
+   - Click the 'Browse...' button and navigate to the `C:\msys64\usr\local\bin`
      directory.
 
-8. When the new entry is added, click 'OK' on all the opened windows to set all
-   the changes.
+7. When the new entry is added, click 'OK' on all the opened windows to set all
+   the changes. You will need to close and re-open terminals for the changes to
+   be reflected.
 
 Now, :code:`ggsearch36.exe` will be available to all running programs.
 
-Finally, prepare your Git Bash application that was installed as part of Git
-for Windows. Start the application and open the `~/.bash_profile` file by
-running :code:`vi ~/bash_profile` in the prompt. In this file add the lines::
+Finally, launch Git Bash (from Git for Windows) after installed. Open the
+`~/.bash_profile` file in the text editor, default `vi`, by running :code:`vi
+~/.bash_profile`. In this file add the lines::
 
   alias python="winpty python.exe"
   alias pip="winpty pip.exe"
@@ -192,7 +198,9 @@ running :code:`vi ~/bash_profile` in the prompt. In this file add the lines::
 Close the terminal and open it again. Now, you will be able to invoke the
 Python REPL and pip from the Git Bash prompt. Also, if the PATH variable was
 properly updated to contain the `/usr/local/bin` folder from the FASTA step,
-:code:`ggsearch36` will also be available in Git Bash.
+:code:`ggsearch36.exe` will also be available in Git Bash.
+
+You will use the Git Bash prompt to download and install pySCA.
 
 2. (Optional) Other Dependencies
 ================================
@@ -203,8 +211,8 @@ The following steps are optional but highly recommended:
    <ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/database_files/pfamseq.txt.gz>`_ -
    the file `pfamseq.txt` contains phylogenetic annotations for PFAM sequences.
    This is necessary if you would like to annotate PFAM alignments with
-   taxonomic/phylogenetic information using the annotateMSA.py script provided
-   by pySCA. This file is quite large (~10 GB) and is not included here, but it
+   taxonomic/phylogenetic information using the annotateMSA script provided by
+   pySCA. This file is quite large (~10 GB) and is not included here, but it
    is available from the PFAM FTP site in compressed (\*.gz) format.
 
 2) `PyMol <https://pymol.org/2/>`_ - necessary if you would like to use pySCA's
@@ -261,7 +269,9 @@ locations of these files on your computer.
 
 :path2pfamseq: location of the pfamseq text file (default: `data/pfamseq.txt`)
 
-:path2pfamdb: location of the pfamseq database (default: `data/pfamseq.db`)
+:path2pfamdb: location of the pfamseq SQLite database (default: `data/pfamseq.db`)
+              --- the database is generated by the `getPfamDB.sh` script and
+              much faster to process than the text file.
 
 :path2structures: location of your PDB structures for analysis (default:
                   `data/`)
@@ -296,7 +306,7 @@ In the event you run into permissions errors, two options are to either:
 A. Install pySCA Locally
 ------------------------
 
-To install pySCA in your user directory (and without root priviledges), run::
+To install pySCA in your user directory (and without root privileges), run::
 
   pip install --user .
 
@@ -310,7 +320,7 @@ configured correctly. If it is not found, then it needs to be added manually.
 Open you shell configuration file (e.g. .bashrc) and add the directory to the
 PATH variable by appending the following line::
 
-  export PATH="$PATH:$HOME/.local/bin"
+  export PATH="$HOME/.local/bin:$PATH"
 
 The exact path (the text following the semicolon) may differ on your system,
 but it can easily be found by running `echo $(python -m site --user-base)/bin`.
@@ -362,55 +372,34 @@ You can then open the notebooks from the command line by running:
    jupyter notebook <notebook.ipynb>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-**Important:** The :code:`ggearch36`, :code:`needle`, and :code:`pymol`
-programs need to be on the system PATH.
-
-To view your system PATH, run in the terminal::
-
-  echo $PATH
-
-To add directories containing the required prorams to your system path, you
-will need to edit your shell configuration file (e.g. `.bashrc` or
-`.bash_profile`) found at the base of your user directory. To add a directory
-to the system PATH, open up the file and apped the line::
-
-  export PATH="$PATH:<path to directory>"
-
-where `<path to directory>` is replaced with the path to the directory
-containing a program you wish to add (e.g. `~/.local/bin`). After saving the
-changes, new terminals will use the updated PATH.
-
-**Important:** To add an already-installed program is to the PATH, run::
-
-  $ whereis <program>
-
-to find where `<program>` (e.g. :code:`pymol`) is located, and add its
-directory to the system PATH in the manner described above. 
-
-**Important:** Your requirements will vary depending on the size of your
-sequence alignments, but as a rule of thumb, the toolbox is best used on a
-system with at least 8 GB of RAM. pySCA may run with Less, but there will be a
-greater risk when using modestly-sized multeiple sequence alignments of
-processes using more memory than available and subsequently getting killed by
-the operating system's scheduler.
+.. **Important:** The :code:`ggearch36`, :code:`needle`, and :code:`pymol`
+.. programs need to be on the system PATH.
+..
+.. To view your system PATH, run in the terminal::
+..
+..   echo $PATH
+..
+.. To add directories containing the required prorams to your system path, you
+.. will need to edit your shell configuration file (e.g. `.bashrc` or
+.. `.bash_profile`) found at the base of your user directory. To add a directory
+.. to the system PATH, open up the file and apped the line::
+..
+..   export PATH="$PATH:<path to directory>"
+..
+.. where `<path to directory>` is replaced with the path to the directory
+.. containing a program you wish to add (e.g. `~/.local/bin`). After saving the
+.. changes, new terminals will use the updated PATH.
+..
+.. **Important:** To add an already-installed program is to the PATH, run::
+..
+..   $ whereis <program>
+..
+.. to find where `<program>` (e.g. :code:`pymol`) is located, and add its
+.. directory to the system PATH in the manner described above.
+..
+.. **Important:** Your requirements will vary depending on the size of your
+.. sequence alignments, but as a rule of thumb, the toolbox is best used on a
+.. system with at least 8 GB of RAM. pySCA may run with Less, but there will be a
+.. greater risk when using modestly-sized multeiple sequence alignments of
+.. processes using more memory than available and subsequently getting killed by
+.. the operating system's scheduler.
