@@ -35,7 +35,7 @@ FASTA is needed for the :code:`ggsearch36` function.
    cd fasta36/src
    make -j2 -f ../make/Makefile.linux all
    sudo cp -r ../bin /usr/local
-   rm /usr/local/bin/README
+   sudo rm /usr/local/bin/README
    cd ../..
 
 This will compile and install FASTA in the `/usr/local/bin` directory. This
@@ -154,9 +154,9 @@ Now, you can download and install FASTA::
   git clone https://github.com/wrpearson/fasta36.git
   cd fasta36/src
   export CC=/usr/bin/gcc
-  make CC=/usr/bin/gcc LD=/usr/bin/ld -j4 -f ../make/Makefile.linux all
+  make CC=/usr/bin/gcc LD=/usr/bin/ld -j2 -f ../make/Makefile.linux all
   cp -r ../bin /usr/local/
-  rm /usr/local/README
+  rm /usr/local/bin/README
   cd ../..
 
 Now, :code:`ggsearch36` program, along with the others, are installed in
