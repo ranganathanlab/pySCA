@@ -66,7 +66,7 @@ If you run into permissions errors when installing Homebrew, complaining that
 root owns the `/usr/local/` directory, you can change the ownership by
 running::
 
-  chmod -R <user> /usr/local
+  sudo chown -R <user> /usr/local
 
 where `<user>` should be substituted with your username, e.g. `john`.
 
