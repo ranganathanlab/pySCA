@@ -212,8 +212,10 @@ The following steps are optional but highly recommended:
    the file `pfamseq.txt` contains phylogenetic annotations for PFAM sequences.
    This is necessary if you would like to annotate PFAM alignments with
    taxonomic/phylogenetic information using the annotateMSA script provided by
-   pySCA. This file is quite large (~10 GB) and is not included here, but it
-   is available from the PFAM FTP site in compressed (\*.gz) format.
+   pySCA. The file is available from the PFAM FTP site in compressed (\*.gz)
+   format. Just be aware that the file is quite large (~10 Gb download, ~30 Gb
+   decompressed), so check beforehand that you have available space on your
+   hard drive.
 
 2) `PyMol <https://pymol.org/2/>`_ - necessary if you would like to use pySCA's
    automated structure mapping scripts, and useful for mapping the sectors to
