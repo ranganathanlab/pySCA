@@ -87,7 +87,7 @@ ones packged with the base system), add the following to your shell rc file
 
   alias python=/usr/local/bin/python3
   alias python3=/usr/local/bin/python3
-  alias python-pi=/usr/local/bin/python3-pip
+  alias python-pip=/usr/local/bin/python3-pip
   alias python3-pip=/usr/local/bin/python3-pip
   alias python-config=/usr/local/bin/python3-config
   alias python3-config=/usr/local/bin/python3-config
