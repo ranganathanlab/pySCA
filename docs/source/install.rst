@@ -21,7 +21,7 @@ repository:
 3) GCC
 
 .. code-block:: bash
-   
+
    sudo apt-get install python3 python3-pip git gcc
 
 
@@ -47,38 +47,67 @@ Alternatively, instead of :code:`ggsearch36`, one can instead use the
 <ftp://emboss.open-bio.org/pub/EMBOSS/>`_.
 
 macOS (10.15)
--------------
+~~~~~~~~~~~~~
 
 To install the dependencies on macOS, you will need to enable Xcode
 (:code:`xcode-select --install`) and install `Homebrew <https://brew.sh>`_, and
 unofficial package manager.
 
-Xcode may already be enabled, but in case it's not run::
+The installation process will involve entering commands in the terminal and
+editing text files.
+
+For those unfamiliar, to run commands in the terminal:
+
+1) Search for "terminal" in the laucher.
+2) Open the "Terminal" application.
+3) Type in a command into the termianl.
+4) Hit ENTER.
+
+Repeat steps 3 and 4 for all the commands you need to run.
+
+Open your terminal. Search for "terminal" in your launcher's list of
+applications. The following are a set of command-line instructions.
+
+**Xcode**
+
+Now, installation of dependencies. The first step is to enable macOS developer
+tools (i.e. Xcode). If this has not already been installed, run the following
+in the terminal::
 
   xcode-select --install
 
-To install Homebrew, run (from the website)::
+You will be prompted for your password at this step.
+
+**Homebrew**
+
+To install Homebrew, run (copied from the Homebrew website) the following in
+the terminal::
 
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
 
+You will be prompted for your password at this step.
 
 If you run into permissions errors when installing Homebrew, complaining that
 root owns the `/usr/local/` directory, you can change the ownership by
-running::
+running in the terminal::
 
   sudo chown -R <user> /usr/local
 
-where `<user>` should be substituted with your username, e.g. `john`.
+where `<user>` should be substituted with your username. You can view your
+username in the right prompt of your open terminal windows (e.g.
+<user>@<host>). If still unsure, type :code:`whoami` into the terminal, which
+will print out username name. (Don't use :code:`sudo whoami`.)
+
+**Python and GCC**
 
 Once Homebrew is installed, install Python 3 and GCC::
-
 
   brew install gcc python3
 
 This will install the most recent version of Python and the GCC compiler in
 your `/usr/local` directory. To ensure that these programs are used (rather the
 ones packged with the base system), add the following to your shell rc file
-(e.g. ~/.bashrc or ~/.zshrc, depending on what your default shell)::
+(e.g. `~/.bashrc` or `~/.zshrc`, depending on what your default shell)::
 
   export CC=/usr/local/bin/gcc-9
   export CXX=/usr/local/bin/g++-9
@@ -87,19 +116,44 @@ ones packged with the base system), add the following to your shell rc file
 
   alias python=/usr/local/bin/python3
   alias python3=/usr/local/bin/python3
-  alias python-pip=/usr/local/bin/python3-pip
-  alias python3-pip=/usr/local/bin/python3-pip
-  alias python-config=/usr/local/bin/python3-config
-  alias python3-config=/usr/local/bin/python3-config
+  alias pip=/usr/local/bin/pip3
+  alias pip3=/usr/local/bin/pip3
 
-If unsure of your default shell, run :code:`echo $SHELL` in your terminal. To
-ensure that the above commands are executed properly, either run :code:`source
-~/.bashrc` or :code:`source ~/.zshrc` as appropariate or close and re-open a
-terminal. You should see your aliases and environmental variables by running::
+If unsure of your default shell, run :code:`echo $SHELL` in your terminal. If
+the output contains :code:`zsh`, you need to edit `~/.zshrc` (note the '.' at
+the beginning of the file name), and if the output contains :code:`bash`, edit
+`~/.bashrc`.
+
+To edit these files, you can either evoke a text editor from the terminal, or
+your can locate the file in your fie explorer and open it in a text editor
+there. If you opt to use the terminal for edits, one option is to run::
+
+  nano ~/.bashrc
+
+(or :code:`nano ~/.zshrc` as appropriate)
+
+Go to the bottom of the file and append the block of lines above. Save the
+changes and exit the editor.
+
+Next, you will need to update your shell environment to reflect the changes
+made by appending those lines:
+
+1) Option 1: Close and re-open the terminal.
+2) Option 2: Run in the terminal::
+
+     source ~/.bashrc
+
+Now, you can check the new aliases and environmental variables by running in
+the terminal::
 
   alias
   echo $CC
   echo $CXX
+
+In the output, look for lines corresponding to the aliased commands you copied
+earlier, namely :code:`python` and :code:`pip`. Make sure they match.
+
+**FASTA**
 
 Once the aliases and environmental variables are properly set, install FASTA:
 
@@ -113,18 +167,35 @@ Once the aliases and environmental variables are properly set, install FASTA:
    cd ../..
 
 FASTA will now be installed in the `/usr/local/bin` directory, and the
-:code:`ggearch` program included in FASTA will now be on the system PATH.
+:code:`ggsearch36` program included in FASTA will now be on the system PATH.
 
-You may need to use :code:`sudo cp -r ../bin /usr/local` and :code:`sudo rm
-/usr/local/bin/README` if you run into permissions issues.
+If the installation fails due to permissions issues caused by root owning
+`/usr/local/bin`, you may need to use :code:`sudo` to run the following:
+
+.. code-block:: bash
+
+   cd fasta36/src
+   sudo cp -r ../bin /usr/local
+   sudo rm /usr/local/bin/README
+   cd ../..
+
+You will be prompted for your password at this step.
+
+Once installed, you can check that :code:`ggsearch36` is up and running by
+entering in the terminal::
+
+  ggsearch36
+
+This should print out the usage information for :code:`ggsearch36`.
 
 Windows 10
 ----------
 
 First, download and install:
-1. `MSYS2 <https://www.msys2.org>`_,
-2. `Python 3 <https://www.python.org/downloads/>`_, and
-3. `Git for Windows <https://gitforwindows.org/>`_.
+
+1) `MSYS2 <https://www.msys2.org>`_,
+2) `Python 3 <https://www.python.org/downloads/>`_, and
+3) `Git for Windows <https://gitforwindows.org/>`_.
 
 **IMPORTANT:** When opening Python 3 installer, click the checkbox to make sure
 Python is added to your system PATH. For the rest of the prompts, use the
@@ -133,7 +204,7 @@ defaults.
 Git for Windows creates both a Bash prompt with Git for version control that
 also can access Python 3 installation on the system PATH. Again, it's essential
 that Python 3 added there. If not (or if you don't remember), run the Python 3
-installer again to make sure.
+installer again and make sure.
 
 MSYS2 is a program for compiling Windows programs using a POSIX compatibility
 layer and ported versions of GCC, binutils, and other utilities.  Essenailly,
@@ -202,29 +273,46 @@ properly updated to contain the `/usr/local/bin` folder from the FASTA step,
 
 You will use the Git Bash prompt to download and install pySCA.
 
-2. (Optional) Other Dependencies
+2. Other Dependencies
 ================================
 
 The following steps are optional but highly recommended:
 
-1) `PFAM annotations
+1) `PFAM annotations (click to download)
    <ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/database_files/pfamseq.txt.gz>`_ -
    the file `pfamseq.txt` contains phylogenetic annotations for PFAM sequences.
    This is necessary if you would like to annotate PFAM alignments with
-   taxonomic/phylogenetic information using the annotateMSA script provided by
-   pySCA. The file is available from the PFAM FTP site in compressed (\*.gz)
-   format. Just be aware that the file is quite large (~10 Gb download, ~30 Gb
-   decompressed), so check beforehand that you have available space on your
-   hard drive.
+   taxonomic/phylogenetic information using the :code:`annotateMSA` script
+   provided by pySCA. The file is available from the PFAM FTP site in
+   compressed (\*.gz) format. Just be aware that the file is quite large (~10
+   Gb download, ~30 Gb decompressed), so check beforehand that you have
+   available space on your hard drive.
 
 2) `PyMol <https://pymol.org/2/>`_ - necessary if you would like to use pySCA's
    automated structure mapping scripts, and useful for mapping the sectors to
    structure in general.
 
+   The version of the code provided in the linked website requires a paid
+   license. For an open-source (free) build of the code, albeit with some
+   functionality removed, you can follow the following instructions:
+
+   **Linux** - install from your distribution package repository
+
+   **macOS** - run in the terminal::
+
+       brew install brewsci/bio/pymol
+
+   **Windows** - look for `online builds
+   <https://www.lfd.uci.edu/~gohlke/pythonlibs/#pymol-open-source>`_
+
+
 3) `mpld3 <http://mpld3.github.io/>`_ - a package that allows more
    interactive plot visualization in Jupyter notebooks. If you choose not to
    install this (optional) package, you will need to comment out the
-   `import mpld3` lines at the beginning of the tutorials.
+   `import mpld3` lines at the beginning of the tutorials. To install, run in the terminal::
+
+     pip install mpld3
+
 
 3. Download Code
 ================
@@ -237,13 +325,15 @@ A. Use Git
 ----------
 
 If you have :code:`git` installed on your system, you can use it to clone the
-repository from GitHub. Run:
+repository from GitHub. From the command line, run:
 
 .. code-block:: bash
 
    git clone https://github.com/ranganathanlab/pySCA.git
 
 For development and troubleshooting purposes, using Git is preferred.
+
+The code will now be downloaded in a directory called `pySCA`.
 
 B. (OR) Download from the Website
 ---------------------------------
@@ -262,36 +352,42 @@ GitHub page to download older tagged version.
 =============================
 
 Before installing pySCA, for your convenience, you may specify default paths in
-te `settings.py` file for you to use instead of needed to type them out in the
-command line. This part is optional, as every path that you can set in this
-file can be specified in the command line.
+the `settings.py` file found in the `pysca` directory of the pySCA codebase.
+Setting these is optional, for not doing so simply meaning having to set a few
+command line options when running the code later.
 
-The following variables in the "PATHS" of `settings.py` to reflect the
-locations of these files on your computer.
+:path2pfamseq: location of the `pfamseq.txt` text file (default:
+               `pfamseq.txt`). Use an absolute path to specify location.
 
-:path2pfamseq: location of the pfamseq text file (default: `data/pfamseq.txt`)
+:path2pfamdb: location of the `pfamseq.db` SQLite database (default:
+              `pfamseq.db`) --- the database is generated by the `getPfamDB.sh`
+              script and much faster to process than the text file.
 
-:path2pfamdb: location of the pfamseq SQLite database (default: `data/pfamseq.db`)
-              --- the database is generated by the `getPfamDB.sh` script and
-              much faster to process than the text file.
+:path2structures: location of your PDB structures for analysis (default: `.`).
+                  This variable should be set to the absolute path of the
+                  directory where you store all your PDB structures.
 
-:path2structures: location of your PDB structures for analysis (default:
-                  `data/`)
+:path2output: name of the directory where to output the SCA results (default:
+              `output/`)
 
-:path2output: location of output directory (default: `output/`)
+If you ever want to change these variables at a later time, edit the
+`settings.py` file and then **re-install** pySCA. Follow the installation
+procedure in the next step.
 
-5. Install pySCA (global)
-=========================
+5. Install pySCA
+================
 
-The analysis scripts found in the bin/ directory and the SCA toolbox in pysca/
-can now be installed. To install them system-wide, from the base of the
-repository:
+The processing scripts found in the `bin/` directory and the SCA toolbox in
+`pysca/` can now be installed. To install them system-wide, go to the base of
+the repository (i.e. the `pySCA/` directory downloaded by Git) and run in the
+terminal:
 
 .. code-block:: bash
 
-   cd pySCA
    pip install .
-   cd ..
+
+Note the '.' at the end. Don't omit it --- it tells :code:`pip` to look in the
+current directory for configuration instructions.
 
 Pip will first install python package dependencies:
 
@@ -303,14 +399,17 @@ Pip will first install python package dependencies:
 
 Then, it install the pySCA code itself.
 
-In the event you run into permissions errors, two options are to either:
+*If and only if you run into permissions errors*, two options are to either:
 
-A. Install pySCA Locally
-------------------------
+**A. Install pySCA locally**
 
-To install pySCA in your user directory (and without root privileges), run::
+To install pySCA in your user directory (and without root privileges), run in
+the terminal::
 
   pip install --user .
+
+This option is useful if you are working on a system where you do not have
+administrator access.
 
 Note that to use locally installed scripts, the installation directory needs to
 be in the system PATH. To check whether that is the case, run::
@@ -319,7 +418,7 @@ be in the system PATH. To check whether that is the case, run::
 
 If the installation directory is highlighted in the output, then the PATH is
 configured correctly. If it is not found, then it needs to be added manually.
-Open you shell configuration file (e.g. .bashrc) and add the directory to the
+Open you shell configuration file (e.g. `~/.bashrc`) and add the directory to the
 PATH variable by appending the following line::
 
   export PATH="$HOME/.local/bin:$PATH"
@@ -327,8 +426,7 @@ PATH variable by appending the following line::
 The exact path (the text following the semicolon) may differ on your system,
 but it can easily be found by running `echo $(python -m site --user-base)/bin`.
 
-B. OR Install pySCA as root
----------------------------
+**OR B. Install pySCA globally as root**
 
 To install pySCA system-wide, run (as root/administrator)::
 
