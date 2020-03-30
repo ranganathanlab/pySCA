@@ -2176,7 +2176,10 @@ def figStruct(
     writePymol(
         pdbid, sectors, ics, ats, outfilename=outfile, chain=chainid, quit=1
     )
-    os.system("pymol" + " " + outfile)
+    if settings.path2pymol:
+        os.system(settings.path2pymol + " " + outfile)
+    else:
+        os.system("pymol" + " " + outfile)
     img = mpimg.imread(outfile.replace(".pml", ".png"))
     plt.imshow(img)
     plt.axis("off")
