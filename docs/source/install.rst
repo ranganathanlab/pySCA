@@ -118,6 +118,8 @@ ones packged with the base system), add the following to your shell rc file
   alias python3=/usr/local/bin/python3
   alias pip=/usr/local/bin/pip3
   alias pip3=/usr/local/bin/pip3
+  alias python-config=/usr/local/bin/python3-config
+  alias python3-config=/usr/local/bin/python3-config
 
 If unsure of your default shell, run :code:`echo $SHELL` in your terminal. If
 the output contains :code:`zsh`, you need to edit `~/.zshrc` (note the '.' at
