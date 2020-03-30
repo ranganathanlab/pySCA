@@ -256,11 +256,12 @@ if __name__ == "__main__":
     hd_out = list()
     for i, k in enumerate(sequences_full):
         flag = 0
-        for aa in k:
+        l = k.replace(".", "-")
+        for j, aa in enumerate(l):
             if aa not in "ACDEFGHIKLMNPQRSTVWY-":
                 flag = 1
         if flag == 0:
-            alg_out.append(k)
+            alg_out.append(l)
             hd_out.append(headers_full[i])
     headers_full = hd_out
     sequences_full = alg_out
