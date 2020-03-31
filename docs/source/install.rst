@@ -58,9 +58,9 @@ editing text files.
 
 For those unfamiliar, to run commands in the terminal:
 
-1) Search for "terminal" in the laucher.
+1) Search for "terminal" in the launcher.
 2) Open the "Terminal" application.
-3) Type in a command into the termianl.
+3) Type in a command into the terminal.
 4) Hit ENTER.
 
 Repeat steps 3 and 4 for all the commands you need to run.
@@ -209,7 +209,7 @@ that Python 3 added there. If not (or if you don't remember), run the Python 3
 installer again and make sure.
 
 MSYS2 is a program for compiling Windows programs using a POSIX compatibility
-layer and ported versions of GCC, binutils, and other utilities.  Essenailly,
+layer and ported versions of GCC, binutils, and other utilities. Essentially,
 one can use it to compile Windows exe's as one would on a Unix operating
 system, like macOS or Linux.
 
@@ -302,6 +302,7 @@ The following steps are optional but highly recommended:
 
    **macOS** - run in the terminal::
 
+       brew cask install xquartz
        brew install brewsci/bio/pymol
 
    **Windows** - look for `online builds
@@ -371,6 +372,11 @@ command line options when running the code later.
 
 :path2output: name of the directory where to output the SCA results (default:
               `output/`)
+
+:path2pymol: path to PyMOL executable. If unset -- the default -- pySCA will
+             look for PyMOL in the system PATH. This variable will only need to
+             be set if PyMOL is installed in an exotic location and cannot be
+             started by simply running :code:`pymol` in the terminal.
 
 If you ever want to change these variables at a later time, edit the
 `settings.py` file and then **re-install** pySCA. Follow the installation
