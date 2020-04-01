@@ -244,7 +244,6 @@ def AnnotPfamDB(pfam_in, pfam_out, pfam_db=settings.path2pfamseqdb):
                     row = [field for match in res for field in match]
                 else:
                     row = [pfamseq_id, "unknown", "unknown", "unknown"]
-                seq_info.append(row)
             seq_info.append(row)
     end_time = time.time()
 
