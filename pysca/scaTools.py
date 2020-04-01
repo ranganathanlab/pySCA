@@ -229,13 +229,22 @@ def AnnotPfamDB(pfam_in, pfam_out, pfam_db=settings.path2pfamseqdb):
         for pfamseq_id in pfamseq_ids:
             c.execute(
                 "SELECT pfamseq_id,description,species,taxonomy "
-                "FROM pfamseq WHERE pfamseq_acc = ?", (pfamseq_id,),
+                "FROM pfamseq WHERE pfamseq_id = ?", (pfamseq_id,),
             )
             res = c.fetchall()
             if res:
                 row = [field for match in res for field in match]
             else:
-                row = [pfamseq_id, "unknown", "unknown", "unknown"]
+                c.execute(
+                    "SELECT pfamseq_acc,description,species,taxonomy "
+                    "FROM pfamseq WHERE pfamseq_acc = ?", (pfamseq_id,),
+                )
+                res = c.fetchall()
+                if res:
+                    row = [field for match in res for field in match]
+                else:
+                    row = [pfamseq_id, "unknown", "unknown", "unknown"]
+                seq_info.append(row)
             seq_info.append(row)
     end_time = time.time()
 
