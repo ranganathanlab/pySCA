@@ -940,9 +940,9 @@ def freq(alg, seqw=1, Naa=20, lbda=0, freq0=np.ones(20) / 21):
     )
     # Background:
     block = np.outer(freq0, freq0)
-    freq2_bkg = np.zeros((Npos * Naa, Npos * Naa))
+    freq2_bkg = np.tile(block, (Npos, Npos))
     for i in range(Npos):
-        freq2_bkg[Naa * i : Naa * (i + 1), Naa * i : Naa * (i + 1)] = block
+        freq2_bkg[Naa * i : Naa * (i + 1), Naa * i : Naa * (i + 1)] = np.diag(freq0)
     # Regularizations:
     freq1_reg = (1 - lbda) * freq1 + lbda * np.tile(freq0, Npos)
     freq2_reg = (1 - lbda) * freq2 + lbda * freq2_bkg
