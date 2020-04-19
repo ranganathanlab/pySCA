@@ -700,7 +700,7 @@ def alg2bin(alg, N_aa=20):
     Abin_tensor = np.zeros((N_aa, N_pos, N_seq))
     for ia in range(N_aa):
         Abin_tensor[ia, :, :] = (alg == ia + 1).T
-    Abin = Abin_tensor.reshape(N_aa * N_pos, N_seq, order="F").T
+    Abin = sparsify(Abin_tensor.reshape(N_aa * N_pos, N_seq, order="F").T)
     return Abin
 
 
@@ -730,11 +730,9 @@ def seqWeights(alg, max_seqid=0.8, gaps=1):
     if gaps == 1:
         codeaa += "-"
     msa_num = lett2num(alg, code=codeaa)
-    Nseq, Npos = msa_num.shape
     X2d = alg2bin(msa_num, N_aa=len(codeaa))
-    simMat = X2d.dot(X2d.T) / Npos
+    simMat = (X2d.dot(X2d.T)).todense() / msa_num.shape[1]
     seqw = np.array(1 / (simMat > max_seqid).sum(axis=0))
-    seqw.shape = (1, Nseq)
     return seqw
 
 
