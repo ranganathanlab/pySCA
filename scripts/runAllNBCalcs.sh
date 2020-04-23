@@ -57,7 +57,12 @@ mkdir -vp ${outputdir}
 
 # The S1A serine proteases
 echo "S1A serine protease Calculations:" | tee ${outputdir}/s1A_halabi.log
-scaProcessMSA -a ${datadir}/s1Ahalabi_1470_nosnakes.an -b ${datadir} -s 3TGI -c E \
+scaProcessMSA \
+  -a ${datadir}/s1Ahalabi_1470_nosnakes.an \
+  -b ${datadir} \
+  -s 3TGI \
+  -c E \
+  -d ${outputdir} \
   -t -n 2>&1 | tee -a ${outputdir}/s1A_halabi.log
 scaCore -i ${outputdir}/s1Ahalabi_1470_nosnakes.db 2>&1 | \
   tee -a ${outputdir}/s1A_halabi.log
@@ -67,8 +72,14 @@ echo
 
 # Beta-lactamase
 echo "Beta-lactamase Calculations:" | tee ${outputdir}/PF13354.log
-scaProcessMSA -a ${datadir}/PF13354_full.an -b ${datadir} -s 1FQG -c A \
-  -f 'Escherichia coli' -t -n 2>&1 | tee -a ${outputdir}/PF13354.log
+scaProcessMSA \
+  -a ${datadir}/PF13354_full.an \
+  -b ${datadir} \
+  -s 1FQG \
+  -c A \
+  -d ${outputdir} \
+  -f 'Escherichia coli' \
+  -t -n 2>&1 | tee -a ${outputdir}/PF13354.log
 scaCore -i ${outputdir}/PF13354_full.db 2>&1 | \
   tee -a ${outputdir}/PF13354.log
 scaSectorID -i ${outputdir}/PF13354_full.db 2>&1 | \
@@ -80,8 +91,14 @@ echo
 # N-terminal truncation mutants. PF00071_rd2 is the aligment discussed in the
 # manuscript.
 echo "G-protein calculations:" | tee ${outputdir}/PF00071.log
-scaProcessMSA -a ${datadir}/PF00071_full.an -b ${datadir} -s 5P21 -c A \
-  -f 'Homo sapiens' -t -n 2>&1 | tee -a ${outputdir}/PF00071.log
+scaProcessMSA \
+  -a ${datadir}/PF00071_full.an \
+  -b ${datadir} \
+  -s 5P21 \
+  -c A \
+  -d ${outputdir} \
+  -f 'Homo sapiens' \
+  -t -n 2>&1 | tee -a ${outputdir}/PF00071.log
 scaCore -i ${outputdir}/PF00071_full.db 2>&1 | \
   tee -a ${outputdir}/PF00071.log
 scaSectorID -i ${outputdir}/PF00071_full.db 2>&1 | \
@@ -89,8 +106,14 @@ scaSectorID -i ${outputdir}/PF00071_full.db 2>&1 | \
 echo
 
 echo "G-protein calculations:" | tee ${outputdir}/PF00071_rd2.log
-scaProcessMSA -a ${datadir}/PF00071_rd2.an -b ${datadir} -s 5P21 -c A \
-  -f 'Homo sapiens' -t -n 2>&1 | tee -a ${outputdir}/PF00071_rd2.log
+scaProcessMSA \
+  -a ${datadir}/PF00071_rd2.an \
+  -b ${datadir} \
+  -s 5P21 \
+  -c A \
+  -d ${outputdir} \
+  -f 'Homo sapiens' \
+  -t -n 2>&1 | tee -a ${outputdir}/PF00071_rd2.log
 scaCore -i ${outputdir}/PF00071_rd2.db 2>&1 | \
   tee -a ${outputdir}/PF00071_rd2.log
 scaSectorID -i ${outputdir}/PF00071_rd2.db 2>&1 | \
@@ -101,8 +124,14 @@ echo
 # the full PFAM alignment (PF00186_full.an) and a manually curated alignment
 # (DHFR_PEPM3.an)
 echo "DHFR Calculations:" | tee ${outputdir}/PF00186.log
-scaProcessMSA -a ${datadir}/PF00186_full.an -b ${datadir} -s 1RX2 -c A \
-  -f 'Escherichia coli' -t -n 2>&1 | tee -a ${outputdir}/PF00186.log
+scaProcessMSA \
+  -a ${datadir}/PF00186_full.an \
+  -b ${datadir} \
+  -s 1RX2 \
+  -c A \
+  -d ${outputdir} \
+  -f 'Escherichia coli' \
+  -t -n 2>&1 | tee -a ${outputdir}/PF00186.log
 scaCore -i ${outputdir}/PF00186_full.db 2>&1 | \
   tee -a ${outputdir}/PF00186.log
 scaSectorID -i ${outputdir}/PF00186_full.db 2>&1 | \
@@ -110,8 +139,13 @@ scaSectorID -i ${outputdir}/PF00186_full.db 2>&1 | \
 echo
 
 echo "DHFR Calculations:" | tee ${outputdir}/DHFR_PEPM3.log
-scaProcessMSA -a ${datadir}/DHFR_PEPM3.an -b ${datadir} -s 1RX2 -c A -t -n 2>&1 | \
-  tee -a ${outputdir}/DHFR_PEPM3.log
+scaProcessMSA \
+  -a ${datadir}/DHFR_PEPM3.an \
+  -b ${datadir} \
+  -s 1RX2 \
+  -c A \
+  -d ${outputdir} \
+  -t -n 2>&1 | tee -a ${outputdir}/DHFR_PEPM3.log
 scaCore -i ${outputdir}/DHFR_PEPM3.db 2>&1 | \
   tee -a ${outputdir}/DHFR_PEPM3.log
 scaSectorID -i ${outputdir}/DHFR_PEPM3.db 2>&1 | \
