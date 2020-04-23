@@ -553,7 +553,8 @@ if __name__ == "__main__":
     db = {}
     db["sequence"] = D
 
-    if options.matfile:
-        savemat(db_filename, db, appendmat=True, oned_as="column")
-
     pickle.dump(db, open(db_filename + ".db", "wb"))
+
+    if options.matfile:
+        db["sequence"]["i_ref"] = i_ref + 1 # index from 1 for MATLAB
+        savemat(db_filename, db, appendmat=True, oned_as="column")

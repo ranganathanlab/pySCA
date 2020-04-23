@@ -157,12 +157,17 @@ if __name__ == "__main__":
         "Calculations complete, writing to database file "
         + os.path.join(output_path, fn_noext)
     )
+    pickle.dump(db, open(os.path.join(output_path, fn_noext) + ".db", "wb"))
+
     if options.matfile:
+        # increment indices by 1 for MATLAB
+        db["sector"]["sortedpos"] = [pos+1 for pos in D["sortedpos"]]
+        for ic in ics:
+            ic.items = [item + 1 for item in ic.items]
+        db["sector"]["ics"] = ics
         savemat(
             os.path.join(output_path, fn_noext) + ".mat",
             db,
             appendmat=True,
             oned_as="column",
         )
-
-    pickle.dump(db, open(os.path.join(output_path, fn_noext) + ".db", "wb"))

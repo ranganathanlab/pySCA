@@ -200,6 +200,8 @@ if __name__ == "__main__":
         "Calculations complete, writing to database file "
         + os.path.join(output_path, fn_noext)
     )
+    pickle.dump(db, open(os.path.join(output_path, fn_noext) + ".db", "wb"))
+
     if options.matfile:
         savemat(
             os.path.join(output_path, fn_noext) + ".mat",
@@ -207,5 +209,3 @@ if __name__ == "__main__":
             appendmat=True,
             oned_as="column",
         )
-
-    pickle.dump(db, open(os.path.join(output_path, fn_noext) + ".db", "wb"))
