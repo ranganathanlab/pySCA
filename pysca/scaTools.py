@@ -995,7 +995,7 @@ def svdss(X, k=6):
     return u, s, v
 
 
-def basicICA(x, r, Niter):
+def basicICA(x, r0, Niter, tolerance=1e-15):
     """
     Basic ICA algorithm, based on work by Bell & Sejnowski (infomax). The input
     data should preferentially be sphered, i.e., x.T.dot(x) = 1
@@ -1022,18 +1022,29 @@ def basicICA(x, r, Niter):
     [L, M] = x.shape
     w = np.eye(L)
     change = list()
-    for _ in range(Niter):
-        w_old = np.copy(w)
-        u = w.dot(x)
-        w += r * (
-            M * np.eye(L) + (1 - 2 * (1.0 / (1 + np.exp(-u)))).dot(u.T)
-        ).dot(w)
-        delta = (w - w_old).ravel()
-        change.append(delta.dot(delta.T))
+    r = r0 / M
+    with np.errstate(over='raise'):
+        try:
+            for _ in range(Niter):
+                w_old = np.copy(w)
+                u = w.dot(x)
+                w += r * (
+                    M * np.eye(L) + (1.0 - 2.0 / (1.0 + np.exp(-u))).dot(u.T)
+                ).dot(w)
+                delta = (w - w_old).ravel()
+                val = delta.dot(delta.T)
+                change.append(val)
+                if np.isclose(val, 0, atol=tolerance):
+                    print(_)
+                    break
+                if _ == Niter-1:
+                    print("basicICA failed to converge: " + str(val))
+        except FloatingPointError as e:
+            sys.exit("Error: basicICA " + str(e))
     return [w, change]
 
 
-def rotICA(V, kmax=6, learnrate=0.0001, iterations=10000):
+def rotICA(V, kmax=6, learnrate=.1, iterations=100000):
     """
     ICA rotation (using basicICA) with default parameters and normalization of
     outputs.
@@ -1043,7 +1054,7 @@ def rotICA(V, kmax=6, learnrate=0.0001, iterations=10000):
     """
 
     V1 = V[:, :kmax].T
-    [W, changes_s] = basicICA(V1, learnrate, iterations)
+    [W, changes] = basicICA(V1, learnrate, iterations)
     Vica = (W.dot(V1)).T
     for n in range(kmax):
         imax = abs(Vica[:, n]).argmax()
