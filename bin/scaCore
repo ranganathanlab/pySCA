@@ -129,6 +129,8 @@ if __name__ == "__main__":
     # sequence analysis
     print("Computing the sequence projections.")
     Useq, Uica = sca.seqProj(msa_num, seqw, kseq=30, kica=15)
+
+    print("Computing sequence similarity matrix.")
     simMat = sca.seqSim(msa_num)
 
     # SCA calculations

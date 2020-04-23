@@ -44,6 +44,7 @@ from Bio import Entrez
 
 from pysca import settings
 
+
 ##########################################################################
 # CLASSES
 
@@ -689,11 +690,30 @@ def alg2bin(alg, N_aa=20):
     """
     Translate an alignment of matrix of size M sequences by L positions where
     the amino acids are represented by numbers between 0 and N_aa (obtained
-    using lett2num) to a sparse binary array of size M x (N_aa x L).
+    using lett2num) to a binary array of size M x (N_aa x L).
 
     **Example**::
 
       Abin = alg2bin(alg, N_aa=20)
+    """
+
+    [N_seq, N_pos] = alg.shape
+    Abin_tensor = np.zeros((N_aa, N_pos, N_seq))
+    for ia in range(N_aa):
+        Abin_tensor[ia, :, :] = (alg == ia + 1).T
+    Abin = Abin_tensor.reshape(N_aa * N_pos, N_seq, order="F").T
+    return Abin
+
+
+def alg2binss(alg, N_aa=20):
+    """
+    Translate an alignment of matrix of size M sequences by L positions where
+    the amino acids are represented by numbers between 0 and N_aa (obtained
+    using lett2num) to a sparse binary array of size M x (N_aa x L).
+
+    **Example**::
+
+      Abin = alg2binss(alg, N_aa=20)
     """
 
     [N_seq, N_pos] = alg.shape
@@ -730,9 +750,11 @@ def seqWeights(alg, max_seqid=0.8, gaps=1):
     if gaps == 1:
         codeaa += "-"
     msa_num = lett2num(alg, code=codeaa)
+    Nseq, Npos = msa_num.shape
     X2d = alg2bin(msa_num, N_aa=len(codeaa))
-    simMat = (X2d.dot(X2d.T)).todense() / msa_num.shape[1]
+    simMat = X2d.dot(X2d.T) / Npos
     seqw = np.array(1 / (simMat > max_seqid).sum(axis=0))
+    seqw.shape = (1, Nseq)
     return seqw
 
 
@@ -933,7 +955,7 @@ def freq(alg, seqw=1, Naa=20, lbda=0, freq0=np.ones(20) / 21):
     if isinstance(seqw, int) and seqw == 1:
         seqw = np.ones((1, Nseq))
     seqwn = seqw / seqw.sum()
-    al2d = alg2bin(alg, Naa)
+    al2d = alg2binss(alg, Naa)
     freq1 = seqwn.dot(np.array(al2d.todense()))[0]
     freq2 = np.array(
         al2d.T.dot(scipy.sparse.diags(seqwn[0], 0)).dot(al2d).todense()
@@ -1080,9 +1102,7 @@ def seqSim(alg):
     [Nseq, Npos] = alg.shape
     # Convert into a M*(20L) (sparse) binary array:
     X2d = alg2bin(alg)
-    # Make the product with sparse matrices and convert it back to a dense
-    # array:
-    simMat = (X2d.dot(X2d.T)).todense() / Npos
+    simMat = X2d.dot(X2d.T) / Npos
     return simMat
 
 
@@ -1203,7 +1223,7 @@ def seqProj(msa_num, seqw, kseq=15, kica=6):
     Useq = list()
 
     # 1 - raw:
-    X2d = alg2bin(msa_num)
+    X2d = alg2binss(msa_num)
     Useq.append(svdss(X2d, k=kseq)[0])
 
     # 2 - with sequence weights:
@@ -1267,8 +1287,8 @@ def scaMat(alg, seqw=1, norm="frob", lbda=0, freq0=np.ones(20) / 21):
     freq1, freq2, freq0 = freq(
         alg, Naa=N_aa, seqw=seqw, lbda=lbda, freq0=freq0
     )
-    W_pos = posWeights(alg, seqw, lbda)[0]
-    tildeC = np.outer(W_pos, W_pos) * (freq2 - np.outer(freq1, freq1))
+    Wpos = posWeights(alg, seqw, lbda)[0]
+    tildeC = np.outer(Wpos, Wpos) * (freq2 - np.outer(freq1, freq1))
 
     # Positional correlations:
     Cspec = np.zeros((N_pos, N_pos))
@@ -1287,9 +1307,9 @@ def scaMat(alg, seqw=1, norm="frob", lbda=0, freq0=np.ones(20) / 21):
     Cfrob += np.triu(Cfrob, 1).T
 
     # Projector:
-    al2d = np.array(alg2bin(alg).todense())
+    al2d = np.array(alg2binss(alg).todense())
     tX = np.zeros((N_seq, N_pos))
-    Proj = W_pos * freq1
+    Proj = Wpos * freq1
     ProjMat = np.zeros((N_pos, N_aa))
     for i in range(N_pos):
         Projati = Proj[N_aa * i : N_aa * (i + 1)]
@@ -1317,7 +1337,7 @@ def projUica(msa_ann, msa_num, seqw, kica=6):
       Uica_ann, Uica = projUpica(msa_ann, msa_num_ seqw, kica=6)
     """
 
-    X2d = alg2bin(msa_num)
+    X2d = alg2binss(msa_num)
     posw, Dia, Di = posWeights(msa_num, seqw)
     X2dw = sparsify(np.diag(np.sqrt(seqw[0]))).dot(X2d)
     u, s, v = svdss(X2dw, k=kica)
@@ -1327,7 +1347,7 @@ def projUica(msa_ann, msa_num, seqw, kica=6):
         P[:, j] = np.sign(np.mean(U[:, j])) * P[:, j]
         U[:, j] = np.sign(np.mean(U[:, j])) * U[:, j]
     U, W = rotICA(U, kmax=kica)
-    X2d_new = alg2bin(msa_ann)
+    X2d_new = alg2binss(msa_ann)
     U0 = X2d.dot(P)
     U1 = X2d_new.dot(P)
     Ui0 = (W.dot(U0[:, :kica].T)).T
@@ -1356,7 +1376,7 @@ def projAlg(alg, Proj):
 
     N_seq, N_pos = alg.shape
     N_aa = 20
-    al2d = np.array(alg2bin(alg).todense())
+    al2d = np.array(alg2binss(alg).todense())
     tX = np.zeros((N_seq, N_pos))
     ProjMat = np.zeros((N_pos, N_aa))
     for i in range(N_pos):
