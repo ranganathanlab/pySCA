@@ -212,7 +212,7 @@ if __name__ == "__main__":
             if options.pdbid is not None:
                 print("And...ignoring the PDB file...")
                 options.pdbid = None
-            options.refpos = [i+1 for i in range(len(options.refseq))]
+            options.refpos = [i + 1 for i in range(len(options.refseq))]
         if options.refseq is not None and options.refpos is not None:
             print("Using the reference sequence and position list...")
             if options.pdbid is not None:
@@ -240,7 +240,6 @@ if __name__ == "__main__":
         pdbdir = options.pdbdir
     else:
         sys.exit("PDB directory '%s/' not found." % options.pdbdir)
-
 
     # Read in initial alignment
     headers_full, sequences_full = sca.readAlg(options.alignment)
@@ -393,13 +392,13 @@ if __name__ == "__main__":
                             "Error reading reference position file! Using"
                             " default numbering 1 to number of positions"
                         )
-                        ats_tmp = [i+1 for i in range(len(sequences[0]))]
+                        ats_tmp = [i + 1 for i in range(len(sequences[0]))]
                 else:
                     print(
                         "No reference position list provided. Using"
                         " default numbering 1 to number of positions"
                     )
-                    ats_tmp = [i+1 for i in range(len(sequences[0]))]
+                    ats_tmp = [i + 1 for i in range(len(sequences[0]))]
                 sequences, ats = sca.makeATS(
                     sequences_full, ats_tmp, s_tmp[0], i_ref, options.truncate
                 )
@@ -414,7 +413,7 @@ if __name__ == "__main__":
                 % (i_ref, headers_full[i_ref])
             )
             sequences = sequences_full
-            ats = [i+1 for i in range(len(sequences[0]))]
+            ats = [i + 1 for i in range(len(sequences[0]))]
     else:
         print("using provided reference index %i" % (i_ref))
         print(ref_header)
@@ -426,7 +425,7 @@ if __name__ == "__main__":
                 f.close()
             else:
                 print("here!")
-                ats_tmp = [i+1 for i in range(len(s_tmp))]
+                ats_tmp = [i + 1 for i in range(len(s_tmp))]
             sequences, ats = sca.makeATS(
                 sequences_full, ats_tmp, s_tmp, i_ref, options.truncate
             )
@@ -510,7 +509,7 @@ if __name__ == "__main__":
             % (len(distmat), len(distmat[0]))
         )
 
-    # saving the important stuff. Everything is stored in a file called
+    # Saving the important stuff. Everything is stored in a file called
     # [MSAname]_sequence.db.  But we will also write out the final processed
     # alignment to a fasta file.
 
@@ -521,7 +520,6 @@ if __name__ == "__main__":
         "w",
     )
     for i in range(len(alg)):
-        #  f.write(">" + hd[i] + "\n")
         f.write(">%s\n" % (hd[i]))
         f.write(alg[i] + "\n")
     f.close()

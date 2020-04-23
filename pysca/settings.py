@@ -14,11 +14,15 @@
 # from
 # ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/database_files/
 # and/or the SQLite database `pfamseq.db` if it exists.
-path2pfamseq = "pfamseq.txt"   # replace with absolute path to pfamseq.txt
-path2pfamseqdb = "pfamseq.db"  # replace with absolute path to pfamseq.db (if present)
+path2pfamseq = "pfamseq.txt"  # replace with absolute path to pfamseq.txt
+path2pfamseqdb = (
+    "pfamseq.db"  # replace with absolute path to pfamseq.db (if present)
+)
 
 # the location of your PDB structures
-path2structures = "." # replace with absolute path to directory of PDB structures
+path2structures = (
+    "."  # replace with absolute path to directory of PDB structures
+)
 
 # Also assumes that a folder named 'output/' is in the path. Change to '.' if
 # you want results printed in the current working directory by default.

@@ -185,7 +185,10 @@ def AnnotPfam(pfam_in, pfam_out, pfam_seq=settings.path2pfamseq):
                     info.split("\t")[5],
                     info.split("\t")[8],
                     ",".join(
-                        [name.strip() for name in info.split("\t")[9].split(";")]
+                        [
+                            name.strip()
+                            for name in info.split("\t")[9].split(";")
+                        ]
                     ),
                 )
             )
@@ -230,7 +233,8 @@ def AnnotPfamDB(pfam_in, pfam_out, pfam_db=settings.path2pfamseqdb):
         for pfamseq_id in pfamseq_ids:
             c.execute(
                 "SELECT pfamseq_id,description,species,taxonomy "
-                "FROM pfamseq WHERE pfamseq_id = ?", (pfamseq_id,),
+                "FROM pfamseq WHERE pfamseq_id = ?",
+                (pfamseq_id,),
             )
             res = c.fetchall()
             if res:
@@ -238,7 +242,8 @@ def AnnotPfamDB(pfam_in, pfam_out, pfam_db=settings.path2pfamseqdb):
             else:
                 c.execute(
                     "SELECT pfamseq_acc,description,species,taxonomy "
-                    "FROM pfamseq WHERE pfamseq_acc = ?", (pfamseq_id,),
+                    "FROM pfamseq WHERE pfamseq_acc = ?",
+                    (pfamseq_id,),
                 )
                 res = c.fetchall()
                 if res:
@@ -459,7 +464,7 @@ def MSAsearch(hd, algn, seq, species=None):
             "1",
             "-m 8",
             "tmp_pdb_seq.fasta",
-            "tmp_algn_seq.fasta"
+            "tmp_algn_seq.fasta",
         ]
         output = subprocess.check_output(args)
         i_0 = [
@@ -629,8 +634,8 @@ def makeATS(sequences, refpos, refseq, iref=0, truncate=False):
             refseq, tmp, 2, -1, -0.5, -0.1
         )[0]
         print(
-            "Len refseq %i, len refpos %i, Len alg seq %i, "
-            "len pairalg %i,len gloalg %i"
+            "len refseq %i, len refpos %i, Len alg seq %i, "
+            "len pairalg %i, len gloalg %i"
             % (
                 len(refseq),
                 len(refpos),
@@ -964,7 +969,9 @@ def freq(alg, seqw=1, Naa=20, lbda=0, freq0=np.ones(20) / 21):
     block = np.outer(freq0, freq0)
     freq2_bkg = np.tile(block, (Npos, Npos))
     for i in range(Npos):
-        freq2_bkg[Naa * i : Naa * (i + 1), Naa * i : Naa * (i + 1)] = np.diag(freq0)
+        freq2_bkg[Naa * i : Naa * (i + 1), Naa * i : Naa * (i + 1)] = np.diag(
+            freq0
+        )
     # Regularizations:
     freq1_reg = (1 - lbda) * freq1 + lbda * np.tile(freq0, Npos)
     freq2_reg = (1 - lbda) * freq2 + lbda * freq2_bkg
@@ -1045,7 +1052,7 @@ def basicICA(x, r0, Niter, tolerance=1e-15):
     w = np.eye(L)
     change = list()
     r = r0 / M
-    with np.errstate(over='raise'):
+    with np.errstate(over="raise"):
         try:
             for _ in range(Niter):
                 w_old = np.copy(w)
@@ -1059,14 +1066,14 @@ def basicICA(x, r0, Niter, tolerance=1e-15):
                 if np.isclose(val, 0, atol=tolerance):
                     print(_)
                     break
-                if _ == Niter-1:
+                if _ == Niter - 1:
                     print("basicICA failed to converge: " + str(val))
         except FloatingPointError as e:
             sys.exit("Error: basicICA " + str(e))
     return [w, change]
 
 
-def rotICA(V, kmax=6, learnrate=.1, iterations=100000):
+def rotICA(V, kmax=6, learnrate=0.1, iterations=100000):
     """
     ICA rotation (using basicICA) with default parameters and normalization of
     outputs.
