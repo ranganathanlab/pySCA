@@ -99,6 +99,22 @@ if __name__ == "__main__":
         "alignment. Default: 0.03",
     )
     parser.add_argument(
+        "-q",
+        dest="kseq",
+        default=30,
+        type=int,
+        help="number of eigenvectors to computes in sequence matrix. "
+        "Default: 30",
+    )
+    parser.add_argument(
+        "-c",
+        dest="kica",
+        default=15,
+        type=int,
+        help="number of independent components to compute from sequence "
+        "alignment matrix. Default: 15",
+    )
+    parser.add_argument(
         "-m",
         "--matlab",
         dest="matfile",
@@ -128,7 +144,9 @@ if __name__ == "__main__":
 
     # sequence analysis
     print("Computing the sequence projections.")
-    Useq, Uica = sca.seqProj(msa_num, seqw, kseq=30, kica=15)
+    Useq, Uica = sca.seqProj(
+        msa_num, seqw, kseq=options.kseq, kica=options.kica
+    )
 
     print("Computing sequence similarity matrix.")
     simMat = sca.seqSim(msa_num)
