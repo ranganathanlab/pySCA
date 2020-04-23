@@ -249,6 +249,10 @@ if __name__ == "__main__":
         % (len(headers_full), len(sequences_full[0]))
     )
 
+    if options.i_ref is not None:
+        ref_header = headers_full[options.i_ref]
+        ref_sequence = sequences_full[options.i_ref]
+
     # Check the alignment and remove sequences containing non-standard amino
     # acids
     print("Checking alignment for non-standard amino acids")
@@ -279,6 +283,9 @@ if __name__ == "__main__":
     print(
         "Alignment size post-trimming: %i positions" % len(sequences_full[0])
     )
+
+    if options.i_ref is not None:
+        ref_sequence = "".join([ref_sequence[i] for i in poskeep])
 
     # If i_ref is directly provided, we use it, ignoring all else.
     # Otherwise, we explore the other ways of specifying a reference
@@ -410,8 +417,8 @@ if __name__ == "__main__":
             ats = [i+1 for i in range(len(sequences[0]))]
     else:
         print("using provided reference index %i" % (i_ref))
-        print(headers_full[i_ref])
-        s_tmp = sequences_ori[i_ref]
+        print(ref_header)
+        s_tmp = ref_sequence
         try:
             if options.refpos is not None:
                 f = open(options.refpos, "r")
