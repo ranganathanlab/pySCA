@@ -317,7 +317,7 @@ if __name__ == "__main__":
                             seq_pdb,
                             options.species,
                         )
-                        Options_ref = i_ref
+                        options.i_ref = i_ref
                         print("reference sequence index is: %i" % (i_ref))
                         print(headers_full[i_ref])
                         print(sequences_full[i_ref])
