@@ -634,7 +634,7 @@ def makeATS(sequences, refpos, refseq, iref=0, truncate=False):
             refseq, tmp, 2, -1, -0.5, -0.1
         )[0]
         print(
-            "len refseq %i, len refpos %i, Len alg seq %i, "
+            "len refseq %i, len refpos %i, len algseq %i, "
             "len pairalg %i, len gloalg %i"
             % (
                 len(refseq),
