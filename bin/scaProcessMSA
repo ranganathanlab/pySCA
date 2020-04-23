@@ -251,7 +251,7 @@ if __name__ == "__main__":
 
     if options.i_ref is not None:
         ref_header = headers_full[options.i_ref]
-        ref_sequence = sequences_full[options.i_ref]
+        ref_sequence = (sequences_full[options.i_ref]).replace(".", "-")
 
     # Check the alignment and remove sequences containing non-standard amino
     # acids
@@ -426,7 +426,7 @@ if __name__ == "__main__":
                 f.close()
             else:
                 print("here!")
-                ats_tmp = [i+1 for i in range(ref_sequence)]
+                ats_tmp = [i+1 for i in range(len(s_tmp))]
             sequences, ats = sca.makeATS(
                 sequences_full, ats_tmp, s_tmp, i_ref, options.truncate
             )
