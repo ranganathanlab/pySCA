@@ -1064,7 +1064,6 @@ def basicICA(x, r0, Niter, tolerance=1e-15):
                 val = delta.dot(delta.T)
                 change.append(val)
                 if np.isclose(val, 0, atol=tolerance):
-                    print(_)
                     break
                 if _ == Niter - 1:
                     print("basicICA failed to converge: " + str(val))
