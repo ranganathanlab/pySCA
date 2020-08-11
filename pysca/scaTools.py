@@ -1879,9 +1879,13 @@ def randomize(
     )
     fr1 = np.reshape(f1, (Npos, Naa))
     fr0 = (1.0 - fr1.sum(axis=1)).reshape(Npos, 1)
-    fr0[
-        fr0 < tolerance
-    ] = 0  # workaround for roundoff errors giving negative fr0
+
+    # workaround for roundoff errors giving freq < 0 or > 1
+    fr0[fr0 < tolerance] = 0
+    fr0[(fr0 > 1) * (fr0 - tolerance < 1)] = 1
+    fr1[fr1 < tolerance] = 0
+    fr1[(fr1 > 1) * (fr1 - tolerance < 1)] = 1
+
     fr01 = np.concatenate((fr0, fr1), axis=1)
 
     # Multiple randomizations:
