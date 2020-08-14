@@ -1834,7 +1834,7 @@ def randomize(
     lbda=0,
     Naa=20,
     kmax=6,
-    tolerance=1e-15,
+    tolerance=1e-12,
 ):
     """
     Randomize the alignment while preserving the frequencies of amino acids at
