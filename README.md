@@ -1,11 +1,10 @@
 # pySCA
 
-![Website Build Status](https://gitlab.com/ranganathanlab/pySCA/badges/master/build.svg)
+![Website Build Status](https://gitlab.com/ranganathanlab/pySCA/badges/master/pipeline.svg)
 
-> 10.2019
+> 09.2020
 >
-> Copyright (C) 2019 Olivier Rivoire, Rama Ranganathan, Kimberly Reynolds,
-> Ansel George
+> Copyright (C) 2019 Olivier Rivoire, Rama Ranganathan, and Kimberly Reynolds
 >
 > This program is free software distributed under the BSD 3-clause license,
 > please see the file LICENSE for details.
