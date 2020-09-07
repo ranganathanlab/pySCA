@@ -118,6 +118,31 @@ def readAlg(filename):
     return headers, sequences
 
 
+def parseAlgHeader(header, delimiter="|"):
+    """
+    Use this instead of splitting on the "|" delimiter if the "|" character
+    shows up inside one of the fields.
+
+    Run this function on a single header, not all the headers returned in the
+    list from readAlg.
+
+    header_fields = readAlg(headers)
+    """
+
+    header_fields = header.split
+    idx1 = [i for i in range(header_fields) if "{" in header_fields[i]]
+    idx2 = [i for i in range(header_fields) if "}" in header_fields[i]]
+
+    idx_loss = 0
+    for i, j in zip(idx1, idx2):
+        header_fields[(i - idx_loss) : (j + 1 - idx_loss)] = [
+            delimiter.join(header_fields[(i - idx_loss) : (j + 1 - idx_loss)])
+        ]
+        idx_loss = idx_loss + (j - i)
+
+    return header_fields
+
+
 def AnnotPfam(
     pfam_in, pfam_out, pfam_seq=settings.path2pfamseq, delimiter="|"
 ):
