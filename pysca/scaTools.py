@@ -129,9 +129,9 @@ def parseAlgHeader(header, delimiter="|"):
     header_fields = readAlg(headers)
     """
 
-    header_fields = header.split
-    idx1 = [i for i in range(header_fields) if "{" in header_fields[i]]
-    idx2 = [i for i in range(header_fields) if "}" in header_fields[i]]
+    header_fields = header.split(delimiter)
+    idx1 = [i for i in range(len(header_fields)) if "{" in header_fields[i]]
+    idx2 = [i for i in range(len(header_fields)) if "}" in header_fields[i]]
 
     idx_loss = 0
     for i, j in zip(idx1, idx2):
