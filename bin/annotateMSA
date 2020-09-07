@@ -126,6 +126,13 @@ if __name__ == "__main__":
         default=None,
         help="email address for querying Entrez web API",
     )
+    parser.add_argument(
+        "-m",
+        "--delimiter",
+        dest="delimiter",
+        default="|",
+        help="delimiter for fields for generated FASTA files.",
+    )
     options = parser.parse_args()
 
     if (options.annot != "pfam") & (options.annot != "ncbi"):
@@ -145,16 +152,30 @@ if __name__ == "__main__":
     if options.annot == "pfam":
         # Annotate a Pfam alignment
         if options.pfamdb is not None:  # default to db query over txt search
-            sca.AnnotPfamDB(options.Input_MSA, options.output, options.pfamdb)
+            sca.AnnotPfamDB(
+                options.Input_MSA,
+                options.output,
+                options.pfamdb,
+                options.delimiter,
+            )
         elif options.pfamseq is not None:
-            sca.AnnotPfam(options.Input_MSA, options.output, options.pfamseq)
+            sca.AnnotPfam(
+                options.Input_MSA,
+                options.output,
+                options.pfamseq,
+                options.delimiter,
+            )
         else:
             # If no database or text file supplied to annotateMSA, then default
             # to the files defined in settings.py.
             if os.path.exists(settings.path2pfamseqdb):
-                sca.AnnotPfamDB(options.Input_MSA, options.output)
+                sca.AnnotPfamDB(
+                    options.Input_MSA, options.output, options.delimiter
+                )
             elif os.path.exists(settings.path2pfamseq):
-                sca.AnnotPfam(options.Input_MSA, options.output)
+                sca.AnnotPfam(
+                    options.Input_MSA, options.output, options.delimiter
+                )
             else:
                 sys.exit("No Pfam file found. Exiting.")
     elif options.annot == "ncbi":
@@ -167,4 +188,5 @@ if __name__ == "__main__":
                 options.output,
                 options.idList,
                 options.email,
+                options.delimiter,
             )

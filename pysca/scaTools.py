@@ -118,7 +118,9 @@ def readAlg(filename):
     return headers, sequences
 
 
-def AnnotPfam(pfam_in, pfam_out, pfam_seq=settings.path2pfamseq):
+def AnnotPfam(
+    pfam_in, pfam_out, pfam_seq=settings.path2pfamseq, delimiter="|"
+):
     """
     Phylogenetic annotation of a Pfam alignment (in FASTA format) using
     information from pfamseq.txt. The output is a FASTA file containing
@@ -179,11 +181,14 @@ def AnnotPfam(pfam_in, pfam_out, pfam_seq=settings.path2pfamseq):
             #                   for name in info.split('\t')[10].split(';')])))
             # this f.write line works with the new version of pfamseq.txt
             f.write(
-                ">%s|%s|%s|%s\n"
+                ">%s%s%s%s%s%s%s\n"
                 % (
                     key,
+                    delimiter,
                     info.split("\t")[5],
+                    delimiter,
                     info.split("\t")[8],
+                    delimiter,
                     ",".join(
                         [
                             name.strip()
@@ -196,7 +201,9 @@ def AnnotPfam(pfam_in, pfam_out, pfam_seq=settings.path2pfamseq):
     print("Elapsed time: %.1f min" % ((end_time - start_time) / 60))
 
 
-def AnnotPfamDB(pfam_in, pfam_out, pfam_db=settings.path2pfamseqdb):
+def AnnotPfamDB(
+    pfam_in, pfam_out, pfam_db=settings.path2pfamseqdb, delimiter="|"
+):
     """
     Phylogenetic annotation of a Pfam alignment (in FASTA format) using
     information from pfamseq.txt. The output is a FASTA file containing
@@ -260,11 +267,14 @@ def AnnotPfamDB(pfam_in, pfam_out, pfam_db=settings.path2pfamseqdb):
     with open(pfam_out, "w") as f:
         for i, row in enumerate(seq_info):
             f.write(
-                ">%s|%s|%s|%s\n"
+                ">%s%s%s%s%s%s%s\n"
                 % (
                     row[0],
+                    delimiter,
                     row[1],
+                    delimiter,
                     row[2],
+                    delimiter,
                     ",".join([taxon.strip() for taxon in row[3].split(";")]),
                 )
             )
@@ -272,7 +282,9 @@ def AnnotPfamDB(pfam_in, pfam_out, pfam_db=settings.path2pfamseqdb):
     print("Elapsed time: %.1f min" % ((end_time - start_time) / 60))
 
 
-def AnnotNCBI(alg_in, alg_out, id_list, email=settings.entrezemail):
+def AnnotNCBI(
+    alg_in, alg_out, id_list, email=settings.entrezemail, delimiter="|"
+):
     """
     Phylogenetic annotation of a NCBI alignment (in FASTA format). Uses GI
     numbers or accession numbers embedded in the headers of the multiple
@@ -380,9 +392,9 @@ def AnnotNCBI(alg_in, alg_out, id_list, email=settings.entrezemail):
         for i, seq in enumerate(seqs):
             hdnew = (
                 hd[i]
-                + "|"
+                + delimiter
                 + records[i]["ScientificName"]
-                + "|"
+                + delimiter
                 + ",".join(records[i]["Lineage"].split(";"))
             )
             if records[i]["Lineage"] == "unknown":
