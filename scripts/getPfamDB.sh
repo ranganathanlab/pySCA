@@ -40,11 +40,11 @@ echo "Got 'em."
 
 echo "Decompress the gzipped files."
 echo "This will take a while."
-if test `command -v ${gzip}`; then
+if test "$(command -v ${gzip})"; then
   ${gzip} -vd "${pfamheaders}.gz"
   ${gzip} -vd "${pfamdata}.gz"
 else
-  echo "${pigz} not found. Exiting."
+  echo "${gzip} not found. Exiting."
   exit 3
 fi
 echo "Done!"
