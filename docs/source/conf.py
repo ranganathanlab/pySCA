@@ -18,8 +18,8 @@ sys.path.insert(0, os.path.abspath('../modules'))
 # -- Project information -----------------------------------------------------
 
 project = 'pySCA'
-copyright = '2019, Olivier Rivoire, Rama Ranganathan, Kimberly Reynolds, Ansel George'
-author = 'Olivier Rivoire, Rama Ranganathan, Kimberly Reynolds, Ansel George'
+copyright = '2019, Olivier Rivoire, Rama Ranganathan, Kimberly Reynolds'
+author = 'Olivier Rivoire, Rama Ranganathan, Kimberly Reynolds'
 
 # The short X.Y version.
 version = '6.1'

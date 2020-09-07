@@ -61,7 +61,7 @@ Note that we supply pre-annotated alignments for all tutorial scripts
     %matplotlib inline
     
     if not os.path.exists('../output/'):
-        os.makedirs('../outpus/')  
+        os.makedirs('../output/')  
 
 To begin, we read in the results of the above three scripts
 (scaProcessMSA, scaCore and scaSectorID), stored as three dictionaries
@@ -148,6 +148,7 @@ specificities following the list of taxonomic classes.
         tax = []
         annot[s2[1]] = sca.Annot(s1[0], hs[2], ','.join(hs[3:-2]))
         if (hs[-2] in spec):
+            #print(hs[-2])
             spec[hs[-2]].append(i)
         else:
             spec[hs[-2]] = [i]
@@ -364,7 +365,7 @@ according to Equations 4 + 5 of Rivoire et al.
 
 .. parsed-literal::
 
-    <matplotlib.image.AxesImage at 0x6cfac49cd590>
+    <matplotlib.image.AxesImage at 0x7fbb46276eb0>
 
 
 
@@ -484,14 +485,14 @@ cut and paste into PyMol.
     IC 3 is composed of 19 positions:
     25+26+27+46+52+68+69+71+81+104+108+114+118+123+124+136+201+210+229
     
-    IC 4 is composed of 10 positions:
-    30+31+32+34+40+51+139+152+156+200
+    IC 4 is composed of 11 positions:
+    17+30+31+32+34+40+51+139+152+156+200
     
-    IC 5 is composed of 8 positions:
-    18+85+89+91+92+94+95+101
+    IC 5 is composed of 6 positions:
+    85+89+91+92+94+95
     
-    IC 6 is composed of 5 positions:
-    47+53+103+105+234
+    IC 6 is composed of 6 positions:
+    47+53+101+103+105+234
     
     IC 7 is composed of 0 positions:
     
@@ -595,14 +596,14 @@ decomposition into independent components) as seperate objects.
     Sector 3 is composed of 19 positions:
     25+26+27+46+52+68+69+71+81+104+108+114+118+123+124+136+201+210+229
     
-    Sector 4 is composed of 10 positions:
-    30+31+32+34+40+51+139+152+156+200
+    Sector 4 is composed of 11 positions:
+    17+30+31+32+34+40+51+139+152+156+200
     
-    Sector 5 is composed of 8 positions:
-    18+85+89+91+92+94+95+101
+    Sector 5 is composed of 6 positions:
+    85+89+91+92+94+95
     
-    Sector 6 is composed of 5 positions:
-    47+53+103+105+234
+    Sector 6 is composed of 6 positions:
+    47+53+101+103+105+234
     
 
 

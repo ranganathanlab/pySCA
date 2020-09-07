@@ -137,7 +137,7 @@ headers:
         # Cnstruct a dictionary of phylogenetic groups
         annot = dict()
         for i, h in enumerate(Dseq[k]['hd']):
-            hs = h.split('|')
+            hs = sca.parseAlgHeader(h)
             if (len(hs) == 4):
                 annot[hs[0]] = sca.Annot(hs[1], hs[2], hs[3].replace('.',''))
             elif (len(hs) == 3):

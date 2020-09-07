@@ -6,7 +6,7 @@ from setuptools import setup
 setup(
     name="pySCA",
     version="6.1",
-    author="Olivier Rivoire, Rama Ranganathan, Kimberly Reynolds, and Ansel George",
+    author="Olivier Rivoire, Rama Ranganathan, and Kimberly Reynolds",
     maintainer="Ansel George",
     packages=["pysca"],
     package_data={"pysca": ["settings.py"]},

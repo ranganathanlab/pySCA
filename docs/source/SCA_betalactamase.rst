@@ -100,7 +100,7 @@ families.
 
 .. parsed-literal::
 
-    <matplotlib.colorbar.Colorbar at 0x6c85f14fdf90>
+    <matplotlib.colorbar.Colorbar at 0x7f4b716d5610>
 
 
 
@@ -168,7 +168,7 @@ are parsed from the sequence headers.
     #construct a dictionary of phylogenetic groups
     annot = dict()
     for i, h in enumerate(Dseq['hd']):
-        hs = h.split('|')
+        hs = sca.parseAlgHeader(h)
         annot[hs[0]] = sca.Annot(hs[1], hs[2], hs[3].replace('.',''))
         
     # Most frequent taxonomic groups:

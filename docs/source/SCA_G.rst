@@ -317,7 +317,7 @@ according to Equations 4+5
 
 .. parsed-literal::
 
-    <matplotlib.image.AxesImage at 0x695a1e755c90>
+    <matplotlib.image.AxesImage at 0x7f7db4628670>
 
 
 
