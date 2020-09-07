@@ -35,6 +35,8 @@ alignment.
                         the CLI consistent with older versions of pySCA.
     -p, --pfam_seq      Location of the pfamseq.txt file. Defaults to
                         path2pfamseq (specified at the top of scaTools.py)
+    -m, --delimiter     Character(s) used for separating fields in the sequence
+                        headers of the annotated output. Default: '|'
 
 **Examples**::
 
