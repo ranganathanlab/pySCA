@@ -1134,7 +1134,8 @@ def rotICA(V, kmax=6, learnrate=0.1, iterations=100000):
 
 
 def seqSim(alg):
-    """ Take an MxL alignment (converted to numeric representation using lett2num_)
+    """
+    Take an MxL alignment (converted to numeric representation using lett2num_)
     and compute a MxM matrix of sequence similarities.
 
     **Example**::
@@ -1674,7 +1675,7 @@ def MultiBar(x, colors="wbrgymc", width=0.5):
 
       x = [[99, 1, 1], [6, 13, 2], [0, 0, 13], [1, 7, 5]]
       sca.MultiBar(x)
-"""
+    """
     for i, v in enumerate(x):
         singleBar(v, i, cols=colors)
     plt.xticks(
@@ -1757,7 +1758,7 @@ def dirInfoFromJ(i, j, Jmat, frq, Naa=20, epsilon=1e-4):
     **Example**::
 
       DI = dirInfoFromJ(i, j, Jmat, frq, Naa=20, epsilon=1e-4)
-   """
+    """
 
     W = np.ones((Naa + 1, Naa + 1))
     W[:Naa, :Naa] = np.exp(
@@ -1826,11 +1827,13 @@ class Secton:
         return distmat[np.ix_(self.pos, self.pos)]
 
     def connected(self, distmat, threshold):
-        """ Check the structural connectivity based on the principle that if
+        """
+        Check the structural connectivity based on the principle that if
         :math:`M_{ij}` is the adjacency matrix of a graph, :math:`M^n_{ij}` is
         the number of paths of length :math:`n` between i and j, which must be
         > 0 for :math:`n` = number of nodes when i and j are in the same
-        connected component. """
+        connected component.
+        """
         return (
             np.linalg.matrix_power(self.dist(distmat) < threshold, self.num)
             > 0
@@ -1944,11 +1947,11 @@ def randomize(
 
 def figWeights(U1, U2, weight):
     """
-    A 2d scatter plot with color indicating weight.
+     A 2d scatter plot with color indicating weight.
 
-   **Example**::
+    **Example**::
 
-     figWeights(U1, U2, weight)
+      figWeights(U1, U2, weight)
     """
 
     seqcol = -np.log(weight)

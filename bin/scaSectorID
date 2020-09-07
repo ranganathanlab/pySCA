@@ -161,7 +161,7 @@ if __name__ == "__main__":
 
     if options.matfile:
         # increment indices by 1 for MATLAB
-        db["sector"]["sortedpos"] = [pos+1 for pos in D["sortedpos"]]
+        db["sector"]["sortedpos"] = [pos + 1 for pos in D["sortedpos"]]
         for ic in ics:
             ic.items = [item + 1 for item in ic.items]
         db["sector"]["ics"] = ics
