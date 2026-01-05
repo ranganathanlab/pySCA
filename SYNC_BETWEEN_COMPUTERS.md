@@ -6,6 +6,40 @@ To work on pySCA from multiple computers, you'll use Git to sync changes through
 
 ## Initial Setup on Your Other Computer
 
+### 0. Install Miniconda (if not already installed)
+
+If you don't have conda installed on your other computer:
+
+**macOS:**
+```bash
+# Download Miniconda installer
+curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh
+
+# Run installer
+bash Miniconda3-latest-MacOSX-x86_64.sh
+
+# Follow the prompts, then restart your terminal or run:
+source ~/.zshrc  # or ~/.bash_profile
+```
+
+**Linux:**
+```bash
+# Download Miniconda installer
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+
+# Run installer
+bash Miniconda3-latest-Linux-x86_64.sh
+
+# Follow the prompts, then restart your terminal or run:
+source ~/.bashrc
+```
+
+**Verify installation:**
+```bash
+conda --version
+# Should show something like: conda 23.x.x
+```
+
 ### 1. Clone the Repository
 
 ```bash
@@ -28,21 +62,34 @@ cd pySCA
 conda create -n pysca3 python=3.10 -y
 conda activate pysca3
 
-# Install dependencies
+# Install pySCA and Python dependencies
 pip install -e ".[notebooks]"
-
-# Install external tools (FASTA36, MMseqs2)
-# Follow instructions in INSTALLATION.md
 ```
 
-### 3. Configure Git (if not already done)
+### 3. Install External Tools
+
+You'll need to install two external command-line tools:
+
+**FASTA36 (required):**
+- **macOS:** `brew install fasta`
+- **Linux:** See `INSTALLATION.md` for compilation instructions
+- Verify: `ggsearch36 -h`
+
+**MMseqs2 (optional but recommended for large MSAs):**
+- **macOS/Linux:** `conda install -c bioconda mmseqs2`
+- Or: `brew install mmseqs2` (macOS)
+- Verify: `mmseqs --version`
+
+For detailed installation instructions, see `INSTALLATION.md` in the repository.
+
+### 4. Configure Git (if not already done)
 
 ```bash
 git config --global user.name "Your Name"
 git config --global user.email "your.email@example.com"
 ```
 
-### 4. Set Up Authentication
+### 5. Set Up Authentication
 
 You'll need to authenticate with GitHub. Use the same Personal Access Token method:
 
