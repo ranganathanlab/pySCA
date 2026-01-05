@@ -68,19 +68,92 @@ pip install -e ".[notebooks]"
 
 ### 3. Install External Tools
 
-You'll need to install two external command-line tools:
+You'll need to install two external command-line tools. These are **system-level** installations (not Python packages), so they work outside the conda environment.
 
-**FASTA36 (required):**
-- **macOS:** `brew install fasta`
-- **Linux:** See `INSTALLATION.md` for compilation instructions
-- Verify: `ggsearch36 -h`
+#### FASTA36 (Required)
 
-**MMseqs2 (optional but recommended for large MSAs):**
-- **macOS/Linux:** `conda install -c bioconda mmseqs2`
-- Or: `brew install mmseqs2` (macOS)
-- Verify: `mmseqs --version`
+FASTA36 provides the `ggsearch36` program, which is required for reference sequence searching in `sca-process-msa`.
 
-For detailed installation instructions, see `INSTALLATION.md` in the repository.
+**macOS (via Homebrew - Recommended):**
+```bash
+# Install Homebrew if you don't have it: https://brew.sh
+brew install fasta
+
+# Verify installation
+which ggsearch36
+ggsearch36 -h
+```
+
+**macOS (from source):**
+```bash
+git clone https://github.com/wrpearson/fasta36.git
+cd fasta36/src
+make -j2 -f ../make/Makefile.osx all
+sudo cp -r ../bin /usr/local
+sudo rm /usr/local/bin/README
+cd ../..
+
+# Verify installation
+which ggsearch36
+ggsearch36 -h
+```
+
+**Linux (from source):**
+```bash
+git clone https://github.com/wrpearson/fasta36.git
+cd fasta36/src
+make -j2 -f ../make/Makefile.linux all
+sudo cp -r ../bin /usr/local
+sudo rm /usr/local/bin/README
+cd ../..
+
+# Verify installation
+which ggsearch36
+ggsearch36 -h
+```
+
+**If `ggsearch36` is not found after installation:**
+- Make sure `/usr/local/bin` is in your PATH
+- Check: `echo $PATH | grep /usr/local/bin`
+- If not, add it to your shell config file (`~/.zshrc` or `~/.bashrc`)
+
+#### MMseqs2 (Optional but Recommended)
+
+MMseqs2 is highly recommended for preclustering large MSAs (>50k sequences). It significantly speeds up processing.
+
+**macOS/Linux (via Conda - Recommended):**
+```bash
+# Make sure you're in the pysca3 environment
+conda activate pysca3
+conda install -c bioconda mmseqs2
+
+# Verify installation
+which mmseqs
+mmseqs version
+```
+
+**macOS (via Homebrew):**
+```bash
+brew install mmseqs2
+
+# Verify installation
+which mmseqs
+mmseqs version
+```
+
+**Linux (via Package Manager):**
+```bash
+# Ubuntu/Debian
+sudo apt-get install mmseqs2
+
+# Verify installation
+which mmseqs
+mmseqs version
+```
+
+**Note:** If you install MMseqs2 via conda, it will only be available when the `pysca3` environment is activated. If you install via Homebrew or system package manager, it will be available system-wide.
+
+For more detailed installation instructions and troubleshooting, see `INSTALLATION.md` in the repository.
 
 ### 4. Configure Git (if not already done)
 
