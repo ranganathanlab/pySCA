@@ -118,6 +118,14 @@ ENV/
 env.bak/
 venv.bak/
 
+# pySCA-specific output directories (keep local, don't sync)
+Outputs/
+Inputs/
+
+# RobustICA (local clone, will be installed via pip)
+robustica/
+robustica.egg-info/
+
 # Spyder project settings
 .spyderproject
 .spyproject

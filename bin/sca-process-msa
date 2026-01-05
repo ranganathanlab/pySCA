@@ -1,0 +1,27 @@
+#!/usr/bin/env python3
+"""
+Wrapper script for scaProcessMSA_py3_big.py
+
+Allows execution as: sca-process-msa <args>
+"""
+
+import sys
+from pathlib import Path
+
+# Try to import from installed package first
+try:
+    from pysca.scaProcessMSA_py3_big import main
+except ImportError:
+    # If not installed, try to run from source directory
+    script_path = Path(__file__).parent.parent / "pysca" / "scaProcessMSA_py3_big.py"
+    if script_path.exists():
+        # Add parent to path for imports
+        sys.path.insert(0, str(Path(__file__).parent.parent))
+        import subprocess
+        sys.exit(subprocess.run([sys.executable, str(script_path)] + sys.argv[1:]).returncode)
+    else:
+        sys.exit("Error: Could not find scaProcessMSA_py3_big.py. Is pySCA installed correctly?")
+
+if __name__ == "__main__":
+    sys.exit(main())
+

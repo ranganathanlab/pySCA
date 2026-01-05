@@ -14,9 +14,9 @@
 # from
 # ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/database_files/
 # and/or the SQLite database `pfamseq.db` if it exists.
-path2pfamseq = "pfamseq.txt"  # replace with absolute path to pfamseq.txt
+path2pfamseq = "/Users/rama/Dropbox/transfer/dbs/PFAM/pfamseq.txt"  # replace with absolute path to pfamseq.txt
 path2pfamseqdb = (
-    "pfamseq.db"  # replace with absolute path to pfamseq.db (if present)
+    "/Users/rama/Dropbox/transfer/dbs/PFAM/pfamseq.db"  # replace with absolute path to pfamseq.db (if present)
 )
 
 # the location of your PDB structures

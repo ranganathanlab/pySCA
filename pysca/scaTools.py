@@ -6,12 +6,12 @@ pySCA - A SCA toolbox in Python
 
 | Olivier Rivoire (olivier.rivoire@ujf-grenoble.fr)
 | Kimberly Reynolds (kimberly.reynolds@utsouthwestern.edu)
-| Rama Ranganathan (rama.ranganathan@utsouthwestern.edu)
+| Rama Ranganathan (ranganathanr@uchicago.edu)
 
-:On:  August 2014
-:version: 6.1
+:On:  January 2026
+:version: 7.0
 
-Copyright (C) 2015 Olivier Rivoire, Rama Ranganathan, Kimberly Reynolds
+Copyright (C) 2025 Olivier Rivoire, Rama Ranganathan, Kimberly Reynolds
 
 This program is free software distributed under the BSD 3-clause license,
 please see the file LICENSE for details.
@@ -25,12 +25,13 @@ import random as rand
 import colorsys
 import sqlite3
 import sys
+import logging
 import numpy as np
 from pathlib import Path
 import scipy.sparse
 import scipy.sparse.linalg
 from scipy.sparse import csr_matrix as sparsify
-from scipy.stats import t
+from scipy.stats import t as t_dist
 from scipy.stats import scoreatpercentile
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
@@ -43,6 +44,9 @@ from Bio.SeqRecord import SeqRecord
 from Bio import Entrez
 
 from pysca import settings
+
+# Module-level logger for scaTools (will use parent logger configuration)
+logger = logging.getLogger(__name__)
 
 
 ##########################################################################
@@ -95,27 +99,136 @@ class Annot:
 
 def readAlg(filename):
     """
-    Read in a multiple sequence alignment in FASTA format, and return the
-    headers and sequences.
+    Read a multiple sequence alignment and return headers and sequences.
 
-    headers, sequences = readAlg(filename)
+    This function supports FASTA, Stockholm, and Clustal formats. The format is
+    auto-detected from the file contents (and may fall back to Biopython's
+    AlignIO when available).
+
+    Parameters
+    ----------
+    filename : str
+        Path to an alignment file (FASTA / Stockholm / Clustal).
+
+    Returns
+    -------
+    headers : list[str]
+    sequences : list[str]
+        Sequences are returned uppercased. Stockholm '.' gaps are converted to '-'.
     """
+    # --- quick sniff for format ---
+    with open(filename, "r", encoding="utf-8", errors="replace") as fh:
+        # skip leading blank lines
+        first = ""
+        for line in fh:
+            line = line.strip()
+            if line:
+                first = line
+                break
 
-    filelines = open(filename, "r").readlines()
-    headers = list()
-    sequences = list()
-    notfirst = 0
-    for line in filelines:
-        if line[0] == ">":
-            if notfirst > 0:
-                sequences.append(seq.replace("\n", "").upper())
-            headers.append(line[1:].replace("\n", ""))
-            seq = ""
-            notfirst = 1
-        elif line != "\n":
-            seq += line
-    sequences.append(seq.replace("\n", "").upper())
-    return headers, sequences
+    fmt = None
+    if first.startswith(">"):
+        fmt = "fasta"
+    elif first.upper().startswith("CLUSTAL"):
+        fmt = "clustal"
+    elif first.upper().startswith("# STOCKHOLM"):
+        fmt = "stockholm"
+
+    # --- preferred: Biopython AlignIO (robust for multi-block CLUSTAL/STO) ---
+    if fmt in ("clustal", "stockholm"):
+        try:
+            from Bio import AlignIO  # type: ignore
+            aln = AlignIO.read(filename, fmt)
+            headers = [rec.id for rec in aln]
+            sequences = [str(rec.seq).upper().replace(".", "-") for rec in aln]
+            return headers, sequences
+        except Exception:
+            # fall through to minimal parsers below
+            pass
+
+    # --- FASTA (fast streaming parser) ---
+    if fmt == "fasta" or fmt is None:
+        headers = []
+        sequences = []
+        seq_chunks = []
+        with open(filename, "r", encoding="utf-8", errors="replace") as f:
+            for raw in f:
+                line = raw.strip()
+                if not line:
+                    continue
+                if line.startswith(">"):
+                    if seq_chunks:
+                        sequences.append("".join(seq_chunks).upper())
+                        seq_chunks = []
+                    headers.append(line[1:].strip())
+                else:
+                    seq_chunks.append(line)
+        if seq_chunks:
+            sequences.append("".join(seq_chunks).upper())
+        if headers and len(headers) == len(sequences):
+            return headers, sequences
+        # If we couldn't parse as FASTA and format was unknown, try other parsers:
+        # (e.g., user passed a clustal/stockholm without a recognizable first line)
+        if fmt is None:
+            # continue below
+            pass
+        else:
+            raise ValueError(f"Failed to parse FASTA alignment: {filename}")
+
+    # --- Minimal CLUSTAL parser (no Biopython available / AlignIO failed) ---
+    if fmt == "clustal" or (fmt is None and first.upper().startswith("CLUSTAL")):
+        seqmap = {}
+        order = []
+        with open(filename, "r", encoding="utf-8", errors="replace") as f:
+            # skip header line
+            for raw in f:
+                if raw.strip():
+                    break
+            for raw in f:
+                line = raw.rstrip("\n")
+                if not line.strip():
+                    continue
+                if line.lstrip().startswith(("*", ":", ".")):
+                    # consensus line
+                    continue
+                parts = line.split()
+                if len(parts) < 2:
+                    continue
+                sid, frag = parts[0], parts[1]
+                if sid not in seqmap:
+                    seqmap[sid] = []
+                    order.append(sid)
+                seqmap[sid].append(frag)
+        headers = order
+        sequences = ["".join(seqmap[h]).upper().replace(".", "-") for h in headers]
+        return headers, sequences
+
+    # --- Minimal STOCKHOLM parser ---
+    if fmt == "stockholm" or (fmt is None and first.upper().startswith("# STOCKHOLM")):
+        seqmap = {}
+        order = []
+        with open(filename, "r", encoding="utf-8", errors="replace") as f:
+            for raw in f:
+                line = raw.strip()
+                if not line:
+                    continue
+                if line.startswith("#"):
+                    continue
+                if line == "//":
+                    break
+                parts = line.split()
+                if len(parts) < 2:
+                    continue
+                sid, frag = parts[0], parts[1]
+                if sid not in seqmap:
+                    seqmap[sid] = []
+                    order.append(sid)
+                seqmap[sid].append(frag)
+        headers = order
+        sequences = ["".join(seqmap[h]).upper().replace(".", "-") for h in headers]
+        return headers, sequences
+
+    raise ValueError(f"Could not detect/parse alignment format for: {filename}")
 
 
 def parseAlgHeader(header, delimiter="|"):
@@ -176,13 +289,18 @@ def AnnotPfam(
     pfamseq_ids = [h.split("/")[0] for h in headers]
 
     # Reads the sequence information for those sequences:
+    # Use set for O(1) lookups instead of list
+    pfamseq_ids_set = set(pfamseq_ids)
     seq_info = dict()
     with open(pfam_seq) as fp:
         for line in fp:
             pf_id = line.split("\t")[1]
-            if pf_id in pfamseq_ids:
+            if pf_id in pfamseq_ids_set:
                 seq_info[pf_id] = line
-                pfamseq_ids.remove(pf_id)
+                pfamseq_ids_set.discard(pf_id)  # More efficient than remove
+                # Early exit if all IDs found
+                if not pfamseq_ids_set:
+                    break
     end_time = time.time()
 
     # Writes in output file:
@@ -259,30 +377,39 @@ def AnnotPfamDB(
     pfamseq_ids = [h.split("/")[0] for h in headers]
 
     # Reads the sequence information for those sequences:
-    seq_info = []
+    # Batch query for efficiency (much faster than N individual queries)
+    seq_info_map = {}
     with sqlite3.connect(pfam_db) as conn:
         c = conn.cursor()
-        for pfamseq_id in pfamseq_ids:
+        # First try pfamseq_id
+        placeholders = ','.join('?' * len(pfamseq_ids))
+        c.execute(
+            f"SELECT pfamseq_id, description, species, taxonomy "
+            f"FROM pfamseq WHERE pfamseq_id IN ({placeholders})",
+            pfamseq_ids
+        )
+        for row in c.fetchall():
+            seq_info_map[row[0]] = row[1:]
+        
+        # Then try pfamseq_acc for any missing
+        missing_ids = [pid for pid in pfamseq_ids if pid not in seq_info_map]
+        if missing_ids:
+            placeholders = ','.join('?' * len(missing_ids))
             c.execute(
-                "SELECT pfamseq_id,description,species,taxonomy "
-                "FROM pfamseq WHERE pfamseq_id = ?",
-                (pfamseq_id,),
+                f"SELECT pfamseq_acc, description, species, taxonomy "
+                f"FROM pfamseq WHERE pfamseq_acc IN ({placeholders})",
+                missing_ids
             )
-            res = c.fetchall()
-            if res:
-                row = [field for match in res for field in match]
-            else:
-                c.execute(
-                    "SELECT pfamseq_acc,description,species,taxonomy "
-                    "FROM pfamseq WHERE pfamseq_acc = ?",
-                    (pfamseq_id,),
-                )
-                res = c.fetchall()
-                if res:
-                    row = [field for match in res for field in match]
-                else:
-                    row = [pfamseq_id, "unknown", "unknown", "unknown"]
-            seq_info.append(row)
+            for row in c.fetchall():
+                seq_info_map[row[0]] = row[1:]
+    
+    # Build seq_info list in same order as pfamseq_ids
+    seq_info = []
+    for pfamseq_id in pfamseq_ids:
+        if pfamseq_id in seq_info_map:
+            seq_info.append([pfamseq_id] + list(seq_info_map[pfamseq_id]))
+        else:
+            seq_info.append([pfamseq_id, "unknown", "unknown", "unknown"])
     end_time = time.time()
 
     # Write to output file:
@@ -482,132 +609,179 @@ def MSAsearch(hd, algn, seq, species=None):
         hd = [hd[k] for k in key_list]
         algn = [algn[k] for k in key_list]
 
+    # Use ggsearch36 for sequence alignment
+    logger.info("Using ggsearch36 (FASTA36) for sequence alignment search...")
+    if species is not None:
+        logger.info(f"  Searching {len(algn)} sequences matching species filter: {species}")
+    else:
+        logger.info(f"  Searching {len(algn)} sequences in alignment")
+    
+    output_handle = open("tmp_pdb_seq.fasta", "w")
+    SeqIO.write(
+        SeqRecord(Seq(seq), id="PDB sequence"), output_handle, "fasta"
+    )
+    output_handle.close()
+    f = open("tmp_algn_seq.fasta", "w")
+    for i, algn_i in enumerate(algn):
+        f.write(">" + hd[i] + "\n")
+        f.write(algn_i + "\n")
+    f.close()
+    
+    args = [
+        "ggsearch36",
+        "-M 1-" + str(len(algn[0])),
+        "-b",
+        "1",
+        "-m 8",
+        "tmp_pdb_seq.fasta",
+        "tmp_algn_seq.fasta",
+    ]
+    
     try:
-        print("Trying MSASearch with ggsearch")
-        output_handle = open("tmp_pdb_seq.fasta", "w")
-        SeqIO.write(
-            SeqRecord(Seq(seq), id="PDB sequence"), output_handle, "fasta"
-        )
-        output_handle.close()
-        f = open("tmp_algn_seq.fasta", "w")
-        for i, algn_i in enumerate(algn):
-            f.write(">" + hd[i] + "\n")
-            f.write(algn_i + "\n")
-        f.close()
-        args = [
-            "ggsearch36",
-            "-M 1-" + str(len(algn[0])),
-            "-b",
-            "1",
-            "-m 8",
-            "tmp_pdb_seq.fasta",
-            "tmp_algn_seq.fasta",
-        ]
-        output = subprocess.check_output(args)
+        output = subprocess.check_output(args, stderr=subprocess.STDOUT)
+        output_str = output.decode("ASCII")
+        output_lines = output_str.strip().split("\n")
+        
+        if not output_lines:
+            raise ValueError("ggsearch36 returned empty output")
+        
+        # Parse the first result line (tab-separated format with -m 8)
+        # Format: query_id, subject_id, %identity, align_len, mismatches, gap_opens, 
+        #         q_start, q_end, s_start, s_end, e-value, bit_score
+        first_line = output_lines[0]
+        fields = first_line.split("\t")
+        if len(fields) < 12:
+            raise ValueError(f"ggsearch36 output format unexpected (expected 12 fields, got {len(fields)}): {first_line}")
+        
+        # Parse alignment statistics
+        query_id = fields[0]
+        subject_id = fields[1]
+        percent_identity = float(fields[2])
+        align_length = int(fields[3])
+        mismatches = int(fields[4])
+        gap_opens = int(fields[5])
+        q_start = int(fields[6])
+        q_end = int(fields[7])
+        s_start = int(fields[8])
+        s_end = int(fields[9])
+        e_value = float(fields[10])
+        bit_score = float(fields[11])
+        
+        # Log summary of ggsearch36 results
+        logger.info("  ggsearch36 alignment results:")
+        logger.info(f"    Best match: {subject_id}")
+        logger.info(f"    Identity: {percent_identity:.2f}%")
+        logger.info(f"    Alignment length: {align_length} positions")
+        logger.info(f"    Mismatches: {mismatches}, Gap opens: {gap_opens}")
+        logger.info(f"    Query range: {q_start}-{q_end}, Subject range: {s_start}-{s_end}")
+        logger.info(f"    E-value: {e_value:.2e}, Bit score: {bit_score:.1f}")
+        
+        # Find the matching sequence in the alignment headers
         i_0 = [
             i
             for i in range(len(hd))
-            if output.decode("ASCII").split("\t")[1] in hd[i]
+            if subject_id in hd[i]
         ]
+        
+        if not i_0:
+            raise ValueError(f"Could not find matching sequence ID '{subject_id}' in alignment headers")
+        
         if species is not None:
             strseqnum = key_list[i_0[0]]
         else:
             strseqnum = i_0[0]
+        
+        logger.info(f"  Selected sequence index: {strseqnum} ({hd[i_0[0]]})")
+        
+        # Clean up temporary files
         os.remove("tmp_pdb_seq.fasta")
         os.remove("tmp_algn_seq.fasta")
         return strseqnum
-    except BaseException as e:
-        print("Error: " + str(e))
-        try:
-            from Bio.Emboss.Applications import NeedleCommandline
-
-            print("Trying MSASearch with EMBOSS")
-            output_handle = open("tmp_pdb_seq.fasta", "w")
-            SeqIO.write(
-                SeqRecord(Seq(seq), id="PDB sequence"), output_handle, "fasta"
-            )
-            output_handle.close()
-            output_handle = open("tmp_algn_seq.fasta", "w")
-            s_records = list()
-            for k, algn_k in enumerate(algn):
-                s_records.append(
-                    SeqRecord(Seq(algn_k), id=str(k), description=hd[k])
-                )
-            SeqIO.write(s_records, output_handle, "fasta")
-            output_handle.close()
-            needle_cline = NeedleCommandline(
-                "needle",
-                asequence="tmp_pdb_seq.fasta",
-                bsequence="tmp_algn_seq.fasta",
-                gapopen=10,
-                gapextend=0.5,
-                outfile="tmp_needle_seq.fasta",
-            )
-            stdout, stderr = needle_cline()
-            print(stdout + stderr)
-            algres = open("tmp_needle_seq.fasta", "r").readlines()
-            score = list()
-            for k in algres:
-                if k.find("Identity: ") > 0:
-                    score.append(int(k.split()[2].split("/")[0]))
-            i_0 = score.index(max(score))
-            if species is not None:
-                strseqnum = key_list[i_0]
-            else:
-                strseqnum = i_0
+        
+    except subprocess.CalledProcessError as e:
+        error_msg = e.output.decode("ASCII") if e.output else str(e)
+        os.remove("tmp_pdb_seq.fasta")
+        os.remove("tmp_algn_seq.fasta")
+        raise RuntimeError(f"ggsearch36 failed: {error_msg}. Make sure ggsearch36 is installed and in your PATH.")
+    except (ValueError, IndexError, KeyError) as e:
+        # Clean up temporary files on error
+        if os.path.exists("tmp_pdb_seq.fasta"):
             os.remove("tmp_pdb_seq.fasta")
+        if os.path.exists("tmp_algn_seq.fasta"):
             os.remove("tmp_algn_seq.fasta")
-            os.remove("tmp_neelde_seq.fasta")
-            return strseqnum
-        except BaseException as e:
-            print("Error: " + str(e))
-            print("Trying MSASearch with BioPython")
-            score = list()
-            for k, s in enumerate(algn):
-                score.append(
-                    pairwise2.align.globalxx(
-                        algn, s, one_alignment_only=1, score_only=1
-                    )
-                )
-            i_0 = score.index(max(score))
-            if species is not None:
-                strseqnum = key_list[i_0]
-            else:
-                strseqnum = i_0
-            print("BP strseqnum is %i" % (strseqnum))
-            return strseqnum
+        raise RuntimeError(f"Failed to parse ggsearch36 output: {e}")
+    except Exception as e:
+        # Clean up temporary files on any other error
+        if os.path.exists("tmp_pdb_seq.fasta"):
+            os.remove("tmp_pdb_seq.fasta")
+        if os.path.exists("tmp_algn_seq.fasta"):
+            os.remove("tmp_algn_seq.fasta")
+        raise RuntimeError(f"MSAsearch failed with ggsearch36: {e}")
 
 
 def chooseRefSeq(alg):
     """
-    This function chooses a default reference sequence if none is given by
-    taking the sequence which has the mean pairwise sequence identity closest
-    to that of the entire alignment.
+    Choose a default reference sequence when none is given.
 
-    **Example**::
+    The reference is defined as the sequence whose *mean pairwise similarity*
+    (as computed by :func:`seqSim`) is closest to the *overall mean pairwise
+    similarity* of the alignment.
 
-      i_ref = chooseRefSeq(msa_num)
+    Notes
+    -----
+    This is an optimized implementation. It reproduces the original definition
+    used in the legacy toolbox, but avoids materializing large intermediate
+    Python lists (and can avoid forming the full NxN similarity matrix).
+
+    If the alignment contains >1000 sequences, a weighted subsample of 1000
+    sequences is used (same behavior as the legacy implementation).
     """
-
+    # Subsample large alignments (legacy behavior)
     if len(alg) > 1000:
         seqw = seqWeights(alg)
         keep_seq = randSel(seqw, 1000)
     else:
-        keep_seq = [k for k in range(len(alg))]
+        keep_seq = list(range(len(alg)))
+
     algNew = [alg[k] for k in keep_seq]
     numAlgNew = lett2num(algNew)
-    simMat = seqSim(numAlgNew)
-    listS = [
-        simMat[i, j]
-        for i in range(simMat.shape[0])
-        for j in range(i + 1, simMat.shape[1])
-    ]
-    meanSID = list()
-    for k in range(len(simMat)):
-        meanSID.append(simMat[k].mean())
-    meanDiff = abs(meanSID - np.mean(listS))
-    strseqnum = [i for i, k in enumerate(meanDiff) if k == min(meanDiff)]
-    return strseqnum[0]
+    Nseq, Npos = numAlgNew.shape
+    if Nseq == 0:
+        raise ValueError("Empty alignment passed to chooseRefSeq().")
+
+    # Sparse one-hot (M x 20L) used in seqSim
+    X = alg2bin(numAlgNew)  # CSR
+
+    # Compute per-sequence mean similarity and overall mean pairwise similarity
+    # without creating a gigantic Python list of upper-triangular entries.
+    row_sum = np.zeros(Nseq, dtype=np.float64)
+    sum_upper = 0.0
+    n_pairs = Nseq * (Nseq - 1) // 2
+
+    # Blockwise dot to control memory; dot result is dense (block x Nseq)
+    block = 128 if Nseq >= 256 else max(1, Nseq)
+    for i0 in range(0, Nseq, block):
+        i1 = min(Nseq, i0 + block)
+        D = X[i0:i1].dot(X.T)  # counts of identical (non-gap) letters per pair
+        # Ensure we have a dense ndarray (scipy sparse returns np.matrix or ndarray)
+        if hasattr(D, "A"):
+            D = D.A
+        row_sum[i0:i1] = D.sum(axis=1)
+
+        # accumulate strictly upper triangle counts
+        # for global row i, add matches to columns j>i
+        for bi, gi in enumerate(range(i0, i1)):
+            if gi + 1 < Nseq:
+                sum_upper += D[bi, gi + 1 :].sum()
+
+    meanSID = (row_sum / (Nseq * float(Npos)))  # includes diagonal (self=1)
+    overallMean = (sum_upper / (n_pairs * float(Npos))) if n_pairs > 0 else 1.0
+
+    meanDiff = np.abs(meanSID - overallMean)
+    best_local = int(np.argmin(meanDiff))
+    # Return index in the original alignment
+    return keep_seq[best_local]
+
 
 
 def makeATS(sequences, refpos, refseq, iref=0, truncate=False):
@@ -708,44 +882,79 @@ def makeATS(sequences, refpos, refseq, iref=0, truncate=False):
 
 def lett2num(msa_lett, code="ACDEFGHIKLMNPQRSTVWY"):
     """
-    Translate an alignment from a representation where the 20 natural amino
-    acids are represented by letters to a representation where they are
-    represented by the numbers 1,...,20, with any symbol not corresponding to
-    an amino acid represented by 0.
+    Translate an alignment from letters to integers.
 
-    **Example**::
+    The 20 amino acids in `code` are mapped to 1..len(code). Any character not in
+    `code` is mapped to 0 (including gaps unless '-' is included in `code`).
 
-       msa_num = lett2num(msa_lett, code='ACDEFGHIKLMNPQRSTVWY')
+    Notes
+    -----
+    This is a vectorized implementation (much faster than nested Python loops).
+
+    Parameters
+    ----------
+    msa_lett : list[str]
+        Alignment as a list of equal-length strings.
+    code : str
+        Alphabet to encode.
+
+    Returns
+    -------
+    msa_num : np.ndarray (int32), shape (Nseq, Npos)
     """
+    if len(msa_lett) == 0:
+        return np.zeros((0, 0), dtype=np.int32)
 
-    lett2index = {aa: i + 1 for i, aa in enumerate(code)}
-    [Nseq, Npos] = [len(msa_lett), len(msa_lett[0])]
-    msa_num = np.zeros((Nseq, Npos)).astype(int)
-    for s, seq in enumerate(msa_lett):
-        for i, lett in enumerate(seq):
-            if lett in code:
-                msa_num[s, i] = lett2index[lett]
+    Nseq = len(msa_lett)
+    Npos = len(msa_lett[0])
+    for s in msa_lett:
+        if len(s) != Npos:
+            raise ValueError("Alignment is not rectangular: sequences have different lengths.")
+
+    # Lookup table for ASCII bytes -> integer code
+    lut = np.zeros(256, dtype=np.int32)
+    for i, aa in enumerate(code, start=1):
+        lut[ord(aa)] = i
+        lut[ord(aa.lower())] = i
+
+    joined = ("".join(msa_lett)).encode("ascii", "ignore")
+    arr = np.frombuffer(joined, dtype=np.uint8).reshape(Nseq, Npos)
+    msa_num = lut[arr]
     return msa_num
-
 
 def alg2bin(alg, N_aa=20):
     """
-    Translate an alignment of matrix of size M sequences by L positions where
-    the amino acids are represented by numbers between 0 and N_aa (obtained
-    using lett2num) to a binary array of size M x (N_aa x L).
+    Convert a numeric alignment (Nseq x Npos) to a sparse binary one-hot matrix.
 
-    **Example**::
+    Parameters
+    ----------
+    alg : np.ndarray, shape (Nseq, Npos)
+        Numeric alignment where amino acids are 1..N_aa and 0 means "other"/gap.
+    N_aa : int
+        Number of amino-acid states (not counting the 0 state).
 
-      Abin = alg2bin(alg, N_aa=20)
+    Returns
+    -------
+    Abin : scipy.sparse.csr_matrix, shape (Nseq, N_aa * Npos)
+        One-hot encoding (sparse).
     """
+    alg = np.asarray(alg)
+    if alg.ndim != 2:
+        raise ValueError("alg2bin expects a 2D array (Nseq x Npos).")
+    N_seq, N_pos = alg.shape
 
-    [N_seq, N_pos] = alg.shape
-    Abin_tensor = np.zeros((N_aa, N_pos, N_seq))
-    for ia in range(N_aa):
-        Abin_tensor[ia, :, :] = (alg == ia + 1).T
-    Abin = Abin_tensor.reshape(N_aa * N_pos, N_seq, order="F").T
+    a = alg.astype(np.int32, copy=False).ravel()
+    rows = np.repeat(np.arange(N_seq, dtype=np.int32), N_pos)
+
+    # columns are position-major: (pos * N_aa + (aa-1))
+    pos = np.tile(np.arange(N_pos, dtype=np.int32), N_seq)
+    aa = a - 1
+    mask = (a > 0) & (a <= N_aa)
+    cols = pos[mask] * N_aa + aa[mask]
+    data = np.ones(cols.shape[0], dtype=np.uint8)
+
+    Abin = scipy.sparse.csr_matrix((data, (rows[mask], cols)), shape=(N_seq, N_aa * N_pos))
     return Abin
-
 
 def alg2binss(alg, N_aa=20):
     """
@@ -757,139 +966,205 @@ def alg2binss(alg, N_aa=20):
 
       Abin = alg2binss(alg, N_aa=20)
     """
-
-    [N_seq, N_pos] = alg.shape
-    Abin_tensor = np.zeros((N_aa, N_pos, N_seq))
-    for ia in range(N_aa):
-        Abin_tensor[ia, :, :] = (alg == ia + 1).T
-    Abin = sparsify(Abin_tensor.reshape(N_aa * N_pos, N_seq, order="F").T)
+    N_seq, N_pos = alg.shape
+    
+    # Direct sparse construction (avoids creating dense intermediate array)
+    # Find all non-zero positions
+    row_indices, col_indices_alg = np.where((alg > 0) & (alg <= N_aa))
+    
+    # Calculate column indices in the binary matrix
+    # col = position_index * N_aa + (amino_acid_code - 1)
+    data_indices = col_indices_alg * N_aa + (alg[row_indices, col_indices_alg] - 1)
+    
+    # Create sparse matrix directly
+    data = np.ones(len(row_indices), dtype=np.uint8)
+    Abin = sparsify((data, (row_indices, data_indices)), 
+                    shape=(N_seq, N_pos * N_aa))
     return Abin
 
 
-def seqWeights(alg, max_seqid=0.8, gaps=1):
+def seqWeights(alg, max_seqid=0.8, gaps=1, block_size=1024):
     """
-    Compute sequence weights for an alignment (format: list of sequences) where
-    the weight of a sequence is the inverse of the number of sequences in its
-    neighborhood, defined as the sequences with sequence similarity below
-    max_seqid. The sum of the weights defines an effective number of sequences.
+    Compute sequence weights for an alignment (list of sequences).
 
-    **Arguments**
+    Weight definition matches the original implementation:
+      w_i = 1 / #{ j : sim(i,j) > max_seqid }
+    where similarity is the fraction of identical positions, treating gaps as
+    a 21st amino acid if gaps==1, otherwise ignoring gaps by not encoding '-'.
 
-      :alg: list of sequences
+    This implementation uses a sparse one-hot encoding and computes neighbor
+    counts in blocks to reduce peak memory. Optimized for very large MSAs
+    (e.g., 300k+ sequences).
 
-    **Keyword Arguments**
+    Parameters
+    ----------
+    alg : list[str]
+    max_seqid : float
+    gaps : int
+    block_size : int
+        Controls memory usage when Nseq is large. For very large alignments
+        (100k+ sequences), consider reducing block_size (e.g., 512) to further
+        reduce peak memory, though this may slightly increase computation time.
 
-      :max_seqid:
-      :gaps: If gaps == 1 (default), considering gaps as a 21st amino acid, if
-             gaps == 0, not considering them.
-
-    **Example**::
-
-      seqw = seqWeights(alg)
+    Returns
+    -------
+    seqw : np.ndarray, shape (1, Nseq)
     """
-
     codeaa = "ACDEFGHIKLMNPQRSTVWY"
     if gaps == 1:
         codeaa += "-"
-    msa_num = lett2num(alg, code=codeaa)
+    msa_num = lett2num(alg, code=codeaa).astype(np.int32, copy=False)
     Nseq, Npos = msa_num.shape
-    X2d = alg2bin(msa_num, N_aa=len(codeaa))
-    simMat = X2d.dot(X2d.T) / Npos
-    seqw = np.array(1 / (simMat > max_seqid).sum(axis=0))
-    seqw.shape = (1, Nseq)
-    return seqw
+    if Nseq == 0:
+        return np.zeros((1, 0), dtype=float)
 
+    # Auto-adjust block_size for very large alignments to reduce peak memory
+    # For 300k sequences, smaller blocks help reduce memory pressure
+    if Nseq > 100000 and block_size > 512:
+        block_size = 512
+        print(f"Large alignment detected ({Nseq} sequences). Using block_size={block_size} to reduce memory usage.")
+
+    X = alg2bin(msa_num, N_aa=len(codeaa))  # sparse csr
+    neigh = np.zeros(Nseq, dtype=np.int32)
+
+    # blockwise similarity counting
+    # CRITICAL: Keep sparse operations to avoid memory explosion for large MSAs
+    # For 300k seqs, even block_size=1024 creates 1024×300k dense = 1.2GB per block
+    # Solution: Use sparse operations and only extract row sums we need
+    for i0 in range(0, Nseq, block_size):
+        i1 = min(i0 + block_size, Nseq)
+        # Compute sparse dot product (result is sparse)
+        counts_sparse = X[i0:i1] @ X.T  # Sparse matrix: block_size × Nseq
+        # Convert to dense only for the threshold comparison (much smaller)
+        # But we can be smarter: only compute what we need
+        sim_sparse = counts_sparse / float(Npos)
+        # For each row, count how many values > max_seqid
+        # Use sparse matrix operations to avoid full dense conversion
+        for local_idx, global_idx in enumerate(range(i0, i1)):
+            row_data = sim_sparse[local_idx, :].toarray().flatten()
+            neigh[global_idx] = (row_data > max_seqid).sum()
+
+    # avoid division by zero (shouldn't happen because self-similarity is 1.0 > max_seqid)
+    seqw = 1.0 / neigh.astype(float)
+    seqw = seqw.reshape(1, Nseq)
+    return seqw
 
 def filterSeq(alg0, sref=0.5, max_fracgaps=0.2, min_seqid=0.2, max_seqid=0.8):
     """
-    Take in an alignment (alg0, assumed to be filtered to remove highly gapped
-    positions), a reference sequence, the maximum fraction of gaps allowed per
-    sequence (max_fracgaps), the minimum and maximum sequence identities to the
-    reference sequence (min_seqid and max_seqid), and return (1) alg, the
-    alignment filtered to remove sequences with more than max_fracgaps (i.e.
-    partial seqs), (2) seqw, a vector of weights for each sequence, (3)
-    seqkeep, the indices of the original alignment (alg0) retained in alg:
+    Filter sequences by gap fraction and sequence identity to a reference.
 
-    **Note:** if sref is set to 0.5, filterSeq calls chooseRefSeq_ to
-    automatically select a reference sequence.
+    This is a vectorized implementation (much faster than per-character Python loops).
+    Identity is computed over all alignment columns (including gaps), matching the
+    previous behavior.
 
-    .. _chooseRefSeq: scaTools.html#scaTools.chooseRefSeq
+    If `sref == 0.5`, a reference is chosen automatically with chooseRefSeq().
 
-    **Example:**
-
-        alg, seqw, seqkeep = filterSeq(alg0, iref, max_fracgaps=.2, min_seqid=.2, max_seqid=.8)
+    Returns
+    -------
+    alg : list[str]
+        Filtered alignment.
+    seqw : np.ndarray, shape (1, N_kept)
+        Sequence weights (via seqWeights()).
+    seqkeep : list[int]
+        Indices of sequences retained from the original alignment.
     """
-
     if sref == 0.5:
         sref = chooseRefSeq(alg0)
-    Nseq, Npos = len(alg0), len(alg0[0])
-    # Elimination of sequences with too many gaps:
-    seqkeep0 = [
-        s for s in range(Nseq) if alg0[s].count("-") / Npos < max_fracgaps
-    ]
+
+    Nseq = len(alg0)
+    if Nseq == 0:
+        return [], np.zeros((1, 0), dtype=float), []
+    Npos = len(alg0[0])
+
+    for s in alg0:
+        if len(s) != Npos:
+            raise ValueError("Alignment is not rectangular: sequences have different lengths.")
+
+    # Convert to uint8 char matrix
+    joined = ("".join(alg0)).encode("ascii", "ignore")
+    A = np.frombuffer(joined, dtype=np.uint8).reshape(Nseq, Npos)
+
+    gap = ord("-")
+    frac_gaps = (A == gap).mean(axis=1)
+    seqkeep0 = np.where(frac_gaps < max_fracgaps)[0]
     print(
         "Keeping %i sequences of %i sequences (after filtering for gaps)"
         % (len(seqkeep0), Nseq)
     )
-    # Elimination of sequences too dissimilar to the reference (trimming):
-    seqkeep = [
-        s
-        for s in seqkeep0
-        if sum([alg0[s][i] == alg0[sref][i] for i in range(Npos)]) / Npos
-        > min_seqid
-    ]
+
+    ref = A[sref]
+    # previous code: sum([alg0[s][i] == alg0[sref][i] for i in range(Npos)]) / Npos
+    sid = (A[seqkeep0] == ref[None, :]).mean(axis=1)
+    keep_mask = (sid > min_seqid) & (sid < max_seqid)
+    seqkeep = seqkeep0[keep_mask].tolist()
+
     print(
         "Keeping %i sequences of %i sequences "
         "(after filtering for seq similarity)" % (len(seqkeep), len(seqkeep0))
     )
     alg = [alg0[s] for s in seqkeep]
-    # Sequence weights (smoothing, here effectively treats gaps as a 21st amino
-    # acid):
     seqw = seqWeights(alg, max_seqid)
     return alg, seqw, seqkeep
 
-
 def filterPos(alg, seqw=[1], max_fracgaps=0.2):
     """
-    Truncate the positions of an input alignment to reduce gaps, taking into
-    account sequence weights.
+    Truncate positions of an input alignment to reduce gaps, optionally using sequence weights.
 
-    **Arguments**
+    Parameters
+    ----------
+    alg : list[str]
+        Alignment as list of sequences (all same length).
+    seqw : array-like
+        Sequence weights. Can be a scalar-like [1], shape (N,), or shape (1,N).
+    max_fracgaps : float
+        Maximum (weighted) fraction of gaps allowed at a position.
 
-      :alg: An MxL list of sequences
-
-    **Keyword Arguments**
-      :seqw: vector of sequence weights (default is uniform weights)
-      :max_fracgaps: maximum fraction of gaps allowed at a position
-
-    **Returns:**
-      :alg_tr: the truncated alignment
-      :selpos: the index of retained positions (indices start at 0 for the
-               first position)
-
-    **Example**::
-
-       alg_tr, selpos = filterPos(alg, seqw, max_fracgaps=.2)
+    Returns
+    -------
+    alg_tr : list[str]
+        Truncated alignment.
+    selpos : list[int]
+        Indices (0-based) of retained positions.
     """
+    Nseq = len(alg)
+    if Nseq == 0:
+        return [], []
+    Npos = len(alg[0])
 
-    Nseq, Npos = len(alg), len(alg[0])
-    if len(seqw) == 1:
-        seqw = np.tile(1, (1, Nseq))
+    for s in alg:
+        if len(s) != Npos:
+            raise ValueError("Alignment is not rectangular: sequences have different lengths.")
 
-    # Fraction of gaps, taking into account sequence weights:
-    gapsMat = np.array(
-        [[int(alg[s][i] == "-") for i in range(Npos)] for s in range(Nseq)]
-    )
-    seqwn = seqw / seqw.sum()
-    gapsperpos = seqwn.dot(gapsMat)[0]
+    # Convert to uint8 char matrix (fast)
+    joined = ("".join(alg)).encode("ascii", "ignore")
+    A = np.frombuffer(joined, dtype=np.uint8).reshape(Nseq, Npos)
 
-    # Selected positions:
-    selpos = [i for i in range(Npos) if gapsperpos[i] < max_fracgaps]
+    gap = ord("-")
+    gapsMat = (A == gap)
 
-    # Truncation:
-    alg_tr = ["".join([alg[s][i] for i in selpos]) for s in range(Nseq)]
+    w = np.asarray(seqw, dtype=float).reshape(-1)
+    if w.size == 1:
+        # uniform weights
+        gapsperpos = gapsMat.mean(axis=0)
+    else:
+        if w.size != Nseq:
+            # Common in this codebase: seqw has shape (1,Nseq)
+            if w.size == Nseq:
+                pass
+            else:
+                raise ValueError(f"seqw has length {w.size} but alignment has {Nseq} sequences.")
+        wn = w / w.sum()
+        gapsperpos = (wn[:, None] * gapsMat).sum(axis=0)
+
+    selpos = np.where(gapsperpos < max_fracgaps)[0].tolist()
+    # Truncate sequences efficiently using numpy array slicing
+    if selpos:
+        # Use numpy advanced indexing for faster extraction
+        selpos_arr = np.array(selpos)
+        alg_tr = ["".join([seq[i] for i in selpos]) for seq in alg]
+    else:
+        alg_tr = []
     return alg_tr, selpos
-
 
 def randSel(seqw, Mtot, keepSeq=[]):
     """
@@ -926,17 +1201,24 @@ def weighted_rand_list(weights, Nmax, keepList):
       selection = weighted_rand_list(weights, Nmax, [iref])
     """
 
-    Ntot = min((weights > 0).sum(), Nmax)
-    wlist = [w for w in weights]
-    selection = list()
+    # Convert to numpy array for efficient operations
+    weights = np.asarray(weights, dtype=float)
+    Ntot = min(int((weights > 0).sum()), Nmax)
+    w_array = weights.copy()  # Work on copy
+    selection = list(keepList)  # Start with kept sequences
+    
+    # Set weights to 0 for kept sequences
     for k in keepList:
-        selection.append(k)
-        wlist[k] = 0
+        w_array[k] = 0
         Ntot -= 1
-    for k in range(Ntot):
-        i = weighted_rand_sel(wlist)
+    
+    # Randomly select remaining sequences
+    for _ in range(Ntot):
+        i = weighted_rand_sel(w_array)
+        if i is None:  # No more valid selections
+            break
         selection.append(i)
-        wlist[i] = 0
+        w_array[i] = 0
     return selection
 
 
@@ -951,57 +1233,114 @@ def weighted_rand_sel(weights):
 
       index = weighted_rand_sel(weights)
     """
-
-    rnd = rand.random() * sum(weights)
-    for i, w in enumerate(weights):
-        rnd -= w
-        if rnd < 0:
-            return i
+    weights = np.asarray(weights, dtype=float)
+    total_weight = np.sum(weights)
+    if total_weight == 0:
+        return None  # No valid selection possible
+    
+    rnd = rand.random() * total_weight
+    # Use cumulative sum for vectorized selection (faster for large arrays)
+    cumsum = np.cumsum(weights)
+    idx = np.searchsorted(cumsum, rnd, side='right')
+    return idx
 
 
 ###############################################################################
 # BASIC STATISTICAL FUNCTIONS
 
 
-def freq(alg, seqw=1, Naa=20, lbda=0, freq0=np.ones(20) / 21):
+def freq(alg, Naa=20, seqw=None, lbda=0, freq0=None):
     """
-    Compute amino acid frequencies for a given alignment.
+    Compute weighted single-site and pairwise amino-acid frequencies.
 
-    **Arguments**
+    Parameters
+    ----------
+    alg : ndarray (M x L)
+        Numeric alignment (msa_num), entries in [0..Naa] where Naa denotes gap.
+    Naa : int
+        Number of amino acids (default 20).
+    seqw : array-like, shape (M,) or (1,M)
+        Sequence weights.
+    lbda : float
+        Regularization parameter.
+    freq0 : array-like, shape (Naa+1,), optional
+        Background frequencies for regularization.
+        If None, defaults to uniform over amino acids + gap.
 
-      :alg: a MxL sequence alignment (converted using lett2num_)
-
-    .. _lett2num: scaTools.html#scaTools.lett2num
-
-    **Keyword Arguments**
-      :seqw:  a vector of sequence weights (1xM)
-      :Naa:   the number of amino acids
-      :lbda:  lambda parameter for setting the frequency of pseudo-counts (0
-              for no pseudo counts)
-      :freq0: expected average frequency of amino acids at all positions
-
-    **Returns**
-
-      :freq1: the frequencies of amino acids at each position taken
-              independently (Naa*L)
-      :freq2: the joint frequencies of amino acids at pairs of positions
-              (freq2, Naa*L * Naa*L)
-      :freq0: the average frequency of amino acids at all positions (Naa)
-
-    **Example**::
-
-      freq1, freq2, freq0 = freq(alg, seqw, lbda=lbda)
+    Returns
+    -------
+    freq1 : ndarray
+        Single-site frequencies.
+    freq2 : ndarray
+        Pairwise frequencies.
+    freq0 : ndarray
+        Background frequencies actually used.
     """
+
+    import numpy as np
+    import scipy.sparse
+
+    # ------------------------------------------------------------------
+    # HARDEN INPUTS (Python3 + clustered-weight safe)
+    # ------------------------------------------------------------------
+
+    # Sequence weights: enforce 2D row-vector convention used throughout scaTools
+    if seqw is not None:
+        seqw = np.asarray(seqw, dtype=float)
+        if seqw.ndim == 1:
+            seqw = seqw.reshape(1, -1)
+
+    # Background frequencies MUST be numeric and AA-only (length Naa).
+    # Gaps are handled implicitly via missing AA mass and theta in posWeights().
+    if freq0 is None:
+        # Default: uniform over amino acids only
+        freq0 = np.ones(Naa, dtype=float) / float(Naa)
+    else:
+        freq0 = np.asarray(freq0)
+
+        # If scalar given, ignore and use default AA-only background
+        if freq0.ndim == 0:
+            freq0 = np.ones(Naa, dtype=float) / float(Naa)
+        else:
+            if not np.issubdtype(freq0.dtype, np.number):
+                ex = freq0.ravel()[:5]
+                raise TypeError(
+                    "freq0 must be numeric background frequencies; "
+                    f"got dtype={freq0.dtype}, example={ex}"
+                )
+            freq0 = freq0.astype(float).ravel()
+
+            # Allow AA+gap background vectors by dropping the gap entry
+            if freq0.size == Naa + 1:
+                freq0 = freq0[:Naa]
+            elif freq0.size != Naa:
+                raise ValueError(f"freq0 must have length {Naa} (or {Naa+1} incl gap), got {freq0.size}")
+
+    # ------------------------------------------------------------------
+    # Original code continues below (UNCHANGED)
+    # ------------------------------------------------------------------
 
     Nseq, Npos = alg.shape
     if isinstance(seqw, int) and seqw == 1:
         seqw = np.ones((1, Nseq))
     seqwn = seqw / seqw.sum()
     al2d = alg2binss(alg, Naa)
-    freq1 = seqwn.dot(np.array(al2d.todense()))[0]
-    freq2 = np.array(
-        al2d.T.dot(scipy.sparse.diags(seqwn[0], 0)).dot(al2d).todense()
-    )
+    # CRITICAL: Keep sparse operations for large MSAs
+    # For 300k seqs × 12k cols, dense conversion = 3.6B elements = 14.4GB
+    # Solution: Only convert final small result to dense
+    # Use sparse matrix multiplication: seqwn (1, M) @ al2d (M, N_aa*Npos) -> (1, N_aa*Npos)
+    # Convert seqwn to sparse row vector for proper sparse dot product
+    seqwn_sparse = scipy.sparse.csr_matrix(seqwn)
+    freq1_dense = seqwn_sparse.dot(al2d)  # Result is (1, N_aa*N_pos) sparse matrix
+    freq1 = np.array(freq1_dense.toarray()).flatten()  # Convert to dense then flatten
+    
+    # For freq2, keep sparse operations as long as possible
+    # al2d.T.dot(diags).dot(al2d) produces (N_aa*N_pos) × (N_aa*N_pos) matrix
+    # For 600 positions: 12k × 12k = 144M elements = 576MB (manageable but large)
+    # Keep sparse until final conversion
+    freq2_sparse = al2d.T.dot(scipy.sparse.diags(seqwn[0], 0)).dot(al2d)
+    # Only convert to dense at the end (this is necessary for downstream operations)
+    freq2 = np.array(freq2_sparse.todense())
     # Background:
     block = np.outer(freq0, freq0)
     freq2_bkg = np.tile(block, (Npos, Npos))
@@ -1117,15 +1456,17 @@ def rotICA(V, kmax=6, learnrate=0.1, iterations=100000):
     **Example**::
        Vica, W = rotICA(V, kmax=6, learnrate=.0001, iterations=10000)
     """
+    # Cap kmax to available components
+    k_use = min(int(kmax), V.shape[1])
 
-    V1 = V[:, :kmax].T
+    V1 = V[:, :k_use].T
     [W, changes] = basicICA(V1, learnrate, iterations)
     Vica = (W.dot(V1)).T
-    for n in range(kmax):
-        imax = abs(Vica[:, n]).argmax()
-        Vica[:, n] = (
-            np.sign(Vica[imax, n]) * Vica[:, n] / np.linalg.norm(Vica[:, n])
-        )
+
+    for n in range(k_use):
+        imax = np.abs(Vica[:, n]).argmax()
+        Vica[:, n] = np.sign(Vica[imax, n]) * Vica[:, n] / np.linalg.norm(Vica[:, n])
+
     return Vica, W
 
 
@@ -1133,21 +1474,334 @@ def rotICA(V, kmax=6, learnrate=0.1, iterations=100000):
 # SCA FUNCTIONS
 
 
-def seqSim(alg):
+def seqSim(alg, max_seqs=None, i_ref=None, use_mmseqs2=False, 
+           cluster_id=0.85, seqw=None, return_indices=False,
+           max_seqs_cap=50000, keep_indices=None, auto_subsample=True):
     """
     Take an MxL alignment (converted to numeric representation using lett2num_)
     and compute a MxM matrix of sequence similarities.
 
+    For very large alignments, this function can subsample sequences to avoid
+    creating huge similarity matrices while preserving sequence similarity patterns.
+    The reference sequence and any user-specified sequences are always retained.
+
+    **Automatic Subsampling Strategy:**
+    - If `max_seqs` is None and `seqw` is provided: automatically subsample to
+      1.5 × sum(seqw) (effective sequences), capped by `max_seqs_cap`
+    - Reference sequence (`i_ref`) is always retained
+    - User-specified sequences (`keep_indices`) are always retained
+    - Memory cap (`max_seqs_cap`) prevents excessive memory usage
+
+    Parameters
+    ----------
+    alg : np.ndarray, shape (M, L)
+        Numeric alignment where M is number of sequences and L is number of positions.
+    max_seqs : int, optional
+        Maximum number of sequences to include. If None and seqw is provided,
+        automatically calculates as 1.5 × sum(seqw), capped by max_seqs_cap.
+        If None and seqw is None, uses all sequences.
+    i_ref : int, optional
+        Index of reference sequence to always retain in subsample.
+    use_mmseqs2 : bool, default False
+        If True and subsampling is needed, use MMseqs2 clustering for subsampling.
+        This provides better diversity than random sampling. Requires MMseqs2 to be
+        installed and in PATH. Falls back to weighted random selection if MMseqs2
+        is not available.
+    cluster_id : float, default 0.85
+        MMseqs2 identity threshold (only used if use_mmseqs2=True).
+    seqw : np.ndarray, optional, shape (1, M) or (M,)
+        Sequence weights. Used for: (1) automatic max_seqs calculation (1.5 × sum),
+        (2) weighted random selection when use_mmseqs2=False.
+    return_indices : bool, default False
+        If True, return tuple (simMat, selected_indices) where selected_indices
+        are the indices of sequences included in the similarity matrix.
+    max_seqs_cap : int, default 50000
+        Maximum number of sequences to use even if 1.5 × sum(seqw) would be larger.
+        Prevents memory issues for very large MSAs.
+    keep_indices : list[int] or np.ndarray, optional
+        Additional sequence indices to always retain in subsample (e.g., sequences
+        with special annotations to study). Combined with i_ref.
+    auto_subsample : bool, default True
+        If True and max_seqs is None and seqw is provided, automatically calculates
+        max_seqs as 1.5 × sum(seqw) (capped). If False, uses all sequences when
+        max_seqs is None (unless explicit max_seqs is provided).
+
+    Returns
+    -------
+    simMat : np.ndarray, shape (M', M') or scipy.sparse matrix
+        Sequence similarity matrix where M' is the number of sequences (subsampled
+        if needed, otherwise M). Returns dense array if M' < 50000, otherwise sparse matrix.
+    selected_indices : np.ndarray, optional
+        Only returned if return_indices=True. Indices of sequences included.
+
     **Example**::
+      # Standard usage (all sequences)
       simMat = seqSim(alg)
+      
+      # Automatic subsampling based on effective sequences (1.5 × sum(seqw))
+      simMat = seqSim(alg, seqw=seqw, i_ref=0)
+      
+      # Disable automatic subsampling (use all sequences)
+      simMat = seqSim(alg, seqw=seqw, i_ref=0, auto_subsample=False)
+      
+      # Manual subsampling to specific number
+      simMat = seqSim(alg, max_seqs=10000, i_ref=0)
+      
+      # Keep reference + user-specified sequences
+      simMat = seqSim(alg, seqw=seqw, i_ref=0, keep_indices=[5, 10, 15])
+      
+      # Use MMseqs2 for intelligent subsampling
+      simMat, indices = seqSim(alg, seqw=seqw, i_ref=0, use_mmseqs2=True, return_indices=True)
 
     """
+    import warnings
+    
     # Get the number of sequences and number of positions:
-    [Nseq, Npos] = alg.shape
-    # Convert into a M*(20L) (sparse) binary array:
-    X2d = alg2bin(alg)
-    simMat = X2d.dot(X2d.T) / Npos
-    return simMat
+    Nseq, Npos = alg.shape
+    
+    # Collect all sequences that must be retained
+    must_keep = set()
+    if i_ref is not None:
+        must_keep.add(int(i_ref))
+    if keep_indices is not None:
+        if isinstance(keep_indices, (list, tuple)):
+            must_keep.update(int(x) for x in keep_indices)
+        else:
+            keep_indices = np.asarray(keep_indices, dtype=int)
+            must_keep.update(keep_indices.flatten().tolist())
+    
+    # Validate keep_indices are within bounds
+    invalid_keep = [i for i in must_keep if i < 0 or i >= Nseq]
+    if invalid_keep:
+        raise ValueError(f"keep_indices contains invalid indices: {invalid_keep} (valid range: 0-{Nseq-1})")
+    
+    # Determine max_seqs: automatic calculation if enabled and not provided and seqw available
+    if max_seqs is None and auto_subsample and seqw is not None:
+        # Automatic: 1.5 × effective sequences (sum of weights)
+        seqw_flat = np.asarray(seqw).flatten()
+        if len(seqw_flat) != Nseq:
+            raise ValueError(f"seqw length ({len(seqw_flat)}) does not match alignment size ({Nseq})")
+        eff_seqs = float(np.sum(seqw_flat))
+        max_seqs = int(np.round(1.5 * eff_seqs))
+        # Apply memory cap
+        if max_seqs > max_seqs_cap:
+            max_seqs = max_seqs_cap
+            warnings.warn(
+                f"Automatic max_seqs (1.5 × {eff_seqs:.1f} = {int(np.round(1.5 * eff_seqs))}) "
+                f"exceeds cap ({max_seqs_cap}). Capping to {max_seqs_cap}.",
+                UserWarning
+            )
+        # Ensure we have at least enough for must_keep sequences
+        if max_seqs < len(must_keep):
+            max_seqs = len(must_keep)
+            warnings.warn(
+                f"max_seqs adjusted to {max_seqs} to accommodate {len(must_keep)} required sequences.",
+                UserWarning
+            )
+    
+    # Determine if we need subsampling
+    if max_seqs is None or Nseq <= max_seqs:
+        # No subsampling needed
+        selected_indices = np.arange(Nseq, dtype=np.int32)
+        alg_subsample = alg
+    else:
+        # Subsample required
+        if use_mmseqs2:
+            # Use MMseqs2 clustering for diverse subsampling
+            try:
+                selected_indices = _subsample_with_mmseqs2(
+                    alg, max_seqs, must_keep, cluster_id, Npos
+                )
+            except (FileNotFoundError, subprocess.CalledProcessError, ImportError) as e:
+                warnings.warn(
+                    f"MMseqs2 subsampling failed ({e}). Falling back to weighted random selection.",
+                    UserWarning
+                )
+                # Fall back to weighted random selection
+                if seqw is None:
+                    seqw = np.ones((1, Nseq))
+                selected_indices = _subsample_weighted_random(alg, max_seqs, must_keep, seqw)
+        else:
+            # Use weighted random selection
+            if seqw is None:
+                seqw = np.ones((1, Nseq))
+            selected_indices = _subsample_weighted_random(alg, max_seqs, must_keep, seqw)
+        
+        # Extract subsampled alignment
+        alg_subsample = alg[selected_indices, :]
+        Nseq_subsample = len(selected_indices)
+        
+        # Verify all required sequences are included
+        selected_set = set(selected_indices.tolist())
+        missing = must_keep - selected_set
+        if missing:
+            raise RuntimeError(f"Required sequences not in subsample: {sorted(missing)}")
+        
+        print(f"Subsampled alignment: {Nseq} → {Nseq_subsample} sequences "
+              f"({Nseq_subsample/Nseq*100:.1f}%), retained {len(must_keep)} required sequences")
+    
+    # Compute similarity matrix on (subsampled) alignment
+    X2d = alg2bin(alg_subsample)
+    simMat = X2d.dot(X2d.T) / alg_subsample.shape[1]
+    
+    # Convert to dense if small enough, otherwise keep sparse
+    Nseq_final = alg_subsample.shape[0]
+    if hasattr(simMat, 'toarray') and Nseq_final < 50000:
+        simMat = simMat.toarray()
+    
+    if return_indices:
+        return simMat, selected_indices
+    else:
+        return simMat
+
+
+def _subsample_with_mmseqs2(alg, max_seqs, must_keep, cluster_id, Npos):
+    """
+    Subsample alignment using MMseqs2 clustering.
+    
+    Parameters
+    ----------
+    alg : np.ndarray
+        Numeric alignment
+    max_seqs : int
+        Maximum number of sequences to select
+    must_keep : set[int]
+        Set of sequence indices that must be included
+    cluster_id : float
+        MMseqs2 identity threshold
+    Npos : int
+        Number of positions (unused, kept for compatibility)
+    
+    Returns
+    -------
+    np.ndarray
+        Selected sequence indices (always includes must_keep)
+    """
+    import tempfile
+    import shutil
+    
+    # Create temporary directory
+    tmpdir = Path(tempfile.mkdtemp(prefix="sca_seqsim_mmseqs_"))
+    try:
+        # Convert numeric alignment back to sequences for MMseqs2
+        # Create a temporary FASTA file with ungapped sequences
+        code = "ACDEFGHIKLMNPQRSTVWY"
+        ungapped_fa = tmpdir / "ungapped.fasta"
+        
+        with open(ungapped_fa, "w") as f:
+            for i in range(alg.shape[0]):
+                seq_num = alg[i, :].astype(int)
+                # Convert numeric to sequence string (ungapped)
+                seq_chars = []
+                for aa in seq_num:
+                    if 1 <= aa <= 20:
+                        seq_chars.append(code[aa - 1])  # aa is already int
+                    # Skip gaps (aa == 0) and other invalid values
+                seq_str = "".join(seq_chars)
+                if seq_str:  # Only write non-empty sequences
+                    f.write(f">seq_{i}\n{seq_str}\n")
+        
+        # Run MMseqs2 clustering
+        db = tmpdir / "db"
+        clu = tmpdir / "clu"
+        tsv = tmpdir / "clu.tsv"
+        
+        subprocess.run(["mmseqs", "createdb", str(ungapped_fa), str(db)], 
+                      check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        
+        # Clustering with specified identity threshold
+        subprocess.run([
+            "mmseqs", "cluster",
+            str(db), str(clu), str(tmpdir / "tmp"),
+            "--min-seq-id", str(cluster_id),
+            "-c", "0.8",
+            "--cov-mode", "0",
+        ], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        
+        subprocess.run(["mmseqs", "createtsv", str(db), str(db), str(clu), str(tsv)],
+                      check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        
+        # Parse cluster representatives
+        representatives = set()
+        with open(tsv, "r") as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    parts = line.split("\t")
+                    if len(parts) >= 2:
+                        rep = parts[0]
+                        # Extract sequence index from ID (format: "seq_<index>")
+                        if rep.startswith("seq_"):
+                            try:
+                                seq_idx = int(rep[4:])
+                                representatives.add(seq_idx)
+                            except ValueError:
+                                continue  # Skip invalid IDs
+        
+        # Convert to sorted list
+        selected = sorted(list(representatives))
+        
+        # Ensure all must_keep sequences are included
+        for idx in must_keep:
+            if idx not in selected:
+                selected.append(idx)
+        selected = sorted(selected)
+        
+        # If we have more representatives than max_seqs, randomly sample
+        if len(selected) > max_seqs:
+            # Always keep required sequences
+            candidates = [i for i in selected if i not in must_keep]
+            np.random.seed(42)  # For reproducibility
+            n_needed = max_seqs - len(must_keep)
+            if n_needed > 0 and len(candidates) >= n_needed:
+                additional = np.random.choice(candidates, size=n_needed, replace=False)
+                selected = sorted(list(must_keep) + additional.tolist())
+            elif n_needed <= 0:
+                # max_seqs is less than must_keep size - take all must_keep (shouldn't happen due to validation)
+                selected = sorted(list(must_keep))
+            else:
+                # Fewer candidates than needed, take all candidates
+                selected = sorted(list(must_keep) + candidates)
+        
+        return np.array(selected, dtype=np.int32)
+        
+    finally:
+        # Clean up temporary directory
+        shutil.rmtree(tmpdir, ignore_errors=True)
+
+
+def _subsample_weighted_random(alg, max_seqs, must_keep, seqw):
+    """
+    Subsample alignment using weighted random selection.
+    
+    Parameters
+    ----------
+    alg : np.ndarray
+        Numeric alignment
+    max_seqs : int
+        Maximum number of sequences to select
+    must_keep : set[int]
+        Set of sequence indices that must be included
+    seqw : np.ndarray
+        Sequence weights
+    
+    Returns
+    -------
+    np.ndarray
+        Selected sequence indices (always includes must_keep)
+    """
+    # Ensure seqw is in correct format
+    if isinstance(seqw, np.ndarray):
+        if seqw.ndim == 2:
+            seqw = seqw[0]  # Flatten to 1D
+    else:
+        seqw = np.ones(alg.shape[0])
+    
+    # Use randSel function which handles weighted selection
+    keep_list = sorted(list(must_keep))
+    selected = randSel(np.array([seqw]), max_seqs, keepSeq=keep_list)
+    
+    return np.array(sorted(selected), dtype=np.int32)
 
 
 def posWeights(
@@ -1190,7 +1844,7 @@ def posWeights(
            with lett2num_
          - `seqw` = a vector of M sequence weights (default is uniform
            weighting)
-         - `lbda` = pseudo-counting frequencies, default is no pseudocounts
+         - `lbda` = regularization parameter, default is no regularization (0)
          - `freq0` =  background amino acid frequencies :math:`q_i^a`
 
     **Returns:**
@@ -1309,8 +1963,7 @@ def scaMat(alg, seqw=1, norm="frob", lbda=0, freq0=np.ones(20) / 21):
               correlation tensor to a positional correlation matrix.  Use
               'spec' for spectral norm and 'frob' for Frobenius norm. The
               frobenius norm is the default.
-       :lbda: lambda parameter for setting the frequency of pseudo-counts (0
-              for no pseudo counts)
+       :lbda: regularization parameter (0 for no regularization)
        :freq0: background expectation for amino acid frequencies
 
      **Returns**
@@ -1351,16 +2004,26 @@ def scaMat(alg, seqw=1, norm="frob", lbda=0, freq0=np.ones(20) / 21):
     Cfrob += np.triu(Cfrob, 1).T
 
     # Projector:
-    al2d = np.array(alg2binss(alg).todense())
+    # Keep sparse for as long as possible (avoid converting to dense)
+    al2d = alg2binss(alg)
     tX = np.zeros((N_seq, N_pos))
     Proj = Wpos * freq1
     ProjMat = np.zeros((N_pos, N_aa))
     for i in range(N_pos):
         Projati = Proj[N_aa * i : N_aa * (i + 1)]
-        if sum(Projati ** 2) > 0:
-            Projati /= np.sqrt(sum(Projati ** 2))
+        norm_val = np.sqrt(np.sum(Projati ** 2))
+        if norm_val > 0:
+            Projati /= norm_val
         ProjMat[i, :] = Projati
-        tX[:, i] = al2d[:, N_aa * i : N_aa * (i + 1)].dot(Projati.T)
+        # Use sparse matrix slicing (much more memory efficient)
+        # Slice sparse matrix and compute dot product, handle both sparse and dense results
+        al2d_slice = al2d[:, N_aa * i : N_aa * (i + 1)]
+        dot_result = al2d_slice.dot(Projati)
+        # Handle both sparse and dense results
+        if hasattr(dot_result, 'toarray'):
+            tX[:, i] = dot_result.toarray().flatten()
+        else:
+            tX[:, i] = np.asarray(dot_result).flatten()
     if norm == "frob":
         Cspec = Cfrob
     return Cspec, tX, Proj
@@ -1586,7 +2249,7 @@ def icList(Vpica, kpos, Csca, p_cut=0.95):
     scaled_pdf = list()
     all_fits = list()
     for k in range(kpos):
-        pd = t.fit(Vpica[:, k])
+        pd = t_dist.fit(Vpica[:, k])
         all_fits.append(pd)
         iqr = scoreatpercentile(Vpica[:, k], 75) - scoreatpercentile(
             Vpica[:, k], 25
@@ -1596,8 +2259,8 @@ def icList(Vpica, kpos, Csca, p_cut=0.95):
         h_params = np.histogram(Vpica[:, k], int(nbins))
         x_dist = np.linspace(min(h_params[1]), max(h_params[1]), num=100)
         area_hist = Npos * (h_params[1][2] - h_params[1][1])
-        scaled_pdf.append(area_hist * (t.pdf(x_dist, pd[0], pd[1], pd[2])))
-        cd = t.cdf(x_dist, pd[0], pd[1], pd[2])
+        scaled_pdf.append(area_hist * (t_dist.pdf(x_dist, pd[0], pd[1], pd[2])))
+        cd = t_dist.cdf(x_dist, pd[0], pd[1], pd[2])
         tmp = scaled_pdf[k].argmax()
         if abs(max(Vpica[:, k])) > abs(min(Vpica[:, k])):
             tail = cd[tmp : len(cd)]
@@ -1639,6 +2302,38 @@ def icList(Vpica, kpos, Csca, p_cut=0.95):
         s.vect = -Vpica[s.items, k]
         ics.append(s)
     return ics, icsize, sortedpos, cutoff, scaled_pdf, all_fits
+
+
+def t(Vica, ic_list):
+    """
+    Extract sectors from ICA components and IC position sets.
+    
+    Extracts position indices from Unit objects in ic_list and returns
+    them as a list of lists for compatibility with sector processing functions.
+    
+    **Arguments:**
+       - `Vica`: Independent components (Npos x kpos matrix)
+       - `ic_list`: List of Unit objects from icList, where each Unit has
+                    an `items` attribute containing position indices
+    
+    **Returns:**
+       - List of lists, where each inner list contains position indices for one sector
+    
+    **Example:**
+       sectors = sca.t(Vica, ic_list)
+       # Returns: [[0, 1, 5, 10], [2, 3, 7], [4, 8, 9]]
+    """
+    # Extract .items from each Unit object and convert to list
+    sectors = []
+    for unit in ic_list:
+        if hasattr(unit, 'items'):
+            # Convert set or other iterable to sorted list
+            items_list = list(unit.items)
+            sectors.append(sorted(items_list))
+        else:
+            # If not a Unit object, treat as-is (for backward compatibility)
+            sectors.append(unit)
+    return sectors
 
 
 def singleBar(x, loc, cols, width=0.5):
@@ -1887,8 +2582,7 @@ def randomize(
      :Ntrials: number of trials
      :seqw: vector of sequence weights (default is to assume equal weighting)
      :norm: either 'frob' (frobenius) or 'spec' (spectral)
-     :lbda: lambda parameter for setting the frequency of pseudo-counts (0 for
-            no pseudo counts)
+     :lbda: regularization parameter (0 for no regularization)
      :Naa: number of amino acids
      :kmax: number of eigenvectors to keep for each randomized trial
      :tolerance: workaround for roundoff error that occurs when calculating gap
