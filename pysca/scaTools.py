@@ -2223,9 +2223,21 @@ def chooseKpos(Lsca, Lrand):
     Given the eigenvalues of the sca matrix (Lsca), and the eigenvalues for the
     set of randomized matrices (Lrand), return the number of significant
     eigenmodes.
+    
+    The threshold is set to the mean of the second eigenvalue of Lrand
+    (the randomized trials).
+    
+    **Arguments**
+      :Lsca: eigenvalues of the SCA matrix (1D array)
+      :Lrand: eigenvalues for randomized trials (2D array: Ntrials x Npos)
+    
+    **Returns**
+      :kpos: number of significant eigenmodes (count of Lsca eigenvalues > threshold)
     """
-
-    return Lsca[Lsca > (Lrand[:, 1].mean() + (3 * Lrand[:, 1].std()))].shape[0]
+    
+    # Threshold is mean of second eigenvalue (index 1) across all trials
+    threshold = Lrand[:, 1].mean()
+    return Lsca[Lsca > threshold].shape[0]
 
 
 def icList(Vpica, kpos, Csca, p_cut=0.95):

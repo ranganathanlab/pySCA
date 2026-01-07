@@ -46,7 +46,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 from scipy.io import savemat
-from scipy.stats import kurtosis, spearmanr
+from scipy.stats import kurtosis
 
 from pysca import scaTools as sca
 
@@ -697,15 +697,9 @@ def main(argv: Optional[list[str]] = None) -> int:
         kpos_was_auto = False
         
         # Always compute kpos_auto for reference, even if user specified kpos
+        # Use chooseKpos which sets threshold to mean of second eigenvalue of Lrand
         if Lrand is not None and Lrand.ndim == 2 and Lrand.shape[1] == eigvals.shape[0]:
-            thr = np.quantile(Lrand, args.sector_cutoff, axis=0)
-            # Compute kpos_auto: count eigenvalues that exceed threshold
-            count = np.sum(eigvals > thr)
-            # Convert to Python int (handle both numpy scalar and Python int)
-            if hasattr(count, 'item'):
-                kpos_auto = int(count.item())
-            else:
-                kpos_auto = int(count)
+            kpos_auto = sca.chooseKpos(eigvals, Lrand)
             if kpos_auto <= 0:
                 kpos_auto = 1
         else:
@@ -766,15 +760,8 @@ def main(argv: Optional[list[str]] = None) -> int:
             print(f"IC {k+1}: excess kurtosis = {kurt:.4f}")
         
         # Identify IC position sets (use kica, not kpos)
-        logger.info("Identifying IC position sets...")
         out = sca.icList(Vica, kica, Csca, p_cut=args.sector_cutoff)
         ic_list, icsize, sortedpos, cutoff, scaled_pdf, all_fits = out
-        
-        try:
-            n_ic = len(ic_list)
-        except Exception:
-            n_ic = kica
-        logger.info(f"Identified {n_ic} IC position sets")
         
         # Get ATS labels for mapping position indices to ATS numbering
         Lpos = int(Csca.shape[0])
@@ -846,10 +833,6 @@ def main(argv: Optional[list[str]] = None) -> int:
         ats_list = [str(a) for a in ats]
         sector_ats = [[ats_list[i] for i in s] for s in sector_pos]
         
-        logger.info(f"Identified {len(sector_pos)} independent components")
-        for i, sect in enumerate(sector_pos):
-            logger.info(f"  Independent component {i+1}: {len(sect)} positions")
-        
         # Store sector results
         db.setdefault("sector", {})
         db["sector"]["kpos"] = kpos
@@ -877,25 +860,39 @@ def main(argv: Optional[list[str]] = None) -> int:
         else:
             db["sector"]["W"] = W
         
-        # Compute Spearman rank correlation matrix between ICs
-        logger.info("Computing Spearman rank correlations between ICs...")
-        ic_corr = np.zeros((kica, kica))
-        for i in range(kica):
-            for j in range(kica):
-                corr, _ = spearmanr(Vica[:, i], Vica[:, j])
-                ic_corr[i, j] = corr
-        db["sector"]["ic_corr_spearman"] = ic_corr.astype(np.float32 if args.float32 else np.float64)
-        logger.info(f"IC correlation matrix shape: {ic_corr.shape}")
+        # Compute IC correlation analysis: sum of triu(Csca[ic_pos, ic_pos], 1) / n_pos for each IC
+        logger.info("Computing IC correlation analysis (sum of triu(Csca[ic_pos, ic_pos], 1) / n_pos)...")
+        ic_corr_mean = []
+        for k in range(kica):
+            # Get positions for this IC
+            if k < len(ic_list):
+                ic_unit = ic_list[k]
+                if hasattr(ic_unit, 'items'):
+                    ic_positions = list(ic_unit.items)
+                elif isinstance(ic_unit, (list, tuple)):
+                    ic_positions = list(ic_unit)
+                else:
+                    ic_positions = []
+            else:
+                ic_positions = []
+            
+            if len(ic_positions) > 0:
+                # Extract submatrix for this IC
+                ic_submatrix = Csca[np.ix_(ic_positions, ic_positions)]
+                # Get upper triangle (excluding diagonal, k=1 means start from first off-diagonal)
+                triu_values = np.triu(ic_submatrix, k=1)
+                # Sum all values in upper triangle
+                triu_sum = np.sum(triu_values)
+                # Divide by number of positions in IC
+                ic_corr_mean_val = triu_sum / len(ic_positions)
+            else:
+                ic_corr_mean_val = 0.0
+            
+            ic_corr_mean.append(float(ic_corr_mean_val))
+            logger.info(f"IC {k+1}: mean correlation = {ic_corr_mean_val:.6f} (n_pos = {len(ic_positions)})")
+            print(f"IC {k+1}: mean correlation = {ic_corr_mean_val:.6f} (n_pos = {len(ic_positions)})")
         
-        # Format and log the correlation matrix
-        logger.info("Spearman rank correlation matrix between ICs:")
-        # Header row
-        header = "IC" + "".join(f"{i+1:>8}" for i in range(kica))
-        logger.info(header)
-        # Data rows
-        for i in range(kica):
-            row_str = f"{i+1:>2}" + "".join(f"{ic_corr[i, j]:>8.4f}" for j in range(kica))
-            logger.info(row_str)
+        db["sector"]["ic_corr_mean"] = ic_corr_mean
         db["sector"]["ic_list"] = ic_list
         db["sector"]["icsize"] = icsize
         db["sector"]["sortedpos"] = sortedpos

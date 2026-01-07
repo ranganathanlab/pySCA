@@ -304,7 +304,7 @@ def main(argv: Optional[List[str]] = None) -> int:
                         "Indices in the file are 1-based (first sequence is 1, second is 2, etc.). "
                         "Can be combined with --keep-sequences.")
 
-    p.add_argument("--initial-trim-gap", type=float, default=None, help="Initial trim threshold for position gaps. If not specified, defaults to (1 - pos_gap). Filters positions with gap fraction >= this value.")
+    p.add_argument("--initial-trim-gap", type=float, default=None, help="Initial trim threshold for position gaps. If not specified, defaults to 0.8. Filters positions with gap fraction >= this value.")
     p.add_argument("--save-msa-num", action="store_true", default=False, help="Save msa_num to compressed npz.")
 
     # Logging / verbosity
@@ -314,10 +314,10 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     args = p.parse_args(argv)
     
-    # If initial_trim_gap not specified, calculate it from pos_gap: 1 - pos_gap
+    # If initial_trim_gap not specified, use default of 0.8
     initial_trim_was_calculated = False
     if args.initial_trim_gap is None:
-        args.initial_trim_gap = 1.0 - args.parameters[0]
+        args.initial_trim_gap = 0.8
         initial_trim_was_calculated = True
     
     logger = setup_logger(args.log, args.verbose, args.quiet)
@@ -347,7 +347,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     logger.info(f"Output base: {base}")
     logger.info(f"Parameters: pos_gap={args.parameters[0]}, seq_gap={args.parameters[1]}, minSID={args.parameters[2]}, maxSID={args.parameters[3]}")
     if initial_trim_was_calculated:
-        logger.info(f"Initial trim gap threshold (position gaps): {args.initial_trim_gap} (auto-calculated as 1 - pos_gap = 1 - {args.parameters[0]})")
+        logger.info(f"Initial trim gap threshold (position gaps): {args.initial_trim_gap} (default)")
     else:
         logger.info(f"Initial trim gap threshold (position gaps): {args.initial_trim_gap} (user-specified)")
 
@@ -449,15 +449,11 @@ def main(argv: Optional[List[str]] = None) -> int:
         else:
             raise ValueError("All sequences were filtered out! No sequences after reading alignment.")
 
-    # Store original untrimmed alignment for preclustering (if needed)
-    headers_untrimmed = headers_original[:]
-    sequences_untrimmed = sequences_original[:]
-
     # Initial trim of highly gapped positions (for reference search)
     sequences_original, poskeep_init = sca.filterPos(sequences_original, [1], args.initial_trim_gap)
     logger.info(f"After initial trim: L={len(sequences_original[0])} positions (kept {len(poskeep_init)})")
 
-    # Find reference sequence on TRIMMED alignment (this was working successfully)
+    # Find reference sequence on TRIMMED alignment (before MMseqs2 preclustering)
     # This gives us i_ref and ref_header_id for retention during preclustering
     ref_header_id = None  # Will store the header ID to ensure it's retained during preclustering
     seq_pdb_stored = None
@@ -473,14 +469,14 @@ def main(argv: Optional[List[str]] = None) -> int:
         ref_header_id = headers_original[i_ref_original].split()[0]
         logger.info(f"Using provided reference index: i_ref={i_ref_original} ({headers_original[i_ref_original]})")
     elif args.pdbid is not None:
-        # Find reference sequence using PDB (on trimmed alignment - this was working)
+        # Find reference sequence using PDB (on trimmed alignment)
         logger.info(f"Using PDB reference: {args.pdbid} chain {args.chainID}")
         seq_pdb, ats_pdb, dist_pdb = sca.pdbSeq(args.pdbid, args.chainID)
         seq_pdb_stored = seq_pdb
         ats_pdb_stored = ats_pdb
         dist_pdb_stored = dist_pdb
         
-        # Search on TRIMMED alignment (this was working successfully)
+        # Search on TRIMMED alignment
         if args.species:
             try:
                 logger.info(f"Finding reference sequence using species-based best match: {args.species}")
@@ -558,6 +554,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         logger.info("=" * 80)
         if ref_header_id:
             logger.info(f"Ensuring reference sequence '{ref_header_id}' is retained during preclustering")
+            logger.info(f"Ensuring reference sequence '{ref_header_id}' is retained in preclustered alignment")
         
         # Precluster the ORIGINAL untrimmed alignment (from file)
         reps_fa, wts_tsv = run_precluster(
