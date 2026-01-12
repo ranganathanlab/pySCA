@@ -4,10 +4,8 @@
 #
 # PATHS
 #
-# These have to be changed to be consistent with user-defined paths. This
-# script is tested against the `runAllNBCalcs.sh` scripts, and because the
-# script includes a `cd ../` command before running any of the python scripts,
-# the base directory is the root of the repository.
+# These have to be changed to be consistent with user-defined paths.
+# The base directory is the root of the repository.
 #
 
 # Enter absolute path (e.g. /home/<user>/pfamseq.txt) to the file 'pfamseq.txt'
