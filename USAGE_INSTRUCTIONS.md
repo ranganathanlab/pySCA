@@ -1,6 +1,6 @@
 # pySCA Usage Instructions
 
-Complete guide for using `sca-process-msa` and `sca-core` in the SCA workflow.
+SCA represents a tool to examine the evolutionary pressures on and between amino acids in proteins. The analysis involves two steps: (1) `sca-process-msa`, which pre-processes a multiple sequence alignment to trim partial sequences, positions with excessive gaps, and to compute sequence and position weights, (2) `sca-core`, which carries out the core calculations of site-specific conservation, coevolution, and its decomposition to identify statistically significant collective groups of amino acids (sectors). Here, we provide a guide for using `sca-process-msa` and `sca-core`.
 
 **Before you begin:** Make sure you have installed pySCA and all dependencies. See [INSTALLATION.md](INSTALLATION.md) for installation instructions.
 
@@ -8,12 +8,59 @@ Complete guide for using `sca-process-msa` and `sca-core` in the SCA workflow.
 
 ## Table of Contents
 
-1. [sca-process-msa - Alignment Preprocessing](#sca-process-msa---alignment-preprocessing)
-2. [sca-core - Core SCA Calculations](#sca-core---core-sca-calculations)
-3. [Complete Workflow Examples](#complete-workflow-examples)
-4. [Command-Line Reference](#command-line-reference)
-5. [Tips and Best Practices](#tips-and-best-practices)
-6. [Troubleshooting](#troubleshooting)
+1. [Quick Start](#quick-start)
+2. [sca-process-msa - Alignment Preprocessing](#sca-process-msa---alignment-preprocessing)
+3. [sca-core - Core SCA Calculations](#sca-core---core-sca-calculations)
+4. [Complete Workflow Examples](#complete-workflow-examples)
+5. [Command-Line Reference](#command-line-reference)
+6. [Tips and Best Practices](#tips-and-best-practices)
+7. [Troubleshooting](#troubleshooting)
+
+---
+
+## Quick Start
+
+### Step 1: sca-process-msa
+
+```bash
+sca-process-msa \
+    alignment.fasta \
+    -s 1XYZ --chainID A \
+    --precluster \
+    --cluster-id 0.85 \
+    --parameters 0.2 0.2 0.2 0.8 \
+    --initial-trim-gap 0.8 \
+    --output alignment_processed \
+    --matlab \
+    --log processing.log
+```
+
+**Note:** Use `--precluster` if MSA has >50k sequences. Use `--matlab` if you want a MATLAB database output.
+
+### Step 2: sca-core
+
+```bash
+# Complete SCA analysis with sector identification
+sca-core \
+    Outputs/alignment_processed.db.gz \
+    --do-seqcorr \
+    --seqcorr-ref 0 \
+    --seqcorr-mmseqs2 \
+    --do-sector-id \
+    --kpos 0 \
+    --ic-cutoff 0.95 \
+    --lbda 0.01 \
+    --norm frob \
+    --Ntrials 10 \
+    --float32 \
+    --matlab \
+    --log sca_core.log
+```
+
+**Notes:**
+- `--kpos 0`: Auto-selects eigenmodes (or specify eigenvalue cutoff)
+- `--ic-cutoff 0.95`: >95% CDF of t-locationscale distribution for each independent component (IC)
+- `--lbda 0.01`: Small regularization parameter, typically somewhat larger than 1/Meff
 
 ---
 
@@ -50,17 +97,17 @@ You must specify a reference sequence using one of these methods:
 ```bash
 sca-process-msa alignment.fasta \
     -s 1XYZ \
-    --chainID A
+    -c A
 ```
 
 Or using the long form:
 ```bash
 sca-process-msa alignment.fasta \
-    -s 1XYZ \
+    --pdb 1XYZ \
     --chainID A
 ```
 
-**Note:** Use `-s` (not `-pdb`) for the PDB argument, since `-p` is reserved for `--parameters`.
+**Note:** Both `-s`/`--pdb` and `-c`/`--chainID` are equivalent. The short forms (`-s`, `-c`) are more concise, while the long forms (`--pdb`, `--chainID`) are more explicit.
 
 - Uses PDB structure to define reference sequence and alignment-to-structure mapping
 - Creates distance matrix for structure-based analysis
@@ -93,7 +140,7 @@ Default filtering parameters (can be customized):
 Default: 0.3 0.2 0.15 0.85
 ```
 
-- **max_gap_pos:** Maximum fraction of gaps allowed per position (default: 0.2)
+- **max_gap_pos:** Maximum fraction of gaps allowed per position (default: 0.3)
 - **max_gap_seq:** Maximum fraction of gaps allowed per sequence (default: 0.2)
 - **min_SID:** Minimum sequence identity threshold (default: 0.15)
 - **max_SID:** Maximum sequence identity threshold (default: 0.85)
@@ -135,7 +182,7 @@ Remove highly gapped positions before processing:
 ```bash
 sca-process-msa alignment.fasta \
     -s 1XYZ --chainID A \
-    --initial-trim-gap 0.8  # Remove positions with >80% gaps
+     --initial-trim-gap 0.8  # Remove positions with >80% gaps for initial reference sequence search
 ```
 
 ### Output Options
@@ -214,7 +261,7 @@ sca-process-msa \
 
 ### Overview
 
-Performs core SCA calculations: positional weights, SCA correlation matrix, and randomized controls. Optionally computes sequence correlations and sector identification.
+Performs core SCA calculations: site-specific conservation, SCA correlation matrix, and randomized controls. Optionally computes sequence correlations and sector identification.
 
 **Input:** Processed alignment database from `scaProcessMSA_py3_big.py`  
 **Output:** SCA results database (`.db.gz`) with correlation matrices, eigenvectors, and optional sector definitions
@@ -242,7 +289,7 @@ python pysca/scaCore_py3.py processed_alignment.db.gz
 
 These are always performed:
 
-1. **Positional weights** (Di, Dia)
+1. **Site-specific conservation ** (Di, Dia)
 2. **SCA correlation matrix** (Csca)
 3. **Projected alignment** (tX)
 4. **Projector** (Proj)
@@ -251,6 +298,8 @@ These are always performed:
 ### SCA Parameters
 
 #### Regularization Parameter
+
+Typically small for most MSAs; something a bit larger than 1/Meff, where Meff is the effective number of sequences in the MSA.
 ```bash
 sca-core input.db.gz --lbda 0.01  # Default: 0.01
 ```
@@ -338,14 +387,14 @@ sca-core input.db.gz --do-sector-id
 sca-core input.db.gz \
     --do-sector-id \
     --kpos 6 \              # Number of eigenmodes (0=auto)
-    --sector-cutoff 0.95 \  # IC selection cutoff (default: 0.95)
+    --ic-cutoff 0.95 \  # IC selection cutoff (default: 0.95 of CDF of a t-locationscale distribution)
     --kmax-cap 10           # Safety cap on kpos (default: 10)
 ```
 
 **Automatic kpos selection:**
 - If `--kpos 0` (default): Automatically selects based on Lrand eigenvalues
-- Compares Csca eigenvalues to randomized control eigenvalues
-- Selects eigenmodes where Csca eigenvalue > quantile(Lrand, cutoff)
+- Compares Csca eigenvalues to randomized MSA eigenvalues
+- Selects eigenmodes where Csca eigenvalue > mean second eigenvalue of randomized MSA trials
 
 ### Memory Optimization
 
@@ -409,7 +458,7 @@ sca-core \
     --seqcorr-mmseqs2 \
     --do-sector-id \
     --kpos 0 \
-    --sector-cutoff 0.95 \
+    --ic-cutoff 0.95 \
     --lbda 0.03 \
     --norm frob \
     --Ntrials 10 \
@@ -420,7 +469,7 @@ sca-core \
 
 **What this does:**
 1. Loads processed alignment database
-2. Computes positional weights and SCA matrix
+2. Computes site-specific conservation and SCA matrix
 3. Computes randomized controls (10 trials)
 4. Computes sequence correlations with MMseqs2 subsampling
 5. Performs sector identification with automatic kpos selection
@@ -567,7 +616,7 @@ sca-core Outputs/alignment.db.gz
 #### Sector Identification (Optional)
 - `--do-sector-id`: Enable sector identification
 - `--kpos INT`: Number of eigenmodes (0=auto, default: 0)
-- `--sector-cutoff FLOAT`: IC selection cutoff (default: 0.95)
+- `--ic-cutoff FLOAT`: IC selection cutoff (default: 0.95)
 - `--kmax-cap INT`: Safety cap on kpos (default: 10)
 
 #### Memory & Storage
@@ -676,7 +725,7 @@ These errors occur when using `--precluster` option but MMseqs2 is not installed
 ### Sector ID issues
 - Check that Lrand is present in database (from randomization trials)
 - Try explicit `--kpos` instead of automatic selection
-- Adjust `--sector-cutoff` if too few/many sectors identified
+- Adjust `--ic-cutoff` if too few/many sectors identified
 
 ---
 
@@ -740,8 +789,9 @@ db = {
     },
     'sector': {                  # If --do-sector-id
         'kpos': int,             # Number of eigenmodes
-        'sector_pos': list,      # Sector positions (0-based indices)
-        'sector_ats': list,      # Sector ATS labels
+        'ic_cutoff': float,      # IC selection cutoff parameter
+        'ic_pos': list,          # IC positions (0-based indices)
+        'ic_ats': list,          # IC ATS labels
         'Vica': np.ndarray,      # ICA-rotated eigenvectors
         ...
     }

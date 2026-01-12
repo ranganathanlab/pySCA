@@ -143,3 +143,10 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Release/development documentation (internal use)
+RELEASE_*.md
+PRE_RELEASE*.md
+FINAL_RELEASE*.md
+UPDATE_*.md
+USER_DISCOVERY*.md

@@ -7,7 +7,7 @@ datadir=data
 outputdir=output
 
 datarepo="https://github.com/ranganathanlab/pySCA-data"
-version=6.1
+version=7.0
 
 # Download the data
 

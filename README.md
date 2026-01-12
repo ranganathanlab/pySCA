@@ -2,28 +2,39 @@
 
 ![Website Build Status](https://gitlab.com/ranganathanlab/pySCA/badges/master/pipeline.svg)
 
-> 09.2020
+> Version 7.0
 >
 > Copyright (C) 2019 Olivier Rivoire, Rama Ranganathan, and Kimberly Reynolds
 >
 > This program is free software distributed under the BSD 3-clause license,
 > please see the file LICENSE for details.
 
-The current version of the Statistical Coupling Analysis (SCA) analysis is
-implemented in Python. This directory contains the necessary code for running
-the SCA calculations, as well examples/tutorials for the dihydrofolate
-reductase (DHFR) enzyme family, the S1A serine proteases, the small G-protein
-family and the Beta-lactamase enzyme family. The tutorials are distributed as
-Jupyter notebooks; for details please see:
-[https://jupyter.org/](https://jupyter.org/).
+pySCA is a Python 3 implementation of the Statistical Coupling Analysis (SCA) for studying the architecture of evolutionary conservation in proteins. The analysis starts with a multiple sequence alignment of a protein family and produces a description of both positional conservation and collectively evolving groups of amino acids (sectors).
 
-For installation instructions, and an introduction to using the toolbox, please
-refer to the website:
+## Quick Start
 
-[https://ranganathanlab.gitlab.io/pySCA](https://ranganathanlab.gitlab.io/pySCA)
+1. **Install pySCA:**
+   ```bash
+   pip install -e .
+   ```
 
-or look through the [RST files](docs/source) included with the pySCA
-distribution.
+2. **Process an alignment:**
+   ```bash
+   sca-process-msa alignment.fasta -s 1XYZ --chainID A
+   ```
+
+3. **Run SCA calculations:**
+   ```bash
+   sca-core Outputs/alignment.db.gz --do-sector-id
+   ```
+
+For detailed installation instructions, see [INSTALLATION.md](INSTALLATION.md).
+
+For usage instructions, see [USAGE_INSTRUCTIONS.md](USAGE_INSTRUCTIONS.md).
+
+For more information, visit:
+- [pySCA Website](https://ranganathanlab.gitlab.io/pySCA)
+- [Documentation](docs/source)
 
 ## Contents of `/`
 
@@ -56,9 +67,4 @@ distribution.
 
 ## Contents of `notebooks/`
 
-|                         |                                     |
-| :---                    | :---                                |
-| SCA_DHFR.ipynb          | Example for DHFR                    |
-| SCA_G.ipynb             | Example for the small G proteins    |
-| SCA_betalactamase.ipynb | Example for the beta-lactamases     |
-| SCA_S1A.ipynb           | Example for the S1A serine protease |
+Example notebooks demonstrating pySCA workflows will be available here. See [notebooks/README.md](notebooks/README.md) for details.

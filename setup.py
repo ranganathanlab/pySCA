@@ -5,9 +5,9 @@ from setuptools import setup
 
 setup(
     name="pySCA",
-    version="6.1",
+    version="7.0",
     author="Olivier Rivoire, Rama Ranganathan, and Kimberly Reynolds",
-    maintainer="Ansel George",
+    maintainer="Rama Ranganathan",
     packages=["pysca"],
     package_data={"pysca": ["settings.py"]},
     description="Python 3 implementation of Statistical Coupling Analysis (SCA)",

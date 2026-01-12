@@ -15,8 +15,8 @@ Outputs
 -------
 Adds/overwrites db['sector'].
 Canonical sector representation is saved as indices into `ats`:
-  - db['sector']['sector_pos'] : list[list[int]] (0-based indices into `ats`)
-  - db['sector']['sector_ats'] : list[list[str]] (ATS labels; works when ats are strings)
+  - db['sector']['ic_pos'] : list[list[int]] (0-based indices into `ats`)
+  - db['sector']['ic_ats'] : list[list[str]] (ATS labels; works when ats are strings)
 
 Matlab export
 -------------
@@ -87,10 +87,10 @@ def _mat_sanitize(x: Any) -> Any:
         return x
     
     if isinstance(x, (list, tuple)):
-        # Special handling for list of lists (like sector_ats: list[list[str]])
+        # Special handling for list of lists (like ic_ats: list[list[str]])
         # MATLAB expects nested cell arrays, so we need to convert each inner list to object array
         if len(x) > 0 and isinstance(x[0], (list, tuple)):
-            # This is a nested list (e.g., sector_ats)
+            # This is a nested list (e.g., ic_ats)
             # Convert to array of object arrays for MATLAB cell array of cell arrays
             return np.array([np.array([str(item) for item in sublist], dtype=object) for sublist in x], dtype=object)
         try:
@@ -287,7 +287,7 @@ def main(argv: Optional[list[str]] = None) -> int:
                     help="Number of significant eigenmodes (0 => choose automatically if possible)")
     ap.add_argument("--kica", type=int, default=None,
                     help="Number of independent components to compute via ICA (must be >= 2 and <= kpos). Default: kpos")
-    ap.add_argument("-p", "--cutoff", dest="cutoff", type=float, default=0.95,
+    ap.add_argument("-p", "--ic-cutoff", dest="cutoff", type=float, default=0.95,
                     help="Cutoff for selecting significant positions per IC (default 0.95)")
     ap.add_argument("--kmax-cap", type=int, default=10,
                     help="Safety cap on kpos if automatic selection returns larger (default 10)")
@@ -469,32 +469,32 @@ def main(argv: Optional[list[str]] = None) -> int:
     logger.debug("sca.t returned type=%r" % type(sectors_raw))
 
     Lpos = int(Csca.shape[0])
-    sector_pos = _sector_as_index_lists(sectors_raw, Lpos)
+    ic_pos = _sector_as_index_lists(sectors_raw, Lpos)
 
     # Sort positions in each independent component by their value along the corresponding IC
-    # (independent components correspond to ICs, so sector_pos[k] corresponds to IC k)
-    sector_pos_sorted = []
-    for k, sector in enumerate(sector_pos):
+    # (independent components correspond to ICs, so ic_pos[k] corresponds to IC k)
+    ic_pos_sorted = []
+    for k, sector in enumerate(ic_pos):
         if len(sector) > 0 and k < kica:
             # Get values for positions in this independent component along IC k
             pos_values = Vica[sector, k]
             # Sort by value (descending: highest values first)
             sorted_pairs = sorted(zip(sector, pos_values), key=lambda x: x[1], reverse=True)
             sector_sorted = [idx for idx, val in sorted_pairs]
-            sector_pos_sorted.append(sector_sorted)
+            ic_pos_sorted.append(sector_sorted)
         else:
             # If no IC info available, keep original order
-            sector_pos_sorted.append(list(sector))
+            ic_pos_sorted.append(list(sector))
     
-    sector_pos = sector_pos_sorted
+    ic_pos = ic_pos_sorted
 
     # Map to ATS labels
     ats = db["sequence"].get("ats", list(range(Lpos)))
     ats_list = [str(a) for a in ats]
-    sector_ats = [[ats_list[i] for i in s] for s in sector_pos]
+    ic_ats = [[ats_list[i] for i in s] for s in ic_pos]
 
-    logger.info("Identified %d independent components" % len(sector_pos))
-    for i, sect in enumerate(sector_pos):
+    logger.info("Identified %d independent components" % len(ic_pos))
+    for i, sect in enumerate(ic_pos):
         logger.info("  Independent component %d: %d positions" % (i+1, len(sect)))
 
     # Store
@@ -513,7 +513,7 @@ def main(argv: Optional[list[str]] = None) -> int:
         logger.debug("  Stored kpos_auto as: None (could not compute)")
     db["sector"]["kpos_was_auto"] = kpos_was_auto
     db["sector"]["kica"] = kica
-    db["sector"]["cutoff"] = float(args.cutoff)
+    db["sector"]["ic_cutoff"] = float(args.cutoff)
     # V and L (full eigenvectors and eigenvalues) are stored in db['sca']
     # Only store top kpos results in sector
     db["sector"]["top_eigvals"] = top_eigvals.astype(np.float32) if args.float32 else top_eigvals  # Top kpos eigenvalues
@@ -555,8 +555,8 @@ def main(argv: Optional[list[str]] = None) -> int:
             "scaled_pdf": np.asarray(scaled_pdf[k], dtype=np.float32 if args.float32 else np.float64)
         })
     db["sector"]["t_dist"] = t_dist_struct
-    db["sector"]["sector_pos"] = sector_pos
-    db["sector"]["sector_ats"] = sector_ats
+    db["sector"]["ic_pos"] = ic_pos
+    db["sector"]["ic_ats"] = ic_ats
     db["sector"]["ic_kurtosis"] = ic_kurtosis
 
     # Persist updated DB (in-place)

@@ -233,7 +233,7 @@ def run_sca_core(
     do_sector_id: bool = False,
     kpos: Optional[int] = None,
     kica: Optional[int] = None,
-    sector_cutoff: float = 0.95,
+    ic_cutoff: float = 0.95,
     kmax_cap: int = 10,
     max_seqcorr_seqs: Optional[int] = None,
     seqcorr_ref: Optional[int] = None,
@@ -261,7 +261,7 @@ def run_sca_core(
         do_sector_id: Perform independent component identification
         kpos: Number of eigenmodes to keep (None = auto)
         kica: Number of independent components for ICA (None = use kpos)
-        sector_cutoff: T-distribution cutoff percentile for IC identification (default: 0.95)
+        ic_cutoff: T-distribution cutoff percentile for IC identification (default: 0.95)
         kmax_cap: Maximum kpos when auto-selecting (default: 10)
         max_seqcorr_seqs: Maximum sequences for seqSim (None = auto)
         seqcorr_ref: Reference sequence index for seqSim (None = use i_ref from DB)
@@ -314,8 +314,8 @@ def run_sca_core(
     if kica is not None:
         args.extend(["--kica", str(kica)])
     
-    if sector_cutoff != 0.95:
-        args.extend(["--sector-cutoff", str(sector_cutoff)])
+    if ic_cutoff != 0.95:
+        args.extend(["--ic-cutoff", str(ic_cutoff)])
     
     if kmax_cap != 10:
         args.extend(["--kmax-cap", str(kmax_cap)])
@@ -551,8 +551,8 @@ def plot_ic_positions(
     
     # Get significant positions if available
     significant_pos = None
-    if "sector_pos" in sector_data and ic_index < len(sector_data["sector_pos"]):
-        significant_pos = set(sector_data["sector_pos"][ic_index])
+    if "ic_pos" in sector_data and ic_index < len(sector_data["ic_pos"]):
+        significant_pos = set(sector_data["ic_pos"][ic_index])
     
     if ax is None:
         fig, ax = plt.subplots(figsize=figsize)
@@ -897,8 +897,8 @@ def plot_ic_positions_plotly(
     
     # Get significant positions if available
     significant_pos = None
-    if "sector_pos" in sector_data and ic_index < len(sector_data["sector_pos"]):
-        significant_pos = set(sector_data["sector_pos"][ic_index])
+    if "ic_pos" in sector_data and ic_index < len(sector_data["ic_pos"]):
+        significant_pos = set(sector_data["ic_pos"][ic_index])
     
     fig = go.Figure()
     

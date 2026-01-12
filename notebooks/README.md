@@ -1,20 +1,16 @@
-# Running pySCA Notebooks
+# pySCA Notebooks
 
-You can run notebooks in two ways:
-1. **In Cursor AI** (recommended) - See [CURSOR_SETUP.md](CURSOR_SETUP.md)
-2. **In Jupyter** - Follow the steps below
+Example notebooks for pySCA will be available here shortly.
 
-## Quick Setup Guide for Jupyter
+## Coming Soon
 
-To run the example notebooks in Jupyter, follow these steps:
+New example notebooks demonstrating pySCA 7.0 features will be added here.
 
-### 1. Activate Your Conda Environment
+## Running Notebooks
 
-```bash
-conda activate pysca3
-```
+To run notebooks in Jupyter:
 
-### 2. Install Notebook Dependencies
+### 1. Install Notebook Dependencies
 
 ```bash
 # From the pySCA root directory
@@ -28,53 +24,41 @@ This installs:
 - `plotly` - Interactive visualizations
 - `bokeh` - Alternative visualization library
 
-### 3. Register Your Environment as a Jupyter Kernel
+### 2. Register Your Environment as a Jupyter Kernel
 
 ```bash
-# Make sure you're in the pysca3 environment
+# Make sure you're in your conda/virtual environment
 python -m ipykernel install --user --name pysca3 --display-name "Python (pysca3)"
 ```
 
-### 4. Start Jupyter
+### 3. Start Jupyter
 
 ```bash
-# From the pySCA root directory (or notebooks directory)
+# From the pySCA root directory
 jupyter notebook
 
 # Or use JupyterLab
 jupyter lab
 ```
 
-### 5. Open and Run the Notebook
+### 4. Open and Run Notebooks
 
 1. Navigate to the `notebooks/` directory in Jupyter
-2. Open `SCA_PDZ_Example.ipynb`
-3. **Important**: Select "Python (pysca3)" as the kernel from the kernel menu (Kernel → Change Kernel → Python (pysca3))
+2. Open a notebook
+3. Select the appropriate kernel (e.g., "Python (pysca3)")
 4. Execute cells one by one using `Shift+Enter`
 
 ## Troubleshooting
 
 ### Kernel Not Found
 
-If you don't see "Python (pysca3)" in the kernel list:
-- Make sure you registered the kernel (step 3)
+If you don't see your kernel in the kernel list:
+- Make sure you registered the kernel (step 2)
 - Try restarting Jupyter
-- Check that you're in the correct conda environment: `conda activate pysca3`
+- Check that you're in the correct conda/virtual environment
 
 ### Import Errors
 
 If you get import errors:
 - Make sure pySCA is installed: `pip install -e .`
 - Verify installation: `python -c "import pysca; print('OK')"`
-
-### Database Not Found
-
-If the notebook can't find `Outputs/PDZ_PF00595_aln.db.gz`:
-- Make sure you've run `sca-process-msa` first to create the database
-- Check that the file exists: `ls Outputs/PDZ_PF00595_aln.db.gz`
-
-## Available Notebooks
-
-- **SCA_PDZ_Example.ipynb** - Complete workflow example using PDZ domain data
-- **SCA_Example_Template.ipynb** - Template for creating your own analyses
-
