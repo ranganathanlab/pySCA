@@ -1045,7 +1045,11 @@ def seqWeights(alg, max_seqid=0.8, gaps=1, block_size=1024):
             neigh[global_idx] = (row_data > max_seqid).sum()
 
     # avoid division by zero (shouldn't happen because self-similarity is 1.0 > max_seqid)
-    seqw = 1.0 / neigh.astype(float)
+    # But handle edge cases where neigh might be 0 (very dissimilar sequences)
+    neigh_float = neigh.astype(float)
+    # Replace 0 with 1 to avoid infinity (gives those sequences weight 1.0)
+    neigh_float[neigh_float == 0] = 1.0
+    seqw = 1.0 / neigh_float
     seqw = seqw.reshape(1, Nseq)
     return seqw
 
@@ -1153,7 +1157,14 @@ def filterPos(alg, seqw=[1], max_fracgaps=0.2):
                 pass
             else:
                 raise ValueError(f"seqw has length {w.size} but alignment has {Nseq} sequences.")
-        wn = w / w.sum()
+        # Handle edge case where weights sum to 0, inf, or NaN
+        w_sum = w.sum()
+        if not np.isfinite(w_sum) or w_sum == 0:
+            # Fall back to uniform weights
+            print(f"Warning: Sequence weights sum to {w_sum} (invalid). Using uniform weights.")
+            wn = np.ones_like(w) / w.size
+        else:
+            wn = w / w_sum
         gapsperpos = (wn[:, None] * gapsMat).sum(axis=0)
 
     selpos = np.where(gapsperpos < max_fracgaps)[0].tolist()

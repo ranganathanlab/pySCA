@@ -811,7 +811,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         "ats": ats,
         "effseqs": effseqs,
         "limitseqs": False,
-        "effseqsPrelimit": int(seqw0_sum),
+        "effseqsPrelimit": int(seqw0_sum) if np.isfinite(seqw0_sum) else Nseq_original,  # Handle inf/NaN
         "i_ref": int(i_ref_filtered) if i_ref_filtered is not None else None,  # Position in final processed alignment (alg)
         "i_ref_original": int(i_ref_original) if i_ref_original is not None else None,  # Original position in input MSA (alg_original)
         "i_ref_was_moved": bool(i_ref_was_moved),  # Flag indicating if reference was moved to index 0
