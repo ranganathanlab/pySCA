@@ -798,9 +798,12 @@ def main(argv: Optional[list[str]] = None) -> int:
                     
                     # Map to ATS labels
                     pos_ats = [ats_list[i] for i in pos_indices_sorted]
+                    # Filter out gaps ('-') from positions
+                    pos_ats_filtered = [p for p in pos_ats if str(p) != '-']
                     # Format as sprintf('%g+', positions) - positions separated by '+'
-                    pos_str = '+'.join(str(p) for p in pos_ats) + '+'
+                    pos_str = '+'.join(str(p) for p in pos_ats_filtered) + '+'
                     logger.info(f"IC {k+1} significant positions (ATS): {pos_str}")
+                    print(f"IC {k+1} significant positions (ATS): {pos_str}")
         
         # Independent component extraction
         logger.info("Extracting independent components...")
@@ -832,6 +835,8 @@ def main(argv: Optional[list[str]] = None) -> int:
         ats = seq.get("ats", list(range(Lpos)))
         ats_list = [str(a) for a in ats]
         sector_ats = [[ats_list[i] for i in s] for s in sector_pos]
+        # Filter out gaps ('-') from sector_ats before storing
+        sector_ats = [[p for p in sect if str(p) != '-'] for sect in sector_ats]
         
         # Store sector results
         db.setdefault("sector", {})
